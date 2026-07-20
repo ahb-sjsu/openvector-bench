@@ -1,0 +1,12 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Applies to: the specifications in spec/, and to benchmark artifacts produced
+by this project — manifests, ground-truth files, difficulty strata, and
+structural relevance labels.
+
+Full text: https://creativecommons.org/licenses/by/4.0/legalcode
+
+NOT covered by this licence: third-party corpora referenced by manifest and
+hash (e.g. BIGANN, Wikipedia embedding sets). This project distributes
+pointers and cryptographic hashes describing that data, not the data itself;
+each source remains under its own terms, recorded in the manifest.

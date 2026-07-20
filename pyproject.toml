@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openvector-bench"
+version = "0.0.1"
+description = "A nested, content-addressed benchmark family for vector search at 10^6-10^12 rows, with geometric, structural, and human truth layers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Andrew H. Bond", email = "andrew.bond@sjsu.edu" }]
+keywords = [
+    "vector-search",
+    "approximate-nearest-neighbor",
+    "benchmark",
+    "information-retrieval",
+    "reproducibility",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+gpu = ["torch>=2.0"]
+sources = ["huggingface-hub>=0.23", "pyarrow>=14"]
+dev = ["pytest>=7", "ruff>=0.5", "black>=24"]
+
+[project.urls]
+Homepage = "https://github.com/ahb-sjsu/openvector-bench"
+Repository = "https://github.com/ahb-sjsu/openvector-bench"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["openvector_bench*"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.black]
+line-length = 88
