@@ -74,8 +74,21 @@ corpus grows — so GT is computed and published per tier.
 ```
 spec/       registered specifications (prereg, distribution, family design)
 harness/    measurement code: geometry battery, distribution/verification
+notebooks/  reproduce.ipynb — publish → delete → reconstruct → verify, end to end
 results/    measured outputs, committed as produced
 ```
+
+## Reproducing a corpus
+
+A corpus is a signed Merkle manifest; the bytes come from deterministic
+regeneration or any mirror, verified chunk-by-chunk either way. Run
+`notebooks/reproduce.ipynb` top to bottom with **no credentials** for the
+whole cycle in miniature, or
+`harness/distribution/reconstruct_experiment.py` for the registered §6
+experiment with machine-readable pass criteria. Credentials, when you point
+at real mirrors, are ambient only: boto3's standard chain for `s3://` (with
+`OVB_S3_ENDPOINT` for non-AWS endpoints such as NRP Ceph) — never pasted
+into a cell.
 
 ## Design commitments
 
