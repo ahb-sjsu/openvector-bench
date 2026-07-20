@@ -1,0 +1,2677 @@
+{
+  "candidates": {
+    "null_gaussian": {
+      "admitted": false,
+      "cells_meeting_count_rule": "0/12",
+      "mandatory_gate_failures": 27,
+      "example_mandatory_failures": [
+        "g1_id_twonn@A_corpus/n=25000/k=10",
+        "g6_hubness_skew@A_corpus/n=25000/k=10",
+        "g1_id_twonn@A_corpus/n=25000/k=30",
+        "g6_hubness_skew@A_corpus/n=25000/k=30",
+        "g1_id_twonn@A_corpus/n=25000/k=100"
+      ],
+      "detail": [
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.1108,
+              "ci": [
+                6.0418,
+                6.1885
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 8.011,
+              "ci": [
+                7.9506,
+                8.0706
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.519,
+              "ci": [
+                5.5017,
+                5.535
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4444,
+              "ci": [
+                2.4444,
+                2.4444
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8655,
+              "ci": [
+                0.8651,
+                0.8659
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0935,
+              "ci": [
+                0.0886,
+                0.0982
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 3.9476,
+              "ci": [
+                3.8823,
+                4.017
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0466,
+              "ci": [
+                0.0463,
+                0.0468
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.1108,
+              "ci": [
+                6.0418,
+                6.1885
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 6.7927,
+              "ci": [
+                6.7461,
+                6.8465
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.519,
+              "ci": [
+                5.5017,
+                5.535
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4444,
+              "ci": [
+                2.4444,
+                2.4444
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8857,
+              "ci": [
+                0.8854,
+                0.8861
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.095,
+              "ci": [
+                0.0872,
+                0.1021
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.8186,
+              "ci": [
+                2.7889,
+                2.8443
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0644,
+              "ci": [
+                0.0641,
+                0.0646
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.1108,
+              "ci": [
+                6.0418,
+                6.1885
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 6.0549,
+              "ci": [
+                5.9937,
+                6.1164
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.519,
+              "ci": [
+                5.5017,
+                5.535
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4444,
+              "ci": [
+                2.4444,
+                2.4444
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9073,
+              "ci": [
+                0.9071,
+                0.9077
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0857,
+              "ci": [
+                0.0784,
+                0.0953
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.7482,
+              "ci": [
+                1.7337,
+                1.763
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.095,
+              "ci": [
+                0.0947,
+                0.0953
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.3603,
+              "ci": [
+                6.2793,
+                6.4466
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 8.6657,
+              "ci": [
+                8.5841,
+                8.7582
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5963,
+              "ci": [
+                5.5854,
+                5.6102
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8528,
+              "ci": [
+                0.8523,
+                0.8534
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0948,
+              "ci": [
+                0.0874,
+                0.1022
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 4.0309,
+              "ci": [
+                3.9682,
+                4.0938
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0308,
+              "ci": [
+                0.0305,
+                0.0311
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.3603,
+              "ci": [
+                6.2793,
+                6.4466
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 7.3568,
+              "ci": [
+                7.2986,
+                7.4212
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5963,
+              "ci": [
+                5.5854,
+                5.6102
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8734,
+              "ci": [
+                0.8728,
+                0.874
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0935,
+              "ci": [
+                0.0896,
+                0.0986
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.8356,
+              "ci": [
+                2.7925,
+                2.8772
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0436,
+              "ci": [
+                0.0433,
+                0.0439
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.3603,
+              "ci": [
+                6.2793,
+                6.4466
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 6.2981,
+              "ci": [
+                6.2583,
+                6.3411
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5963,
+              "ci": [
+                5.5854,
+                5.6102
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8951,
+              "ci": [
+                0.8945,
+                0.8956
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0916,
+              "ci": [
+                0.0879,
+                0.0959
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.7686,
+              "ci": [
+                1.7509,
+                1.7857
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0654,
+              "ci": [
+                0.0652,
+                0.0656
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 10,
+          "gates_passed": 0,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.5659,
+              "ci": [
+                6.4905,
+                6.6403
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 9.3373,
+              "ci": [
+                9.2721,
+                9.3986
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.6064,
+              "ci": [
+                5.591,
+                5.6229
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.84,
+              "ci": [
+                0.8394,
+                0.8404
+              ],
+              "pass": false
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0973,
+              "ci": [
+                0.0865,
+                0.1094
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 4.0515,
+              "ci": [
+                3.9873,
+                4.1182
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0221,
+              "ci": [
+                0.0218,
+                0.0224
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.5659,
+              "ci": [
+                6.4905,
+                6.6403
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 7.8997,
+              "ci": [
+                7.8681,
+                7.9322
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.6064,
+              "ci": [
+                5.591,
+                5.6229
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8603,
+              "ci": [
+                0.8599,
+                0.8608
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0949,
+              "ci": [
+                0.0893,
+                0.1015
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.8492,
+              "ci": [
+                2.7997,
+                2.8907
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0313,
+              "ci": [
+                0.031,
+                0.0316
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.5659,
+              "ci": [
+                6.4905,
+                6.6403
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 6.7403,
+              "ci": [
+                6.6951,
+                6.7886
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.6064,
+              "ci": [
+                5.591,
+                5.6229
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8821,
+              "ci": [
+                0.8817,
+                0.8826
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0947,
+              "ci": [
+                0.0903,
+                0.0995
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.7407,
+              "ci": [
+                1.7202,
+                1.7604
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0472,
+              "ci": [
+                0.047,
+                0.0474
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 10,
+          "gates_passed": 0,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.7498,
+              "ci": [
+                6.6457,
+                6.8674
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 10.1617,
+              "ci": [
+                10.0878,
+                10.2479
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5969,
+              "ci": [
+                5.5845,
+                5.6079
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8275,
+              "ci": [
+                0.8268,
+                0.8282
+              ],
+              "pass": false
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1026,
+              "ci": [
+                0.0968,
+                0.1096
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 4.0913,
+              "ci": [
+                4.0512,
+                4.1299
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0162,
+              "ci": [
+                0.0161,
+                0.0164
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 30,
+          "gates_passed": 0,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.7498,
+              "ci": [
+                6.6457,
+                6.8674
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 8.5142,
+              "ci": [
+                8.4447,
+                8.5886
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5969,
+              "ci": [
+                5.5845,
+                5.6079
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8479,
+              "ci": [
+                0.847,
+                0.8487
+              ],
+              "pass": false
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0896,
+              "ci": [
+                0.0833,
+                0.0968
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.8217,
+              "ci": [
+                2.7827,
+                2.8633
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0231,
+              "ci": [
+                0.0229,
+                0.0233
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 6.7498,
+              "ci": [
+                6.6457,
+                6.8674
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 7.2575,
+              "ci": [
+                7.2022,
+                7.3059
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 5.5969,
+              "ci": [
+                5.5845,
+                5.6079
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.4696,
+              "ci": [
+                2.4696,
+                2.4696
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.87,
+              "ci": [
+                0.8693,
+                0.8708
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.0867,
+              "ci": [
+                0.0807,
+                0.0932
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.733,
+              "ci": [
+                1.7109,
+                1.7535
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.035,
+              "ci": [
+                0.0349,
+                0.0351
+              ],
+              "pass": false
+            }
+          }
+        }
+      ]
+    },
+    "null_lowrank": {
+      "admitted": false,
+      "cells_meeting_count_rule": "0/12",
+      "mandatory_gate_failures": 24,
+      "example_mandatory_failures": [
+        "g1_id_twonn@A_corpus/n=25000/k=10",
+        "g6_hubness_skew@A_corpus/n=25000/k=10",
+        "g1_id_twonn@A_corpus/n=25000/k=30",
+        "g6_hubness_skew@A_corpus/n=25000/k=30",
+        "g1_id_twonn@A_corpus/n=25000/k=100"
+      ],
+      "detail": [
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 10,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.7865,
+              "ci": [
+                1.7684,
+                1.8053
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.09,
+              "ci": [
+                2.0731,
+                2.1065
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6766,
+              "ci": [
+                0.6741,
+                0.6791
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3394,
+              "ci": [
+                0.3389,
+                0.3406
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9762,
+              "ci": [
+                0.9757,
+                0.9767
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1454,
+              "ci": [
+                0.138,
+                0.1525
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.1739,
+              "ci": [
+                1.1581,
+                1.1907
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5615,
+              "ci": [
+                1.5586,
+                1.5644
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 30,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.7865,
+              "ci": [
+                1.7684,
+                1.8053
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.8327,
+              "ci": [
+                1.8186,
+                1.8484
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6766,
+              "ci": [
+                0.6741,
+                0.6791
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3394,
+              "ci": [
+                0.3389,
+                0.3406
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9859,
+              "ci": [
+                0.9854,
+                0.9863
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1942,
+              "ci": [
+                0.1845,
+                0.2043
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.8605,
+              "ci": [
+                0.8523,
+                0.8676
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5248,
+              "ci": [
+                1.5208,
+                1.528
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.7865,
+              "ci": [
+                1.7684,
+                1.8053
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.6965,
+              "ci": [
+                1.6798,
+                1.7136
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6766,
+              "ci": [
+                0.6741,
+                0.6791
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3394,
+              "ci": [
+                0.3389,
+                0.3406
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9944,
+              "ci": [
+                0.9941,
+                0.9948
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.2486,
+              "ci": [
+                0.2356,
+                0.2623
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.5634,
+              "ci": [
+                0.5568,
+                0.5719
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.4972,
+              "ci": [
+                1.4955,
+                1.499
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8101,
+              "ci": [
+                1.7876,
+                1.8335
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.211,
+              "ci": [
+                2.1948,
+                2.2315
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6746,
+              "ci": [
+                0.6726,
+                0.6767
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9696,
+              "ci": [
+                0.969,
+                0.9703
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1307,
+              "ci": [
+                0.1204,
+                0.1412
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.2008,
+              "ci": [
+                1.1852,
+                1.2172
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5947,
+              "ci": [
+                1.5898,
+                1.5997
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 30,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8101,
+              "ci": [
+                1.7876,
+                1.8335
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.9198,
+              "ci": [
+                1.9025,
+                1.9363
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6746,
+              "ci": [
+                0.6726,
+                0.6767
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9804,
+              "ci": [
+                0.9797,
+                0.9811
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1625,
+              "ci": [
+                0.1548,
+                0.1722
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.8521,
+              "ci": [
+                0.8395,
+                0.8651
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5556,
+              "ci": [
+                1.554,
+                1.5574
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8101,
+              "ci": [
+                1.7876,
+                1.8335
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.7272,
+              "ci": [
+                1.7187,
+                1.7365
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6746,
+              "ci": [
+                0.6726,
+                0.6767
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9899,
+              "ci": [
+                0.9892,
+                0.9905
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.2255,
+              "ci": [
+                0.2198,
+                0.2321
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.5591,
+              "ci": [
+                0.5533,
+                0.5648
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5232,
+              "ci": [
+                1.5204,
+                1.5251
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8798,
+              "ci": [
+                1.8619,
+                1.8987
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.3254,
+              "ci": [
+                2.3116,
+                2.3381
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.676,
+              "ci": [
+                0.6737,
+                0.6782
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9622,
+              "ci": [
+                0.9616,
+                0.9628
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1191,
+              "ci": [
+                0.1059,
+                0.1342
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.1874,
+              "ci": [
+                1.1676,
+                1.209
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.624,
+              "ci": [
+                1.6215,
+                1.6265
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 30,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8798,
+              "ci": [
+                1.8619,
+                1.8987
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.0196,
+              "ci": [
+                2.0085,
+                2.0313
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.676,
+              "ci": [
+                0.6737,
+                0.6782
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9734,
+              "ci": [
+                0.9728,
+                0.974
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1432,
+              "ci": [
+                0.1348,
+                0.1531
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.8519,
+              "ci": [
+                0.8347,
+                0.8669
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5846,
+              "ci": [
+                1.5834,
+                1.5857
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.8798,
+              "ci": [
+                1.8619,
+                1.8987
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.8043,
+              "ci": [
+                1.7883,
+                1.8199
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.676,
+              "ci": [
+                0.6737,
+                0.6782
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9839,
+              "ci": [
+                0.9834,
+                0.9844
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.192,
+              "ci": [
+                0.1841,
+                0.2007
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.5462,
+              "ci": [
+                0.5396,
+                0.5524
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.547,
+              "ci": [
+                1.5458,
+                1.5483
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.9151,
+              "ci": [
+                1.8847,
+                1.9442
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.4737,
+              "ci": [
+                2.4482,
+                2.4999
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6744,
+              "ci": [
+                0.6723,
+                0.6763
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.955,
+              "ci": [
+                0.9542,
+                0.9558
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1163,
+              "ci": [
+                0.1098,
+                0.1243
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.1863,
+              "ci": [
+                1.1722,
+                1.2024
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.647,
+              "ci": [
+                1.6434,
+                1.6505
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 30,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.9151,
+              "ci": [
+                1.8847,
+                1.9442
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 2.1263,
+              "ci": [
+                2.1115,
+                2.1426
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6744,
+              "ci": [
+                0.6723,
+                0.6763
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9668,
+              "ci": [
+                0.9659,
+                0.9678
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1172,
+              "ci": [
+                0.1087,
+                0.1268
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.8353,
+              "ci": [
+                0.8247,
+                0.8473
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "ratio": 1.6067,
+              "ci": [
+                1.6045,
+                1.6087
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 1.9151,
+              "ci": [
+                1.8847,
+                1.9442
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 1.8933,
+              "ci": [
+                1.8741,
+                1.914
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 0.6744,
+              "ci": [
+                0.6723,
+                0.6763
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 0.3376,
+              "ci": [
+                0.337,
+                0.3387
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9785,
+              "ci": [
+                0.9777,
+                0.9794
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.1491,
+              "ci": [
+                0.1387,
+                0.1603
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 0.5426,
+              "ci": [
+                0.5383,
+                0.547
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 1.5661,
+              "ci": [
+                1.565,
+                1.567
+              ],
+              "pass": false
+            }
+          }
+        }
+      ]
+    },
+    "null_shuffle": {
+      "admitted": false,
+      "cells_meeting_count_rule": "0/12",
+      "mandatory_gate_failures": 25,
+      "example_mandatory_failures": [
+        "g1_id_twonn@A_corpus/n=25000/k=10",
+        "g6_hubness_skew@A_corpus/n=25000/k=10",
+        "g1_id_twonn@A_corpus/n=25000/k=30",
+        "g6_hubness_skew@A_corpus/n=25000/k=30",
+        "g1_id_twonn@A_corpus/n=25000/k=100"
+      ],
+      "detail": [
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.1672,
+              "ci": [
+                5.1155,
+                5.2179
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.9775,
+              "ci": [
+                3.9428,
+                4.0123
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4201,
+              "ci": [
+                4.4065,
+                4.4331
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1306,
+              "ci": [
+                2.1306,
+                2.1306
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8753,
+              "ci": [
+                0.8749,
+                0.8758
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.108,
+              "ci": [
+                1.0053,
+                1.2424
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 3.3681,
+              "ci": [
+                3.3204,
+                3.4154
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.126,
+              "ci": [
+                0.1255,
+                0.1266
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.1672,
+              "ci": [
+                5.1155,
+                5.2179
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.6238,
+              "ci": [
+                3.5888,
+                3.6609
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4201,
+              "ci": [
+                4.4065,
+                4.4331
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1306,
+              "ci": [
+                2.1306,
+                2.1306
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8948,
+              "ci": [
+                0.8944,
+                0.8952
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.6461,
+              "ci": [
+                1.5123,
+                1.8195
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.4074,
+              "ci": [
+                2.3638,
+                2.4617
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1547,
+              "ci": [
+                0.1543,
+                0.155
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.1672,
+              "ci": [
+                5.1155,
+                5.2179
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.4485,
+              "ci": [
+                3.4107,
+                3.4877
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4201,
+              "ci": [
+                4.4065,
+                4.4331
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1306,
+              "ci": [
+                2.1306,
+                2.1306
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9155,
+              "ci": [
+                0.9151,
+                0.9159
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 2.1449,
+              "ci": [
+                2.0155,
+                2.2945
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.4824,
+              "ci": [
+                1.4695,
+                1.497
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.2,
+              "ci": [
+                0.1996,
+                0.2003
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 10,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.3578,
+              "ci": [
+                5.2913,
+                5.4262
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 4.211,
+              "ci": [
+                4.177,
+                4.2514
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4636,
+              "ci": [
+                4.4548,
+                4.4748
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8631,
+              "ci": [
+                0.8624,
+                0.8637
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.8046,
+              "ci": [
+                0.7377,
+                0.8725
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 3.4179,
+              "ci": [
+                3.3677,
+                3.4681
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1051,
+              "ci": [
+                0.1043,
+                0.1058
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.3578,
+              "ci": [
+                5.2913,
+                5.4262
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.8126,
+              "ci": [
+                3.7831,
+                3.8415
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4636,
+              "ci": [
+                4.4548,
+                4.4748
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8829,
+              "ci": [
+                0.8823,
+                0.8836
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.1905,
+              "ci": [
+                1.1394,
+                1.257
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.4048,
+              "ci": [
+                2.3724,
+                2.4381
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1292,
+              "ci": [
+                0.1289,
+                0.1295
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.3578,
+              "ci": [
+                5.2913,
+                5.4262
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.5197,
+              "ci": [
+                3.4972,
+                3.5418
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4636,
+              "ci": [
+                4.4548,
+                4.4748
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.9037,
+              "ci": [
+                0.9031,
+                0.9043
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.7334,
+              "ci": [
+                1.6952,
+                1.78
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.5056,
+              "ci": [
+                1.4844,
+                1.5268
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1661,
+              "ci": [
+                0.1656,
+                0.1666
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 10,
+          "gates_passed": 0,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.5786,
+              "ci": [
+                5.5256,
+                5.6356
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 4.4829,
+              "ci": [
+                4.4374,
+                4.5289
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4729,
+              "ci": [
+                4.4606,
+                4.4861
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8505,
+              "ci": [
+                0.8499,
+                0.851
+              ],
+              "pass": false
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.6412,
+              "ci": [
+                0.5676,
+                0.7254
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 3.4185,
+              "ci": [
+                3.365,
+                3.4712
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0888,
+              "ci": [
+                0.0883,
+                0.0892
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 30,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.5786,
+              "ci": [
+                5.5256,
+                5.6356
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 4.0242,
+              "ci": [
+                4.0054,
+                4.044
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4729,
+              "ci": [
+                4.4606,
+                4.4861
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8703,
+              "ci": [
+                0.8698,
+                0.8708
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.9909,
+              "ci": [
+                0.9297,
+                1.0627
+              ],
+              "pass": true
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.4036,
+              "ci": [
+                2.3572,
+                2.4483
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1091,
+              "ci": [
+                0.1089,
+                0.1093
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.5786,
+              "ci": [
+                5.5256,
+                5.6356
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.6714,
+              "ci": [
+                3.6428,
+                3.6963
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4729,
+              "ci": [
+                4.4606,
+                4.4861
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8913,
+              "ci": [
+                0.8908,
+                0.8918
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.4672,
+              "ci": [
+                1.4035,
+                1.5373
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.4713,
+              "ci": [
+                1.4537,
+                1.4891
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.1399,
+              "ci": [
+                0.1396,
+                0.1402
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 10,
+          "gates_passed": 0,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.7591,
+              "ci": [
+                5.6622,
+                5.8594
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 4.7588,
+              "ci": [
+                4.7143,
+                4.8059
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4653,
+              "ci": [
+                4.4552,
+                4.474
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8385,
+              "ci": [
+                0.8377,
+                0.8393
+              ],
+              "pass": false
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.5226,
+              "ci": [
+                0.4744,
+                0.5833
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 3.509,
+              "ci": [
+                3.4587,
+                3.5795
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0764,
+              "ci": [
+                0.0758,
+                0.077
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 30,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.7591,
+              "ci": [
+                5.6622,
+                5.8594
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 4.2411,
+              "ci": [
+                4.2005,
+                4.2798
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4653,
+              "ci": [
+                4.4552,
+                4.474
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8583,
+              "ci": [
+                0.8574,
+                0.8592
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 0.7525,
+              "ci": [
+                0.6795,
+                0.8385
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 2.3734,
+              "ci": [
+                2.3391,
+                2.4103
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.0935,
+              "ci": [
+                0.093,
+                0.094
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 100,
+          "gates_passed": 1,
+          "results": {
+            "g1_id_twonn": {
+              "ratio": 5.7591,
+              "ci": [
+                5.6622,
+                5.8594
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "ratio": 3.8402,
+              "ci": [
+                3.8024,
+                3.8745
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "ratio": 4.4653,
+              "ci": [
+                4.4552,
+                4.474
+              ],
+              "pass": false
+            },
+            "g4_dims90": {
+              "ratio": 2.1354,
+              "ci": [
+                2.1354,
+                2.1354
+              ],
+              "pass": false
+            },
+            "g5_relative_contrast": {
+              "ratio": 0.8798,
+              "ci": [
+                0.879,
+                0.8806
+              ],
+              "pass": true
+            },
+            "g6_hubness_skew": {
+              "ratio": 1.1384,
+              "ci": [
+                1.047,
+                1.2391
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "ratio": 1.4673,
+              "ci": [
+                1.4575,
+                1.4788
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "ratio": 0.119,
+              "ci": [
+                0.1188,
+                0.1191
+              ],
+              "pass": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gate_discrimination": {
+    "g1_id_twonn": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g2_id_ballgrowth": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g3_eff_rank": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g4_dims90": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g5_relative_contrast": [],
+    "g6_hubness_skew": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g7_local_id_iqr": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ],
+    "g8_pca_retention": [
+      "null_gaussian",
+      "null_lowrank",
+      "null_shuffle"
+    ]
+  },
+  "battery_sufficient": true
+}
