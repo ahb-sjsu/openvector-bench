@@ -91,9 +91,11 @@ def main() -> None:
                 ok = bool(np.isfinite(clo) and clo >= lo and chi <= hi)
                 results[g] = {
                     "ratio": None if not np.isfinite(r) else round(r, 4),
-                    "ci": [None, None]
-                    if not np.isfinite(clo)
-                    else [round(clo, 4), round(chi, 4)],
+                    "ci": (
+                        [None, None]
+                        if not np.isfinite(clo)
+                        else [round(clo, 4), round(chi, 4)]
+                    ),
                     "pass": ok,
                 }
                 per_gate_pass[g][0] += int(ok)
@@ -105,8 +107,13 @@ def main() -> None:
             if passed >= len(GATES) - 2:
                 cells_pass += 1
             detail.append(
-                {"battery": battery, "n": n, "k": k, "gates_passed": passed,
-                 "results": results}
+                {
+                    "battery": battery,
+                    "n": n,
+                    "k": k,
+                    "gates_passed": passed,
+                    "results": results,
+                }
             )
         # PREREG v2 §5: mandatory gates in EVERY cell, "all but two" in >=10/12
         admitted = (not mandatory_fail) and cells_pass >= max(
