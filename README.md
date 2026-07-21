@@ -1,13 +1,55 @@
 # OpenVector Bench
 
-A **nested, content-addressed benchmark family** for vector search at
-10⁶–10¹² rows, with three independent notions of a correct answer.
+[![CI](https://github.com/ahb-sjsu/openvector-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/ahb-sjsu/openvector-bench/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
+[![Data: CC BY 4.0](https://img.shields.io/badge/data-CC--BY--4.0-lightgrey.svg)](LICENSE-DATA)
+[![status: validation stage](https://img.shields.io/badge/status-validation%20stage-orange.svg)](#status-and-results)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> **Status: design and validation stage.** The specifications are registered
-> and the geometry battery runs; no tier is published yet. Nothing above the
-> real/procedural seam (§ *Tiers*) will be released as a benchmark until the
-> registered validations pass. If they fail, the family stops at the seam and
-> says so.
+A **nested, content-addressed benchmark family** for vector search at
+**10⁶–10¹² rows**, with three independent notions of a correct answer.
+
+> **Status: design & validation stage — no tier is published yet.** The specs are
+> registered and the geometry battery runs; nothing above the real/procedural seam
+> ships until the registered validations (RC-1, RC-2) pass — and if they fail, the
+> family stops at the seam and says so. **[→ Status and results](#status-and-results)**
+
+## The idea in one picture
+
+A 10¹² corpus is ~128 TB — too big to host or hand out. So the corpus *is* a
+signed manifest of kilobytes: you rebuild the bytes yourself, and every one is
+hash-verified against the manifest either way.
+
+```mermaid
+flowchart LR
+    A["Signed Merkle manifest<br/>(kilobytes)"] --> B{"per shard:<br/>first source<br/>that verifies"}
+    B -->|deterministic| R["Regenerate<br/>from seed · no network"]
+    B -->|or| F["Fetch a mirror<br/>only the shards you need"]
+    R --> V{"hash ==<br/>manifest root?"}
+    F --> V
+    V -->|yes| S["Byte-identical shard"]
+    V -->|"no — cache miss"| B
+    S --> GT["Exact ground truth<br/>computed once · a few MB"]
+    classDef ok fill:#d1f0d1,stroke:#2e7d32,color:#14320f;
+    class S,GT ok;
+```
+
+Every tier is a **strict subset** of the next, so a recall change is about *N*,
+not the data; ground truth and per-query difficulty strata are published per tier.
+
+## Quickstart
+
+```bash
+pip install -e ".[dev]"      # numpy + scipy (+ ruff/black/pytest for dev)
+pytest -q                    # manifest, generator determinism, geometry battery
+
+# Rebuild a corpus end to end, credential-free (publish → delete → regenerate → verify):
+jupyter notebook notebooks/reproduce.ipynb
+# …or the registered §6 reconstruction experiment with machine-readable pass criteria:
+python harness/distribution/reconstruct_experiment.py --help
+```
 
 ---
 
@@ -69,52 +111,71 @@ validations hold:
 Ground truth is **not** nested — a query's true neighbours change as the
 corpus grows — so GT is computed and published per tier.
 
-## Validation status & results
+## Status and results
 
 Design-and-validation stage: the instrument is built and the seam is being
 tested. **No tier is published** — nothing above the real/procedural seam ships
-until RC-1 and RC-2 hold. What has been measured so far, with every artifact
-committed as produced:
+until RC-1 and RC-2 hold. Where each piece stands, with every artifact committed
+as produced:
 
-**RC-1 round 1 — the battery is an instrument, not a formality.**
-Target: Cohere Wikipedia Embed-V3 (en), 1024-d, over a 300-cell grid
-(n ∈ {25k…200k} × k ∈ {10,30,100} × 5 subsamples) under the registered angular
-metric. All three frozen nulls are **rejected** (0/12 cells admitted each); the
-measured target's intrinsic dimension is stable in n (≈52.2 → 52.1 over 8×) while
-hubness grows with n — structure invisible at a single operating point. Crucially,
-**`null_lowrank` — the recipe behind the existing 1B/10B synthetic corpora — is
-rejected too** (≈1/7 the hubness of real embeddings; PCA-256 retains 1.57× the
-neighbours, i.e. trivially compressible in a way real embeddings are not). So a
-systems/recall result measured on that corpus *"is a statement about that corpus,
-not about real retrieval"* — which is exactly why retrieval tiers wait for a
-fitted, RC-validated generator.
-→ [`results/RC1_ROUND1.md`](results/RC1_ROUND1.md) ·
-[`results/rc1_scores.json`](results/rc1_scores.json) ·
-[`results/rc1_cells.json`](results/rc1_cells.json) · prereg
-[`spec/PREREG_RC1.md`](spec/PREREG_RC1.md).
+| Milestone | What it proves | Status | Evidence |
+|---|---|:---:|---|
+| **Geometry battery** (RC-1 instrument) | the battery tells real embeddings from wrong ones | ✅ **passed** | 3/3 frozen nulls rejected · [`RC1_ROUND1.md`](results/RC1_ROUND1.md) |
+| **§6 reconstruction** | a corpus regenerates **byte-identically** from a kB manifest | ✅ **passed** | 4/4 criteria · [experiment](harness/distribution/reconstruct_experiment.py) · [notebook](notebooks/reproduce.ipynb) |
+| **Distribution at scale** | regenerate-from-seed works at **10¹¹**, zero data movement | 🟡 **in progress** | sibling [turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro) fleet build (systems evidence) |
+| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **blocked** | no generator yet — [see below](#whats-blocking-rc-1-and-rc-2) |
+| **RC-2** — sealed prediction | that geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after RC-1 |
+| **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires RC-1 **and** RC-2 |
 
-**§6 reconstruction — the corpus-as-object regenerates byte-identically.** The
-registered experiment (publish → delete every byte source → reconstruct on a
-fresh worker from whatever resolves) passes its four machine-checkable criteria:
-reconstructed shards are byte-identical to the originals, with the event log
-(regeneration rate, per-source latency, bytes moved) as the reportable output.
-Reconstruction is **resumable** (`resume=True`, DISTRIBUTION §3) — a preempted
-worker skips every finished, content-addressed block and re-materializes only the
-missing/torn ones.
-→ [`harness/distribution/reconstruct_experiment.py`](harness/distribution/reconstruct_experiment.py)
-· reproduce credential-free with
-[`notebooks/reproduce.ipynb`](notebooks/reproduce.ipynb).
+```mermaid
+flowchart LR
+    B["Geometry battery<br/>✅ discriminates"] --> R1{"RC-1<br/>generator matches<br/>real geometry?"}
+    R1 -->|"⛔ not yet<br/>(no generator)"| FIT["Fit + select a<br/>generator"]
+    FIT --> R1
+    R1 -->|pass| SEAL["Hash + seal<br/>the generator"]
+    SEAL --> R2{"RC-2 (sealed,<br/>one shot):<br/>predicts ANN<br/>behaviour?"}
+    R2 -->|pass| PUB["Publish tier<br/>T6 … T12"]
+    R2 -->|fail| STOP["Stop at the seam,<br/>say so"]
+    classDef done fill:#d1f0d1,stroke:#2e7d32,color:#14320f;
+    classDef block fill:#ffe0b2,stroke:#e65100,color:#4a2600;
+    class B done;
+    class R1,R2 block;
+```
 
-**Scale — distribution vs. retrieval, kept separate.** The regenerate-from-seed
-distribution model is being exercised at **10¹¹ rows** in the sibling systems tool
-([turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro)'s fleet build): a
-kilobyte manifest, each worker regenerating only its own seeded range with **zero
-corpus movement**, over resumable, preemptible workers. That validates the
-*distribution* claim at scale. Its *retrieval* numbers, however, are a **systems
-measurement on a low-rank synthetic corpus** (the `null_lowrank` class rejected by
-RC-1 above), so they live with the systems tool — **not** as an OpenVector Bench
-tier. This separation is the point: distribution scales now; a real-retrieval
-*benchmark* tier at that scale waits on RC-2.
+### What's blocking RC-1 and RC-2
+
+**RC-1 is blocked on generator *design*, not on the instrument.** The battery
+works — it rejects every frozen null. What's missing is a **deterministic
+generator whose geometry matches real embeddings** on the grid (n ∈ {25k…200k} ×
+k ∈ {10,30,100}, both corpus→corpus and query→corpus batteries). The best current
+synthetic — `null_lowrank`, *the recipe behind the existing 1B/10B corpora* —
+fails the admission rule: ≈**1/7 the hubness** of real data, ≈**2× the intrinsic
+dimension**, and trivially PCA-compressible. Two hard parts:
+
+- **Hubness that grows correctly with N.** Real embeddings' hubness climbs with
+  n (≈1.9 → 5.0 across the grid); a generator matched at 2×10⁵ can diverge badly
+  by 10⁹ — and the grid stops at 2×10⁵, so that extrapolation is unproven.
+- **Relative contrast can't carry the load.** At 1024-d every corpus is nearly
+  equidistant, so gate G5 discriminates nothing; the burden falls on intrinsic
+  dimension (G1) and hubness (G6).
+
+**RC-2 is blocked on RC-1.** It is a **sealed, single-use** test: hash one
+generator, open the sealed set **once**, and check whether matching the geometry
+predicts IVF recall curves, cell occupancy, margin distributions, and rerank
+depth *never used in fitting*. It cannot run until RC-1 yields a fitted, sealed
+generator — running it early burns the one shot.
+
+**Next:** (1) fit a generator on the train split, select on validation; (2) hash
+and seal it; (3) open RC-2 once. ([`spec/PREREG_RC1.md`](spec/PREREG_RC1.md) §5–§7.)
+
+### Why the 10¹¹ recall numbers aren't a tier
+
+The 10¹¹ fleet build above validates **distribution** (regenerate-from-seed at
+scale, zero corpus movement, resumable preemptible workers). Its **retrieval**
+numbers, though, are measured on that same low-rank synthetic corpus — the
+`null_lowrank` class **RC-1 rejects** — so they are a *systems* result and live
+with the systems tool, **not** as an OpenVector Bench tier. Distribution scales
+now; a real-retrieval benchmark tier at that scale waits on RC-2.
 
 ## Repository layout
 
