@@ -152,6 +152,33 @@ def test_reconstruct_by_regeneration_alone(tmp_path):
     assert s["regen_hits"] == 3 and s["bytes_moved"] == 0
 
 
+def test_reconstruct_resume_skips_verified_and_selfheals(tmp_path):
+    # resume=True makes reconstruction idempotent/restartable: a shard already on
+    # disk that verifies against the manifest hash is skipped (content-addressed,
+    # like a torrent skipping verified pieces), and a missing/torn block is the only
+    # thing re-materialized -- the preemptible-worker path.
+    man, orig, _ = _publish(tmp_path, with_mirror=False)
+    dest = tmp_path / "recon"
+    reconstruct(man, str(dest))  # first pass materializes every shard
+
+    events = reconstruct(man, str(dest), resume=True)  # second pass: all local
+    s = summarize(events)
+    assert s["regen_hits"] == 0 and s["fetch_hits"] == 0 and s["bytes_moved"] == 0
+    assert all(e["method"] == "local" and e["ok"] for e in events)
+    for sh in man["shards"]:
+        i = sh["i"]
+        assert (dest / shard_filename(man, i)).read_bytes() == (
+            orig / shard_filename(man, i)
+        ).read_bytes()
+
+    # Drop one block; resume regenerates only it and leaves the others as local hits.
+    (dest / shard_filename(man, 1)).unlink()
+    ev2 = reconstruct(man, str(dest), resume=True)
+    win = {e["shard"]: e["method"] for e in ev2 if e.get("ok") and "shard" in e}
+    assert win == {0: "local", 1: "regenerate", 2: "local"}
+    assert verify_shard_bytes(man, 1, (dest / shard_filename(man, 1)).read_bytes())
+
+
 def test_reconstruct_by_mirror_when_regeneration_disabled(tmp_path):
     man, orig, _ = _publish(tmp_path)
     dest = tmp_path / "recon"

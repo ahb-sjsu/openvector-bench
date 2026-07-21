@@ -70,6 +70,7 @@ def reconstruct_shard(
     fetch=default_fetch,
     skip_sources: frozenset[str] = frozenset(),
     events: list[dict] | None = None,
+    resume: bool = False,
 ) -> list[dict]:
     """Materialize shard *i* into ``dest_dir`` from the first verifying source.
 
@@ -79,11 +80,26 @@ def reconstruct_shard(
     regeneration entirely). Raises ``LookupError`` when every source is
     exhausted — the manifest names the mirrors that exist, so exhaustion is a
     statement about the world, not about this function.
+
+    ``resume=True`` adds the local disk as the highest-priority source: a shard
+    already materialized in ``dest_dir`` that verifies against the manifest hash
+    is done, so a re-run — or a preempted worker's restart — skips every
+    finished, content-addressed block (``method="local"``, zero bytes moved)
+    instead of regenerating or refetching it, exactly as a torrent skips
+    already-verified pieces. A torn/partial file fails the hash and falls through
+    to regeneration, so resume is self-healing. Off by default so the §6
+    reconstruction measurement is unchanged; disable explicitly with
+    ``skip_sources={"local"}``.
     """
     evs = events if events is not None else []
     registry = GENERATORS if generators is None else generators
 
     candidates: list[tuple[str, str, object]] = []
+    local_path = os.path.join(dest_dir, shard_filename(man, i))
+    if resume and "local" not in skip_sources and os.path.exists(local_path):
+        candidates.append(
+            ("local", local_path, lambda p=local_path: open(p, "rb").read())
+        )
     gen = man.get("generator")
     if gen and gen.get("impl") in registry:
         impl = registry[gen["impl"]]
@@ -102,18 +118,23 @@ def reconstruct_shard(
             evs[-1]["ok"] = False
             evs[-1]["error"] = "hash mismatch (recorded as cache miss)"
             continue
-        path = os.path.join(dest_dir, shard_filename(man, i))
-        tmp = path + ".tmp"
-        with open(tmp, "wb") as f:
-            f.write(data)
-        os.replace(tmp, path)
+        if method != "local":  # the local source already is the on-disk file
+            path = os.path.join(dest_dir, shard_filename(man, i))
+            tmp = path + ".tmp"
+            with open(tmp, "wb") as f:
+                f.write(data)
+            os.replace(tmp, path)
         evs[-1]["shard"] = i
         return evs
     raise LookupError(f"shard {i}: no source verified ({len(evs)} attempts)")
 
 
 def reconstruct(man: dict, dest_dir: str, **kw) -> list[dict]:
-    """All shards; returns the full event log for reporting."""
+    """All shards; returns the full event log for reporting.
+
+    Forwards ``**kw`` to :func:`reconstruct_shard` — pass ``resume=True`` for an
+    idempotent, restartable materialization that skips shards already verified on
+    disk (the content-addressed / preemptible-worker path)."""
     os.makedirs(dest_dir, exist_ok=True)
     events: list[dict] = []
     for s in man["shards"]:
