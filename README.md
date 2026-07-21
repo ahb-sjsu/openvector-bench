@@ -69,6 +69,53 @@ validations hold:
 Ground truth is **not** nested — a query's true neighbours change as the
 corpus grows — so GT is computed and published per tier.
 
+## Validation status & results
+
+Design-and-validation stage: the instrument is built and the seam is being
+tested. **No tier is published** — nothing above the real/procedural seam ships
+until RC-1 and RC-2 hold. What has been measured so far, with every artifact
+committed as produced:
+
+**RC-1 round 1 — the battery is an instrument, not a formality.**
+Target: Cohere Wikipedia Embed-V3 (en), 1024-d, over a 300-cell grid
+(n ∈ {25k…200k} × k ∈ {10,30,100} × 5 subsamples) under the registered angular
+metric. All three frozen nulls are **rejected** (0/12 cells admitted each); the
+measured target's intrinsic dimension is stable in n (≈52.2 → 52.1 over 8×) while
+hubness grows with n — structure invisible at a single operating point. Crucially,
+**`null_lowrank` — the recipe behind the existing 1B/10B synthetic corpora — is
+rejected too** (≈1/7 the hubness of real embeddings; PCA-256 retains 1.57× the
+neighbours, i.e. trivially compressible in a way real embeddings are not). So a
+systems/recall result measured on that corpus *"is a statement about that corpus,
+not about real retrieval"* — which is exactly why retrieval tiers wait for a
+fitted, RC-validated generator.
+→ [`results/RC1_ROUND1.md`](results/RC1_ROUND1.md) ·
+[`results/rc1_scores.json`](results/rc1_scores.json) ·
+[`results/rc1_cells.json`](results/rc1_cells.json) · prereg
+[`spec/PREREG_RC1.md`](spec/PREREG_RC1.md).
+
+**§6 reconstruction — the corpus-as-object regenerates byte-identically.** The
+registered experiment (publish → delete every byte source → reconstruct on a
+fresh worker from whatever resolves) passes its four machine-checkable criteria:
+reconstructed shards are byte-identical to the originals, with the event log
+(regeneration rate, per-source latency, bytes moved) as the reportable output.
+Reconstruction is **resumable** (`resume=True`, DISTRIBUTION §3) — a preempted
+worker skips every finished, content-addressed block and re-materializes only the
+missing/torn ones.
+→ [`harness/distribution/reconstruct_experiment.py`](harness/distribution/reconstruct_experiment.py)
+· reproduce credential-free with
+[`notebooks/reproduce.ipynb`](notebooks/reproduce.ipynb).
+
+**Scale — distribution vs. retrieval, kept separate.** The regenerate-from-seed
+distribution model is being exercised at **10¹¹ rows** in the sibling systems tool
+([turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro)'s fleet build): a
+kilobyte manifest, each worker regenerating only its own seeded range with **zero
+corpus movement**, over resumable, preemptible workers. That validates the
+*distribution* claim at scale. Its *retrieval* numbers, however, are a **systems
+measurement on a low-rank synthetic corpus** (the `null_lowrank` class rejected by
+RC-1 above), so they live with the systems tool — **not** as an OpenVector Bench
+tier. This separation is the point: distribution scales now; a real-retrieval
+*benchmark* tier at that scale waits on RC-2.
+
 ## Repository layout
 
 ```
