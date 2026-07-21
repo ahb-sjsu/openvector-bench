@@ -74,6 +74,16 @@ For each shard, in order, stopping at the first that verifies:
 2. **Fetch** from the nearest NRP S3 region (cache).
 3. **Fetch** from another region, then the durable mirror, then origin.
 
+**Resumable materialization (optional).** With `resume=True` the worker adds its
+own on-disk output as *source 0*, the highest priority: a shard already
+materialized that verifies against its root is done, so a re-run — or a preempted
+worker's restart at 10⁹–10¹² rows — skips every finished, content-addressed block
+(zero bytes moved) and re-materializes only the missing or torn ones, which
+self-heal by falling through to regeneration. This is exactly a torrent skipping
+already-verified pieces; it changes no byte and no root, and acceptance is still
+by hash alone. It is **off by default**, so the §6 measurement below is
+unaffected, and the tier can be disabled explicitly with `skip_sources={"local"}`.
+
 **Why regeneration is best-effort, not guaranteed.** Bit-exact regeneration
 requires a fixed RNG stream *and* fixed floating-point behaviour. NumPy
 guarantees `Generator` streams across platforms for a given version, but not
