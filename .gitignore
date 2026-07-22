@@ -6,3 +6,4 @@ build/
 *.egg-info/
 *.npy
 *.npz
+ui_dashboard.html
