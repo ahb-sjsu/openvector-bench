@@ -115,15 +115,47 @@ def main() -> None:
                     "results": results,
                 }
             )
-        # PREREG v2 §5: mandatory gates in EVERY cell, "all but two" in >=10/12
-        admitted = (not mandatory_fail) and cells_pass >= max(
-            1, int(round(cells_total * 10 / 12))
+        # PREREG v2 §5 criterion 3: scaling exponents for the mandatory gates.
+        # Slope of log T vs log n (base 10 -> per decade), per (battery, k),
+        # mean over subsamples; |slope_gen - slope_real| <= 0.05.
+        slope_fail: list[str] = []
+        slopes: dict = {}
+        for g in ("g1_id_twonn", "g5_relative_contrast", "g6_hubness_skew"):
+            for battery in sorted({k[1] for k in grouped if k[0] == cand}):
+                for kk in sorted({k[3] for k in grouped if k[0] == cand}):
+                    pts = {}
+                    for who in (cand, "real"):
+                        xs, ys = [], []
+                        for (c0, b0, n0, k0), vals in grouped.items():
+                            if (c0, b0, k0) == (who, battery, kk):
+                                v = np.asarray(vals[g], float)
+                                v = v[np.isfinite(v) & (v > 0)]
+                                if len(v):
+                                    xs.append(np.log10(n0))
+                                    ys.append(np.log10(v.mean()))
+                        pts[who] = (
+                            float(np.polyfit(xs, ys, 1)[0]) if len(xs) >= 3 else None
+                        )
+                    sg, sr = pts[cand], pts["real"]
+                    key = f"{g}@{battery}/k={kk}"
+                    slopes[key] = {"gen": sg, "real": sr}
+                    if sg is None or sr is None or abs(sg - sr) > 0.05:
+                        slope_fail.append(key)
+
+        # PREREG v2 §5: mandatory gates in EVERY cell, "all but two" in >=10/12,
+        # AND the scaling-exponent criterion for G1/G5/G6.
+        admitted = (
+            (not mandatory_fail)
+            and cells_pass >= max(1, int(round(cells_total * 10 / 12)))
+            and not slope_fail
         )
         report["candidates"][cand] = {
             "admitted": admitted,
             "cells_meeting_count_rule": f"{cells_pass}/{cells_total}",
             "mandatory_gate_failures": len(mandatory_fail),
             "example_mandatory_failures": mandatory_fail[:5],
+            "scaling_exponents": slopes,
+            "scaling_exponent_failures": slope_fail,
             "detail": detail,
         }
         print(
