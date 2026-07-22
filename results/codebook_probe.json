@@ -1,0 +1,68 @@
+{
+  "real_ref": {
+    "g1_id_twonn": 61.38,
+    "g2_id_ballgrowth": 14.51,
+    "g3_eff_rank": 189.96,
+    "g4_dims90": 360.0,
+    "g5_relative_contrast": 1.204,
+    "g6_hubness_skew": 9.44,
+    "g7_local_id_iqr": 25.57,
+    "g8_pca_retention": 0.609
+  },
+  "prediction": "G1 in [40,110] at d_latent=61; tracks d_latent",
+  "g1_vs_dlatent": [
+    {
+      "d_latent": 20,
+      "g1": 324.78155517578125,
+      "g3": 353.1054382324219,
+      "frac_unique_cells": 1.0
+    },
+    {
+      "d_latent": 40,
+      "g1": 293.49847412109375,
+      "g3": 368.0669250488281,
+      "frac_unique_cells": 1.0
+    },
+    {
+      "d_latent": 61,
+      "g1": 319.83056640625,
+      "g3": 385.0726623535156,
+      "frac_unique_cells": 1.0
+    },
+    {
+      "d_latent": 90,
+      "g1": 318.4038391113281,
+      "g3": 354.9100341796875,
+      "frac_unique_cells": 1.0
+    }
+  ],
+  "full_gates_dlatent61": {
+    "g1_id_twonn": 447.1401672363281,
+    "g2_id_ballgrowth": 91.16873125186957,
+    "g3_eff_rank": 4.07839298248291,
+    "g4_dims90": 11.0,
+    "g5_relative_contrast": 1.0358936670468921,
+    "g6_hubness_skew": 14.550447144904357,
+    "g7_local_id_iqr": 159.3522491455078,
+    "g8_pca_retention": 0.024138716890264873,
+    "frac_unique_cells": 1.0
+  },
+  "decoupling": [
+    {
+      "spectrum_decay": 0.0,
+      "g1": 319.83056640625,
+      "g3": 385.0726623535156
+    },
+    {
+      "spectrum_decay": 0.5,
+      "g1": 346.4709167480469,
+      "g3": 41.03981018066406
+    },
+    {
+      "spectrum_decay": 1.0,
+      "g1": 447.1405334472656,
+      "g3": 4.07839298248291
+    }
+  ],
+  "seconds": 14.8
+}
