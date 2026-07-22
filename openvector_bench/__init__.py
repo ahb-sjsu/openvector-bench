@@ -8,6 +8,7 @@ specifications.
 
 from .generator_search import (
     CONCENTRATION_PARAMS,
+    HIER_COLOURED_PARAMS,
     HIER_PARAMS,
     MANIFOLD_PARAMS,
     PARAMS,
@@ -15,6 +16,7 @@ from .generator_search import (
     concentration_corpus,
     decode,
     geometry_vector,
+    hier_coloured_corpus,
     hier_concentration_corpus,
     make_evaluate_fn,
     manifold_corpus,
@@ -55,12 +57,14 @@ __all__ = [
     "concentration_corpus",
     "stratified_corpus",
     "hier_concentration_corpus",
+    "hier_coloured_corpus",
     "whitney_b_defect",
     "PARAMS",
     "MANIFOLD_PARAMS",
     "CONCENTRATION_PARAMS",
     "STRATIFIED_PARAMS",
     "HIER_PARAMS",
+    "HIER_COLOURED_PARAMS",
     "decode",
     "__version__",
 ]

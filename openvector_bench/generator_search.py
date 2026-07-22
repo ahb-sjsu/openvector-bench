@@ -519,6 +519,50 @@ def hier_concentration_corpus(
     return normalize(x)
 
 
+# Round-6 family: hier placement INSIDE a designed spectral colouring. Round 5 proved the
+# G6/G3 trade-off is real *within* codebook geometry: the Zipf hierarchy that makes angular
+# hubs concentrates the corpus onto a few dominant modes (rank collapse), and flattening the
+# hierarchy to recover rank erases the density gradient. Registered round-6 bet (P3 of
+# HIER_PREDICTION.md): set the two properties by SEPARATE mechanisms — hubs by *where* the
+# centres sit (round 5's mechanism, kept verbatim), the spectrum by an explicit Mahalanobis
+# reshape of the centred covariance toward a designed power law (the codebook probe's one
+# confirmed G3 knob). The reshape is a linear sphere-to-ellipsoid map: it rescales the
+# centred directions but never reorders which angular region is dense, so the open question
+# is only how much hub *contrast* survives the flattening of the dominant modes. The mean is
+# left untouched (real embedding anisotropy is itself hub structure).
+HIER_COLOURED_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_PARAMS + (
+    ("spectrum_decay", 0.1, 1.5, 0.6),  # target power-law slope of the centred spectrum
+    ("reshape_mix", 0.0, 1.0, 1.0),  # 0 = raw hier spectrum, 1 = fully designed
+)
+
+
+def hier_coloured_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int
+) -> np.ndarray:
+    """Round-5 hier corpus recoloured to a designed centred-covariance spectrum.
+
+    Eigendecompose the centred covariance of the (unit-normed) hier corpus, remap its
+    eigenvalues toward the power law ``i^-spectrum_decay`` (geometric blend by
+    ``reshape_mix``), apply the corresponding Mahalanobis map to the centred part only,
+    re-add the mean, re-normalize. Hub placement and spectrum are thus set by different
+    parts of the construction.
+    """
+    x = hier_concentration_corpus(p, n, dim, seed)
+    mu = x.mean(0, keepdims=True)
+    xc = x - mu
+    cov = (xc.T @ xc) / max(len(xc) - 1, 1)
+    lam, vecs = np.linalg.eigh(cov)
+    lam, vecs = lam[::-1], vecs[:, ::-1]  # descending
+    lam = np.maximum(lam, 1e-12)
+    target = np.arange(1, dim + 1, dtype=np.float64) ** (-float(p["spectrum_decay"]))
+    target *= lam.sum() / target.sum()  # match total energy
+    mix = float(p["reshape_mix"])
+    new_lam = lam ** (1.0 - mix) * target**mix
+    gain = np.sqrt(new_lam / lam).astype(np.float32)
+    x = mu + (xc @ vecs) * gain @ vecs.T
+    return normalize(x.astype(np.float32))
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
