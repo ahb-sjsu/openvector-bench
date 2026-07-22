@@ -65,8 +65,13 @@ experiments. We conclude that apparent geometric trade-offs can be artifacts
 of forcing corpus metric, corpus measure, query measure, and local scale
 through a shared mechanism, propose a hub \emph{anatomy vector} as the
 reporting standard, and derive a registered anatomy falsifier that prevents
-optimizers from reproducing a scalar by rebuilding a known pathology.
-\todo{Round-7 verdict sentence.}
+optimizers from reproducing a scalar by rebuilding a known pathology. The
+falsifier promptly earned its keep: in the final round the optimizer satisfied
+all six registered gate bands numerically while the anatomy check convicted it
+of rebuilding corpus super-hubs (base-to-base skew $\approx 7$, max
+reverse-count $\approx 350$) despite having a genuine query-measure knob
+available --- one-number geometry invites Goodharting that only anatomy-level
+registration catches.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -351,9 +356,30 @@ round-7 best point, finite differences $\times$ 3 seeds}
   search (480 evals/round) on NRP Nautilus; searcher $\times$ adversary
   $\times$ judge; pre-registration with named falsifiers before every gating
   run; screening smokes disclosed in the registration when they occurred.
-\item Round-by-round provenance table (rounds 0--7, one line each: family,
-  registered prediction, verdict). \todo{table from results/ directory}
 \end{itemize}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{clll}
+\toprule
+Rd & Family / probe & Registered bet & Verdict \\
+\midrule
+0 & heavy-tail Gaussian clusters & loop halves mismatch & \checkmark; G1 wall ($2.4\times$) \\
+1 & Poincar\'e manifold + RFF lift & hubness via $\exp_0$ & G6 $0.85\times$; G1 worse ($6.2\times$) \\
+2 & decoupled lift (\texttt{amp}) & \texttt{amp} frees G1 & \textbf{falsified}; no knob moves G1 \\
+-- & elliptic curves (2 readings) & low nominal dim $\Rightarrow$ low ID & \textbf{falsified} (torus reads 345) \\
+3 & concentration (flat patches) & reach fixes two-NN & \checkmark\ G1+G8 solved; G6 $0.15\times$ \\
+4 & Whitney-stratified flags & dim spectrum $\Rightarrow$ G1+G7 & \checkmark\ first G7 match; G6 $0.18\times$ \\
+-- & sharded lookup tables & discreteness frees G1 & \textbf{falsified}; G1 flat vs.\ knobs \\
+5 & Zipf codebook hierarchy & G6 $\ge 0.5\times$ with G3 $\ge0.5\times$ & G6 solved; \textbf{joint falsified} \\
+6 & + Mahalanobis recolouring & five-gate joint point & \checkmark\ (seed-stable); G2 $0.14\times$ \\
+7 & + query marginal (this work) & six-gate joint + anatomy & see \S\ref{sec:sep3} \\
+\bottomrule
+\end{tabular}
+\caption{Provenance of the falsification chain. Every ``falsified'' row is a
+pre-registered prediction that failed and was reported as a miss
+(\texttt{results/} in the repository).}
+\label{tab:provenance}
+\end{table}
 
 \section{Three constructive separations}\label{sec:separations}
 
@@ -369,9 +395,27 @@ round-7 best point, finite differences $\times$ 3 seeds}
   frontier dissolves; first five-gate joint match
   (G1/G3/G6/G7/G8 all within $[0.5,2.0]\times$, stable across 3 seeds).
   Recolouring \emph{amplifies} rather than destroys the hubs.
-\item Table: round-5 endpoints vs.\ round-6 joint point. \todo{numbers from
-  gen\_round5\_hier.json / gen\_round6\_coloured.json}
 \end{itemize}
+
+\begin{table}[h]\centering\small
+\begin{tabular}{lccc}
+\toprule
+Gate (ratio to real) & \multicolumn{2}{c}{Round-5 frontier} & Round-6 joint \\
+ & hub end & rank end & (seeds 0--2) \\
+\midrule
+G1 intrinsic dim      & $1.18$ & $0.58$ & $0.80$--$0.87$ \\
+G3 effective rank     & $\mathbf{0.01}$ & $\mathbf{1.13}$ & $0.52$--$0.58$ \\
+G6 hubness            & $\mathbf{0.92}$ & $\mathbf{0.24}$ & $0.60$--$0.92$ \\
+G7 local-ID IQR       & $1.06$ & $1.24$ & $0.94$--$1.04$ \\
+G8 PCA retention      & $0.69$ & $0.84$ & $0.76$--$0.79$ \\
+\bottomrule
+\end{tabular}
+\caption{Separation I. Round 5's registered falsifier fired: no shard of 12
+(480 evals) found G6 and G3 jointly above $0.5\times$ --- a clean two-ended
+Pareto frontier. Round 6 splits the mechanisms and the frontier dissolves; the
+same construction lineage holds five gates at once, stably across seeds.}
+\label{tab:sep1}
+\end{table}
 
 \subsection{Separation II: same hubness, different anatomy (the headline)}
 \begin{itemize}
@@ -381,22 +425,50 @@ round-7 best point, finite differences $\times$ 3 seeds}
   8\% below population; generated --- skew $7.0$, max count \textbf{369},
   centrality-driven, hubs 34\% closer than population.
 \item One-number hubness is non-identifying: two systems share G6 with opposite
-  geometry and (predictably) opposite ANN behaviour. \todo{ANN behaviour
-  demonstration --- candidate for the Fuzzing paper instead}
-\item Table: the anatomy vector for real 8k/16k, Gaussian null, round-6 winner.
-  \todo{numbers from diag\_hubs.json}
+  geometry and (predictably) opposite ANN behaviour --- the differential-testing
+  demonstration is developed in the companion paper (\emph{Fuzzing the Bond
+  Metric}).
 \end{itemize}
 
+\begin{table}[h]\centering\small
+\begin{tabular}{lcccc}
+\toprule
+$A_{\mathrm{hub}}$ component (b$\to$b, $k{=}10$) & real 8k & real 16k & Gauss null & rd-6 winner \\
+\midrule
+reverse-count skew          & $1.50$ & $1.36$ & $0.33$ & $\mathbf{7.00}$ \\
+$\max N_{10}$               & $78$   & $76$   & $23$   & $\mathbf{369}$ \\
+$\mathrm{corr}(N_{10},\text{centrality})$ & $+0.19$ & $+0.12$ & $+0.08$ & $+0.06$ \\
+$\mathrm{corr}(N_{10},-d_{10})$           & $+0.67$ & $+0.66$ & $+0.85$ & $+0.12$ \\
+hub vs.\ all median $d_{10}$ & $0.95/1.04$ & $0.92/1.02$ & $1.34/1.35$ & $\mathbf{0.45/0.68}$ \\
+hub vs.\ all median centrality & $0.52/0.48$ & $0.52/0.48$ & $0.02/0.01$ & $\mathbf{0.92/0.75}$ \\
+\bottomrule
+\end{tabular}
+\caption{Separation II --- same scalar G6, opposite anatomy. Real hubs are a
+smooth density-driven tail whose metric footprint is a mere 8\% $d_{10}$
+depression inside the narrow window; the round-6 winner's hubs are a few
+extreme-centrality points sitting 34\% closer than population. The scalar gate
+cannot distinguish them; $A_{\mathrm{hub}}$ can.}
+\label{tab:anatomy}
+\end{table}
+
 \subsection{Separation III: query measure vs.\ local scale (round 7)}
+\label{sec:sep3}
 \begin{itemize}
-\item The G2 mechanics: the ball-growth estimator's radius window is the
-  across-query $d_{10}$ band; slope $\approx \log 9 / \log(\mathrm{window})$;
-  real window $1.17 \Rightarrow$ slope $\approx 15$. \todo{derivation box}
+\item The G2 mechanics: with per-query neighbour distances concentrated
+  ($d_1 \approx d_{10}$, spread $\sim 10^{1/d_\ell}$), the mean ball-count
+  curve is $\bar c(r) \approx 10\,F_{d_{10}}(r)$, so the fitted log--log slope
+  over the estimator's window (the $[0.1,0.9]$ quantiles of $d_{10}$) is
+  $\approx \log 9 / \log(\mathrm{window})$. Real's window is $1.17$
+  $\Rightarrow$ slope $\approx 15$; the round-6 winner's window is $2.14$
+  $\Rightarrow$ slope $\approx 2$. G2 is an across-query \emph{homogeneity}
+  statistic, not a within-neighbourhood one.
 \item Six corpus-side hub mechanisms fail on a metrically homogeneous substrate
-  (equalization, mean offset, duplicate families, per-point tilt, in-patch
-  sub-clusters, cluster count) --- reported as the negative results they are.
+  (scale equalization, global mean offset, Zipf duplicate families, per-point
+  radius tilt, in-patch sub-clusters, cluster count) --- all reported as the
+  negative results they are; a per-point radius law also leaves G2 unmoved,
+  falsifying the naive ``radius spectrum'' account.
 \item The diagnosis: real base$\to$base skew $\approx1.5$ vs.\ battery-B target
-  $6.8$ --- the hubness lives in $\muQ$. A same-instance Zipf query marginal
+  $6.8$ --- the hubness lives in $\nuQ$. A same-instance Zipf query marginal
   sweeps G6 $0.19\times \to 2.20\times$ with the window intact and G2
   \emph{improving} to $0.65\times$.
 \item The old G6--G2 conflict, unwound: same-distribution queries cannot
@@ -404,8 +476,33 @@ round-7 best point, finite differences $\times$ 3 seeds}
   $\to$ extreme density contrast $\to$ patch/plateau anatomy $\to$ G2
   collapses. The conflict was between \emph{the wrong mechanism for hubness}
   and realistic ball growth.
-\item \todo{ROUND-7 VERDICT: six-gate joint point (P1), anatomy falsifier
-  (P2), G8 risk (P3) --- fill from GEN\_ROUND7\_QUERY.md}
+\item \textbf{Round-7 verdict --- the falsifier earns the paper its title.}
+  The swarm's best point satisfies P1 \emph{numerically}: all six registered
+  gates (G1, G2, G3, G6, G7, G8) within $[0.5,2.0]\times$ on three fresh seeds
+  (e.g.\ seed 0: $0.96/0.70/1.52/1.29/1.29/0.75$). But the registered anatomy
+  falsifier \textbf{P2 fired}: at that point base$\to$base skew reads
+  $6.8$--$7.8$ with max reverse-count $\approx 350$ --- offered a genuine
+  query-measure knob (\texttt{query\_tail}), the optimizer still found it
+  cheaper to game the scalar with corpus super-hubs
+  (\texttt{size\_tail} $=1.39$, \texttt{query\_tail} $=0.48$). The registered
+  anatomy check caught a scalar-gaming optimizer in the wild --- the
+  non-identifiability thesis demonstrated \emph{by the search itself}.
+\item \textbf{The anatomy-filtered result.} Screening all 12 shards, exactly
+  the three with real's mechanism (high \texttt{query\_tail}, low
+  \texttt{size\_tail}) pass the anatomy bound (skew $0.6$--$1.7$); every
+  wrong-anatomy shard that outscored them did so with super-hubs (up to skew
+  $22.9$, max count $1730$). The best clean point (shard 1:
+  \texttt{query\_tail} $=2.35$, \texttt{size\_tail} $=0.16$) reads
+  G1 $1.07$, \textbf{G2 $1.02$}, G3 $2.50$, G6 $1.36$, G7 $0.77$, G8 $0.79$,
+  with base$\to$base skew $1.73$ and max count $99$ (real: $1.50$/$78$) ---
+  five of six gates in band \emph{with real's anatomy}, and ball growth ---
+  pinned at $0.14\times$ through six corpus-side mechanisms --- fully matched
+  by the query model. The single miss (G3, band top $2.0$) is a gate the same
+  knob held at $0.55\times$ one round earlier; whether it is a search-budget
+  artifact or a real coupling is exactly what the registered Jacobian test
+  (\S\ref{sec:jacobian}) decides. Methodological consequence, adopted as the
+  round-8 protocol: \emph{anatomy belongs inside the fitness} --- an unpriced
+  anatomy is an invitation the optimizer accepts.
 \end{itemize}
 
 \section{Hubness is $H_k(\mathcal{C},\mathcal{Q},d)$: the capture-basin account}
@@ -436,8 +533,11 @@ round-7 best point, finite differences $\times$ 3 seeds}
   \]
 \item The registered defense (round-7 P2): the optimizer's best point must keep
   base$\to$base skew $<3$ --- the first pre-registered falsifier that looks
-  \emph{behind} a gate at the structure producing it, preventing scalar
-  reproduction by rebuilding a known pathology. \todo{verdict}
+  \emph{behind} a gate at the structure producing it. Verdict: \textbf{it
+  fired.} The score-optimal point read skew $6.8$--$7.8$ (max count
+  $\approx350$) across three seeds; without P2 it would have shipped as a
+  six-gate joint match. Consequence: anatomy constraints belong \emph{inside}
+  the fitness, not only in post-hoc checks (round-8 protocol).
 \item Generalization: every scalar gate deserves an anatomy check; sketch the
   analogous vectors for G1 (near-duplicate spike vs.\ manifold bulk) and G3
   (spectrum shape vs.\ participation ratio).
@@ -484,9 +584,15 @@ round-7 best point, finite differences $\times$ 3 seeds}
 \end{itemize}
 
 \section{Conclusion}\label{sec:conclusion}
-\todo{Write after round-7 verdict. Closing line candidate: six rounds were
-spent solving a corpus-side problem whose target lived substantially in the
-query marginal --- the statistics were never in conflict; the mechanisms were.}
+Six rounds were spent solving a corpus-side problem whose target lived
+substantially in the query marginal; when the right knob finally existed, the
+optimizer preferred to rebuild the old pathology, and only a falsifier that
+looked behind the scalar caught it. The statistics were never in conflict; the
+mechanisms were. Embedding geometry should be reported as an experiment
+$(X,\muC,\nuQ,d,k)$, its hubness as an anatomy, and its trade-offs as claims
+about control structure --- claims that a small amount of construction, or one
+pre-registered look behind a gate, can refute. \todo{final pass after the
+anatomy-filtered round-7 result and Jacobian land}
 
 \paragraph{Reproducibility.} All rounds, pre-registrations, falsifier verdicts,
 and raw numbers: \url{https://github.com/ahb-sjsu/openvector-bench}
