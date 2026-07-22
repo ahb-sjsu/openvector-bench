@@ -71,7 +71,11 @@ all six registered gate bands numerically while the anatomy check convicted it
 of rebuilding corpus super-hubs (base-to-base skew $\approx 7$, max
 reverse-count $\approx 350$) despite having a genuine query-measure knob
 available --- one-number geometry invites Goodharting that only anatomy-level
-registration catches.
+registration catches. Pricing the anatomy into the fitness and applying one
+Jacobian-informed correction then closed the campaign: all six registered
+gates within $[0.5,2.0]\times$ \emph{and} anatomy in band
+(skew $1.4$--$1.9$, max count $52$--$104$ vs.\ real $1.5$/$78$) on three
+fresh seeds --- real's numbers by real's mechanism.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -386,8 +390,39 @@ has full rank at the round-7 solution, the inverse-function theorem gives
 \emph{local independent controllability} within the actual family.
 Pre-registered expectations: $\theta_s$ dominates the G3 column, $\theta_q$
 the G6 column, $\theta_r$ the G2 column; $J$ nonsingular with acceptable
-condition number, stable across fresh seeds. \todo{Jacobian estimate at the
-round-7 best point, finite differences $\times$ 3 seeds}
+condition number, stable across fresh seeds.
+
+\paragraph{Result (central differences $\times$ 3 seeds, at the round-7
+anatomy-clean point).} Mean Jacobian, rows $(G3, G6, G2)$:
+\[
+\bar J = \begin{pmatrix}
+-9.94 & -0.0067 & -0.0012\\
+-0.074 & \phantom{-}0.048 & -0.0030\\
+\phantom{-}0.44 & -0.011 & \phantom{-}0.0032
+\end{pmatrix},
+\qquad \det \bar J \neq 0,\ \ \kappa(\bar J) \approx 4.1\times10^{3}.
+\]
+The honest reading, expectation by expectation:
+$\theta_s \to$ G3 is \emph{proven locally} ($-9.9$, two orders dominant in its
+column) and was validated \emph{prospectively}: the follow-up round's
+warm-start $\Delta\theta_s = +0.15$ moved G3 $2.50\times \to 1.83\times$
+(linear extrapolation predicted $1.0\times$; half the linear step, as expected
+on a curved response), and that warm-started point became the campaign's
+solution. $\theta_q \to$ G6 is \emph{established large-signal but saturated
+locally}: the per-instance derivative flips sign across seeds
+($+0.19/{-0.12}/{+0.08}$, same-seed central differences --- landscape
+heterogeneity, not estimator noise) because $\theta_q = 2.35$ sits near the
+top of its $0.19\times\!\to\!2.20\times$ sweep. $\theta_r \to$ G2 is
+\emph{locally inert} ($\sim\!10^{-3}$): with \texttt{size\_tail} $=0.16$ the
+substrate is already homogeneous; G2's largest \emph{local} mover is in fact
+$\theta_s$ ($+0.44$) via the colouring's effect on the $d_{10}$ window. The
+registered condition-number expectation is \textbf{not met}: clean three-axis
+local controllability is \emph{not} established at this operating point ---
+one axis local, one large-signal, one exhausted --- and the
+inverse-function-theorem claim is restricted accordingly. What the campaign
+\emph{does} establish is compositional: large-signal interventions on the
+three controls, applied in sequence across rounds 6--8, reached the joint
+target.
 
 \section{Experimental substrate and protocol}\label{sec:substrate}
 \begin{itemize}
@@ -414,7 +449,8 @@ Rd & Family / probe & Registered bet & Verdict \\
 -- & sharded lookup tables & discreteness frees G1 & \textbf{falsified}; G1 flat vs.\ knobs \\
 5 & Zipf codebook hierarchy & G6 $\ge 0.5\times$ with G3 $\ge0.5\times$ & G6 solved; \textbf{joint falsified} \\
 6 & + Mahalanobis recolouring & five-gate joint point & \checkmark\ (seed-stable); G2 $0.14\times$ \\
-7 & + query marginal (this work) & six-gate joint + anatomy & see \S\ref{sec:sep3} \\
+7 & + query marginal (this work) & six-gate joint + anatomy & P2 fired; clean pt 5/6 \\
+8 & + anatomy-priced fitness & six gates + anatomy jointly & \checkmark\ \textbf{achieved} (3 seeds) \\
 \bottomrule
 \end{tabular}
 \caption{Provenance of the falsification chain. Every ``falsified'' row is a
@@ -545,6 +581,22 @@ cannot distinguish them; $A_{\mathrm{hub}}$ can.}
   (\S\ref{sec:jacobian}) decides. Methodological consequence, adopted as the
   round-8 protocol: \emph{anatomy belongs inside the fitness} --- an unpriced
   anatomy is an invitation the optimizer accepts.
+\item \textbf{Round 8 --- the registered target, achieved.} With the
+  base$\to$base skew scored at mandatory weight (target $1.143$, measured on
+  the real corpus with the fitness's own estimator) and shard 0 warm-started
+  at the Jacobian-corrected point: \textbf{all six registered gates within
+  $[0.5,2.0]\times$ and anatomy in band on three fresh seeds} --- G1
+  $1.00$--$1.05$, \textbf{G2 $1.06$--$1.17$}, G3 $1.83$--$1.92$, G6
+  $1.28$--$1.43$, G7 $0.76$--$0.84$, G8 $0.82$--$0.85$, with b$\to$b skew
+  $1.38$--$1.91$ / max count $52$--$104$ (real: $1.50$/$78$) ---
+  \emph{real's numbers by real's mechanism}. The cold shards re-drew round
+  7's candidate pools (same per-shard RNG), making the round a matched
+  re-ranking: the anatomy-priced score promoted exactly the three
+  query-mechanism shards plus the warm start to the top four and demoted the
+  super-hub points --- pricing flipped the optimizer's preferred mechanism, as
+  registered. Honest attribution: the 480 fresh evals added nothing; the
+  winning point \emph{is} the warm-start anchor. The campaign closed by
+  diagnosis plus one derivative, not by search.
 \end{itemize}
 
 \section{Hubness is $H_k(\mathcal{C},\mathcal{Q},d)$: the capture-basin account}
@@ -629,12 +681,14 @@ cannot distinguish them; $A_{\mathrm{hub}}$ can.}
 Six rounds were spent solving a corpus-side problem whose target lived
 substantially in the query marginal; when the right knob finally existed, the
 optimizer preferred to rebuild the old pathology, and only a falsifier that
-looked behind the scalar caught it. The statistics were never in conflict; the
-mechanisms were. Embedding geometry should be reported as an experiment
-$(X,\muC,\nuQ,d,k)$, its hubness as an anatomy, and its trade-offs as claims
-about control structure --- claims that a small amount of construction, or one
-pre-registered look behind a gate, can refute. \todo{final pass after the
-anatomy-filtered round-7 result and Jacobian land}
+looked behind the scalar caught it; pricing that anatomy into the objective
+and taking one derivative-informed step then reached, in a single round, the
+joint target eight rounds of scalar-gate search could not --- real's numbers
+by real's mechanism, stable across seeds. The statistics were never in
+conflict; the mechanisms were. Embedding geometry should be reported as an
+experiment $(X,\muC,\nuQ,d,k)$, its hubness as an anatomy, and its trade-offs
+as claims about control structure --- claims that a small amount of
+construction, or one pre-registered look behind a gate, can refute.
 
 \paragraph{Reproducibility.} All rounds, pre-registrations, falsifier verdicts,
 and raw numbers: \url{https://github.com/ahb-sjsu/openvector-bench}
