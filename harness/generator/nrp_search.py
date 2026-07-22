@@ -38,6 +38,8 @@ from openvector_bench.generator_search import (
     stratified_corpus,
     synth_corpus,
 )
+from openvector_bench.geometry import hubness as hubness_geom
+from openvector_bench.geometry import knn as knn_geom
 
 FAMILIES = {
     "concentration": (concentration_corpus, CONCENTRATION_PARAMS),
@@ -61,6 +63,10 @@ KS = (10,)
 BATT = ("B",)
 NAMES = [n for n, _, _, _ in SPEC]
 SHOW = ("g1_id_twonn", "g3_eff_rank", "g6_hubness_skew", "g8_pca_retention")
+# Round-8 protocol: price the anatomy (base->base skew) inside the score, and
+# optionally anchor shard 0 at a warm-start point instead of family defaults.
+ANATOMY_TARGET = os.environ.get("ANATOMY_TARGET")
+WARM_START = os.environ.get("WARM_START")
 
 
 def main() -> None:
@@ -77,12 +83,17 @@ def main() -> None:
         seed=0,
         generator=GEN,
         params_spec=SPEC,
+        anatomy_target=float(ANATOMY_TARGET) if ANATOMY_TARGET else None,
     )
     rng = np.random.default_rng(1000 + SHARD)
 
     trials = []
-    if SHARD == 0:  # anchor the sweep with the family defaults
-        trials.append(np.array([d for _, _, _, d in SPEC]))
+    if SHARD == 0:  # anchor the sweep: warm-start point if given, else defaults
+        if WARM_START:
+            ws = json.loads(WARM_START)
+            trials.append(np.array([ws.get(nm, d) for nm, _, _, d in SPEC]))
+        else:
+            trials.append(np.array([d for _, _, _, d in SPEC]))
     for _ in range(N_EVALS):
         trials.append(np.array([rng.uniform(lo, hi) for _, lo, hi, _ in SPEC]))
 
@@ -110,6 +121,10 @@ def main() -> None:
         "ratios": {g: prof[g] / real[g] for g in SHOW},
         "gates": {g: prof[g] for g in SHOW},
     }
+    if ANATOMY_TARGET:  # report the priced statistic at the best point
+        _, idx_a = knn_geom(full[:N], full[:N][:2000], max(KS) + 1)
+        out["bb_skew"] = hubness_geom(idx_a[:, 1:], N, KS[0])
+        out["bb_skew_target"] = float(ANATOMY_TARGET)
     print("RESULT_JSON_BEGIN")
     print(json.dumps(out, indent=2))
     print("RESULT_JSON_END")

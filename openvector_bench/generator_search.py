@@ -785,6 +785,8 @@ def make_evaluate_fn(
     nan_penalty: float = 4.0,
     generator=synth_corpus,
     params_spec=PARAMS,
+    anatomy_target: float | None = None,
+    anatomy_queries: int = 2000,
 ):
     """Build the shared ``evaluate_fn(params) -> (score, errors)``.
 
@@ -800,6 +802,14 @@ def make_evaluate_fn(
     Gates that are non-finite in the target are skipped (uninformative); a gate
     that goes non-finite only for the candidate is charged ``nan_penalty`` — a
     generator that *breaks* a measurement should not look like a good fit.
+
+    ``anatomy_target`` (round-8 protocol, the lesson of round 7's fired P2):
+    when set, the base->base reverse-NN skew — measured with ``anatomy_queries``
+    corpus rows as queries, self excluded, at the first ``k`` — is scored
+    against it at mandatory weight. An unpriced anatomy is an invitation the
+    optimizer accepts: round 7's score-best point hit every gate band while
+    rebuilding corpus super-hubs (skew ~7 vs real ~1.5). Pricing the anatomy
+    makes the query-marginal mechanism the cheap path, not the expensive one.
     """
     ks = tuple(int(k) for k in ks)
     kmax = max(ks)
@@ -839,6 +849,18 @@ def make_evaluate_fn(
                     weight = weight_mandatory if g in MANDATORY else 1.0
                     num += weight * abs(e)
                     den += weight
+        if anatomy_target is not None:
+            nq_a = min(anatomy_queries, n)
+            _, idx_a = knn(base, base[:nq_a], kmax + 1)
+            bb = hubness(idx_a[:, 1:], n, ks[0])
+            e = (
+                nan_penalty
+                if not np.isfinite(bb)
+                else _log_ratio(max(bb, 0.05), anatomy_target)
+            )
+            errors["bb_skew@anatomy"] = e
+            num += weight_mandatory * abs(e)
+            den += weight_mandatory
         return (num / den if den else nan_penalty), errors
 
     return evaluate_fn
