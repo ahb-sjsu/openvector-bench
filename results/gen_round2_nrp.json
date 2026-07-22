@@ -1,0 +1,19 @@
+{
+  "platform": "NRP Nautilus swarm pod (cpu=1, mem=2Gi)",
+  "optimizer": "Nelder-Mead (maxfev=60) from round-1 corner + structural-fuzzing adversary",
+  "n": 8000, "n_query": 1000, "battery": "B", "k": 10,
+  "real": {"g1_id_twonn": 57.66, "g3_eff_rank": 187.94, "g6_hubness_skew": 6.83, "g8_pca_retention": 0.621},
+  "best_score": 0.8699, "evals": 60,
+  "params": {"latent_dim": 52.84, "amp": 0.637, "freq_scale": 4.031, "log2_clusters": 7.148,
+             "size_tail": 1.551, "latent_spread": 0.580, "curvature": 3.0, "noise": 0.293},
+  "ratios": {"g1_id_twonn": 5.296, "g3_eff_rank": 0.804, "g6_hubness_skew": 0.874, "g8_pca_retention": 0.122},
+  "adversary": [
+    {"knob": "amp", "direction": "increase", "ratio": 3.511, "breaks_gate": "g3_eff_rank@Bk10"},
+    {"knob": "amp", "direction": "decrease", "ratio": 0.534, "breaks_gate": "g3_eff_rank@Bk10"},
+    {"knob": "freq_scale", "direction": "increase", "ratio": 1.874, "breaks_gate": "g3_eff_rank@Bk10"},
+    {"knob": "freq_scale", "direction": "decrease", "ratio": 0.534, "breaks_gate": "g3_eff_rank@Bk10"},
+    {"knob": "curvature", "direction": "decrease", "ratio": 0.534, "breaks_gate": "g3_eff_rank@Bk10"},
+    {"knob": "latent_dim", "direction": "increase", "ratio": 1.874, "breaks_gate": "g6_hubness_skew@Bk10"},
+    {"knob": "latent_dim", "direction": "decrease", "ratio": 0.534, "breaks_gate": "g6_hubness_skew@Bk10"}
+  ]
+}
