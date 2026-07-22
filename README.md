@@ -168,6 +168,33 @@ generator — running it early burns the one shot.
 **Next:** (1) fit a generator on the train split, select on validation; (2) hash
 and seal it; (3) open RC-2 once. ([`spec/PREREG_RC1.md`](spec/PREREG_RC1.md) §5–§7.)
 
+### Attacking the blocker: adversarial generator discovery
+
+Finding that generator is itself a search problem with a *registered* fitness —
+so we attack it with a **searcher, an adversary, and the registered judge**. A
+discovery engine ([Theory Radar](https://github.com/ahb-sjsu/theory-radar))
+proposes generators that minimise geometry mismatch;
+[`structural-fuzzing`](https://github.com/ahb-sjsu/structural-fuzzing) then
+**mutates each candidate's parameters to find where its geometry breaks** — the
+anti-Goodhart step, since a generator that only *games* the eight gates fails
+under perturbation while one with the right mechanism survives; and RC-1
+admission + the sealed RC-2 stay the judges, never optimised against. Both
+engines share **one contract**, which reuses this repo's own geometry battery so
+the objective *is* RC-1, not a proxy:
+
+```python
+from openvector_bench import make_evaluate_fn, measure_corpus
+
+target = measure_corpus(real_base, real_queries)     # RC-1 battery on real embeddings
+evaluate_fn = make_evaluate_fn(target, dim=1024)      # structural-fuzzing signature
+score, per_gate_errors = evaluate_fn(params)          # searcher minimises; fuzzer attacks
+```
+
+Method, rationale, and the **binding integrity guardrails** (the seal stays
+sealed; search on train/validation only; report the budget):
+**[`spec/GENERATOR_SEARCH.md`](spec/GENERATOR_SEARCH.md)**. *Status: harness ships;
+no generator passes RC-1 yet.*
+
 ### Why the 10¹¹ recall numbers aren't a tier
 
 The 10¹¹ fleet build above validates **distribution** (regenerate-from-seed at

@@ -6,6 +6,13 @@ fetched or regenerated on demand. See ``spec/`` for the registered
 specifications.
 """
 
+from .generator_search import (
+    decode,
+    geometry_vector,
+    make_evaluate_fn,
+    synth_corpus,
+    measure_corpus,
+)
 from .manifest import (
     build_manifest,
     load_manifest,
@@ -30,5 +37,10 @@ __all__ = [
     "reconstruct",
     "reconstruct_shard",
     "summarize",
+    "make_evaluate_fn",
+    "measure_corpus",
+    "geometry_vector",
+    "synth_corpus",
+    "decode",
     "__version__",
 ]
