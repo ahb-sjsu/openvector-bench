@@ -842,6 +842,7 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
         local[:n_seed_k] = (
             rng.standard_normal((n_seed_k, d_local)).astype(np.float32) * ws_k
         )
+        owners = None
         if n_cloud_k > 0:
             # Paraphrase clouds: members at GRADED radii around popular rows —
             # the short-range mu ladder (r spanning ~0..cloud_span x patch
@@ -862,7 +863,18 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
         local[ck:] = rng.standard_normal((qk, d_local)).astype(np.float32) * ws_k
         qa_k = int(round(q_anchor * qk)) if n_seed_k > 0 else 0
         if qa_k > 0:
-            anchors = rng.choice(n_seed_k, size=qa_k, p=wpop)
+            # Anchors are drawn from the realized cloud-OWNER multiset (weight
+            # = ladder size): queried rows are exactly the paraphrased rows, so
+            # every anchored query has graded near neighbours (its anchored mu
+            # -> 1), and the pooled two-NN reading becomes a smooth function of
+            # q_anchor between the anchored and patch populations — G1 as a
+            # knob. Ladder-less Zipf-tail anchors were the probe-E failure.
+            pool = owners if owners is not None and len(owners) else None
+            anchors = (
+                rng.choice(pool, size=qa_k)
+                if pool is not None
+                else rng.choice(n_seed_k, size=qa_k, p=wpop)
+            )
             local[ck : ck + qa_k] = local[anchors] + (q_jit * pr_k) * _unit_dirs(qa_k)
         pts = centres[k] + local @ basis.T
         x[rowb : rowb + ck] = pts[:ck]
