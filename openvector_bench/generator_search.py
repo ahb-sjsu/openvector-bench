@@ -113,27 +113,38 @@ def synth_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray
 # the local intrinsic dimension tracks the latent. Clustered, heavy-tailed latent
 # density supplies hubness. Byte-reproducible from `(seed, row)` like every family.
 MANIFOLD_PARAMS: tuple[tuple[str, float, float, float], ...] = (
-    ("latent_dim", 8.0, 200.0, 60.0),  # ~ intrinsic dimension (G1)
+    (
+        "latent_dim",
+        8.0,
+        200.0,
+        52.0,
+    ),  # sets intrinsic dimension via the LINEAR part (G1)
+    (
+        "amp",
+        0.0,
+        3.0,
+        0.6,
+    ),  # weight of the high-freq part -> eff-rank / PCA-break, DECOUPLED from ID
     (
         "freq_scale",
         0.2,
         6.0,
-        1.5,
-    ),  # RFF curvature -> eff-rank / PCA retention / ID fine-tune
+        2.0,
+    ),  # character of the high-freq part (how curved the immersion is)
     (
         "log2_clusters",
         0.0,
         12.0,
-        6.0,
+        7.0,
     ),  # density gradients on the latent -> hubness (G6)
-    ("size_tail", 0.0, 2.5, 1.1),  # heavy-tailed cluster sizes -> hubness
+    ("size_tail", 0.0, 2.5, 1.3),  # heavy-tailed cluster sizes -> hubness
     ("latent_spread", 0.05, 1.5, 0.5),  # within-cluster latent scale
     (
         "curvature",
         0.0,
         3.0,
-        0.0,
-    ),  # 0 = Euclidean latent; >0 = hyperbolic (Poincare exp_0)
+        1.5,
+    ),  # 0 = Euclidean latent; >0 = hyperbolic (Poincare exp_0) -> hubness
     ("noise", 0.0, 0.3, 0.03),  # off-manifold floor
 )
 _N_FREQ = 2048  # random-Fourier feature count (fixed; freq_scale tunes curvature)
@@ -142,10 +153,18 @@ _N_FREQ = 2048  # random-Fourier feature count (fixed; freq_scale tunes curvatur
 def manifold_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
     """A byte-reproducible nonlinear-manifold corpus from decoded knobs ``p``.
 
-    Latent (clustered, heavy-tailed for hubness) -> random Fourier features
-    (nonlinear lift) -> ambient projection + noise floor. Local intrinsic
-    dimension tracks ``latent_dim``; the cosine nonlinearity spreads the ambient
-    spectrum so effective rank stays high and it is not low-rank. Unit-normed.
+    Latent (clustered, heavy-tailed for hubness; optional Poincare exp_0 map) is
+    lifted to ambient by a DECOUPLED immersion:
+
+        x = z @ A_lin  +  amp * (cos(z @ W_hf + b) @ A_hf)
+
+    The linear term pins the *local* intrinsic dimension to ``latent_dim`` (a
+    linear map preserves local dimension -> G1), while the ``amp``-scaled
+    high-frequency term spreads the ambient spectrum (effective rank, G3) and
+    breaks the low-rank structure (PCA retention, G8) SEPARATELY. Round 1's single
+    RFF ``freq_scale`` pulled ID and eff-rank together; splitting the immersion and
+    weighting the nonlinear part by ``amp`` is what lets the search hit low ID and
+    high eff-rank at once. Unit-normed.
     """
     rng = np.random.default_rng(seed)
     d_latent = min(max(2, int(round(p["latent_dim"]))), dim)
@@ -165,13 +184,17 @@ def manifold_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndar
         c = np.float32(p["curvature"])
         vn = np.linalg.norm(z, axis=1, keepdims=True).astype(np.float32)
         z = z * (np.tanh(np.sqrt(c) * vn) / (np.sqrt(c) * np.maximum(vn, 1e-9)))
+    # Linear immersion: preserves local intrinsic dimension = d_latent (G1).
+    a_lin = rng.standard_normal((d_latent, dim)).astype(np.float32) / np.sqrt(d_latent)
+    x = z @ a_lin
+    # High-frequency immersion, weighted by amp: raises eff-rank / breaks low-rank.
     freq = rng.standard_normal((d_latent, _N_FREQ)).astype(np.float32) * np.float32(
         p["freq_scale"]
     )
     bias = rng.uniform(0.0, 2.0 * np.pi, _N_FREQ).astype(np.float32)
     feats = np.cos(z @ freq + bias, dtype=np.float32)  # nonlinear lift
-    proj = rng.standard_normal((_N_FREQ, dim)).astype(np.float32) / np.sqrt(_N_FREQ)
-    x = feats @ proj
+    a_hf = rng.standard_normal((_N_FREQ, dim)).astype(np.float32) / np.sqrt(_N_FREQ)
+    x += np.float32(p["amp"]) * (feats @ a_hf)
     x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
     rng.shuffle(x)
     return normalize(x)
