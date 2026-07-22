@@ -548,19 +548,170 @@ def hier_coloured_corpus(
     parts of the construction.
     """
     x = hier_concentration_corpus(p, n, dim, seed)
+    return _recolour(x, float(p["spectrum_decay"]), float(p["reshape_mix"]))
+
+
+def _recolour(x: np.ndarray, decay: float, mix: float) -> np.ndarray:
+    """Mahalanobis reshape of the centred covariance toward ``i^-decay``; re-normalize."""
+    dim = x.shape[1]
     mu = x.mean(0, keepdims=True)
     xc = x - mu
     cov = (xc.T @ xc) / max(len(xc) - 1, 1)
     lam, vecs = np.linalg.eigh(cov)
     lam, vecs = lam[::-1], vecs[:, ::-1]  # descending
     lam = np.maximum(lam, 1e-12)
-    target = np.arange(1, dim + 1, dtype=np.float64) ** (-float(p["spectrum_decay"]))
+    target = np.arange(1, dim + 1, dtype=np.float64) ** (-decay)
     target *= lam.sum() / target.sum()  # match total energy
-    mix = float(p["reshape_mix"])
     new_lam = lam ** (1.0 - mix) * target**mix
     gain = np.sqrt(new_lam / lam).astype(np.float32)
     x = mu + (xc @ vecs) * gain @ vecs.T
     return normalize(x.astype(np.float32))
+
+
+# Round-7 exploratory family (radius spectrum): screened NEGATIVE — a per-point radius law
+# does not move G2 (the window is across-query, not within-neighbourhood) and is kept only
+# as a probe record; see results/GEN_ROUND7_QUERY.md for the diagnosis that replaced it.
+HIER_MS_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_COLOURED_PARAMS + (
+    ("radius_growth", 2.0, 40.0, 12.0),  # ball-count growth exponent (G2)
+    ("radius_floor", 0.0, 0.8, 0.1),  # smallest radius fraction (protects G1/G7)
+)
+
+
+def hier_multiscale_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int
+) -> np.ndarray:
+    """Round-6 coloured hierarchy with a designed within-cluster radius spectrum.
+
+    Identical centre hierarchy and recolouring; each point's local offset is scaled by
+    ``floor + (1-floor) * u**(1/radius_growth)`` so within-cluster ball counts grow as
+    ``~r**radius_growth`` across scales (G2) instead of saturating at one radius.
+    """
+    rng = np.random.default_rng(seed)
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n)
+    n_levels = min(max(1, int(round(p["n_levels"]))), 6)
+    decay = float(p["level_decay"])
+    tail = float(p["branch_tail"])
+    centres = np.zeros((k_clusters, dim), dtype=np.float32)
+    scale = 1.0
+    for lvl in range(n_levels):
+        n_codes = max(
+            1, min(k_clusters, int(round(k_clusters ** ((lvl + 1) / n_levels))))
+        )
+        codes = rng.standard_normal((n_codes, dim)).astype(np.float32)
+        w = np.arange(1, n_codes + 1, dtype=np.float64) ** (-tail)
+        w /= w.sum()
+        assign = rng.choice(n_codes, size=k_clusters, p=w)
+        centres += np.float32(scale) * codes[assign]
+        scale *= decay
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n, w)
+    ws = np.float32(p["within_scale"])
+    g = float(p["radius_growth"])
+    floor = np.float32(p["radius_floor"])
+    x = np.empty((n, dim), dtype=np.float32)
+    row = 0
+    for k in range(k_clusters):
+        ck = int(counts[k])
+        if ck == 0:
+            continue
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        radii = floor + (1.0 - floor) * rng.random((ck, 1)).astype(np.float32) ** (
+            1.0 / g
+        )
+        local = rng.standard_normal((ck, d_local)).astype(np.float32) * (ws * radii)
+        x[row : row + ck] = centres[k] + local @ basis.T
+        row += ck
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)
+    return _recolour(normalize(x), float(p["spectrum_decay"]), float(p["reshape_mix"]))
+
+
+# Round-7 family: a QUERY MODEL. Hub-anatomy diagnosis (diag_hubs.json): real's
+# base->base reverse-NN skew is only ~1.5 — the battery-B G6 target of 6.8 lives in the
+# QUERY MARGINAL (real queries concentrate on popular regions, piling their top-k lists
+# onto a subset of base points), not in corpus-side density. Every corpus-side hub
+# mechanism therefore either fails (six probes: equalize, mean offset, dup families,
+# per-point tilt, sub-clusters, cluster count) or fakes the number with wrong-anatomy
+# super-hubs (round 6: max reverse-count 369 vs real 78) whose density contrast is what
+# widens the d10 window and pins G2 at 0.14x. This family keeps the corpus HOMOGENEOUS
+# (mild size_tail via its knob, per-cluster scale equalized to uniform local density ->
+# narrow window -> G2) and draws the held-out battery-B queries from the SAME instance
+# but a Zipf-`query_tail`-weighted cluster preference — the query/corpus asymmetry real
+# workloads actually have. Rows [0, n-QUERY_FRAC*n) are the corpus; the tail rows are
+# the query block (callers split at n_base, matching the harness convention).
+QUERY_FRAC = 1.0 / 9.0  # harness convention: n = 8000 base + 1000 held-out queries
+
+HIER_QUERY_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    HIER_COLOURED_PARAMS
+    + (
+        ("query_tail", 0.0, 3.0, 1.2),  # Zipf over clusters for the QUERY draw (G6)
+        (
+            "equalize",
+            0.0,
+            2.0,
+            1.0,
+        ),  # per-cluster scale ~ count^(eq/d) -> uniform density
+    )
+)
+
+
+def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """Homogeneous coloured hierarchy + a Zipf-concentrated same-instance query block.
+
+    Corpus rows are the round-6 construction with per-cluster scale equalized
+    (``equalize``) so local density — hence the across-query d10 window — is uniform
+    (G2). The final ``QUERY_FRAC`` of rows are queries: same clusters, same patches,
+    but cluster choice is Zipf(``query_tail``) — the query-marginal concentration that
+    carries battery-B hubness (G6). Unit-normed, recoloured as round 6.
+    """
+    rng = np.random.default_rng(seed)
+    n_query = int(round(n * QUERY_FRAC))
+    n_base = n - n_query
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n_base)
+    n_levels = min(max(1, int(round(p["n_levels"]))), 6)
+    decay = float(p["level_decay"])
+    tail = float(p["branch_tail"])
+    centres = np.zeros((k_clusters, dim), dtype=np.float32)
+    scale = 1.0
+    for lvl in range(n_levels):
+        n_codes = max(
+            1, min(k_clusters, int(round(k_clusters ** ((lvl + 1) / n_levels))))
+        )
+        codes = rng.standard_normal((n_codes, dim)).astype(np.float32)
+        w = np.arange(1, n_codes + 1, dtype=np.float64) ** (-tail)
+        w /= w.sum()
+        assign = rng.choice(n_codes, size=k_clusters, p=w)
+        centres += np.float32(scale) * codes[assign]
+        scale *= decay
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n_base, w)
+    mean_ck = max(1.0, float(counts[counts > 0].mean()))
+    wq = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["query_tail"])
+    wq /= wq.sum()
+    qcounts = rng.multinomial(n_query, wq)
+    ws = np.float32(p["within_scale"])
+    eq = float(p["equalize"])
+    x = np.empty((n, dim), dtype=np.float32)
+    rowb, rowq = 0, n_base
+    for k in range(k_clusters):
+        ck, qk = int(counts[k]), int(qcounts[k])
+        if ck + qk == 0:
+            continue
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        ws_k = ws * np.float32((max(ck, 1) / mean_ck) ** (eq / d_local))
+        local = rng.standard_normal((ck + qk, d_local)).astype(np.float32) * ws_k
+        pts = centres[k] + local @ basis.T
+        x[rowb : rowb + ck] = pts[:ck]
+        x[rowq : rowq + qk] = pts[ck:]
+        rowb += ck
+        rowq += qk
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x[:n_base])  # base rows only — the query block stays the tail
+    return _recolour(normalize(x), float(p["spectrum_decay"]), float(p["reshape_mix"]))
 
 
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:

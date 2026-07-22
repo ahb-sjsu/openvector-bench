@@ -20,7 +20,9 @@ import numpy as np
 from openvector_bench.generator_search import (
     CONCENTRATION_PARAMS,
     HIER_COLOURED_PARAMS,
+    HIER_MS_PARAMS,
     HIER_PARAMS,
+    HIER_QUERY_PARAMS,
     MANIFOLD_PARAMS,
     PARAMS,
     STRATIFIED_PARAMS,
@@ -28,6 +30,8 @@ from openvector_bench.generator_search import (
     decode,
     hier_coloured_corpus,
     hier_concentration_corpus,
+    hier_multiscale_corpus,
+    hier_query_corpus,
     make_evaluate_fn,
     manifold_corpus,
     measure_corpus,
@@ -40,6 +44,8 @@ FAMILIES = {
     "stratified": (stratified_corpus, STRATIFIED_PARAMS),
     "hier": (hier_concentration_corpus, HIER_PARAMS),
     "hier_coloured": (hier_coloured_corpus, HIER_COLOURED_PARAMS),
+    "hier_ms": (hier_multiscale_corpus, HIER_MS_PARAMS),
+    "hier_q": (hier_query_corpus, HIER_QUERY_PARAMS),
     "manifold": (manifold_corpus, MANIFOLD_PARAMS),
     "synth": (synth_corpus, PARAMS),
 }
