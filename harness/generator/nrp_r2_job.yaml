@@ -1,0 +1,52 @@
+# Round-2 generator refinement as an NRP Nautilus swarm-class CPU Job.
+#
+# Swarm class = <=1 CPU, <=2Gi memory, no GPU -> effectively unlimited replicas,
+# no thermal budget (unlike the workstation). The pod is fully self-contained: it
+# pip-installs this package + structural-fuzzing, reads a precomputed real-target
+# geometry profile from the `ovb-r2-job` ConfigMap (a few dozen numbers, no corpus
+# data), and runs the bounded directed search + structural-fuzzing adversary,
+# printing the result between RESULT_JSON_BEGIN/END for `kubectl logs`.
+#
+#   kubectl -n ssu-atlas-ai create configmap ovb-r2-job \
+#     --from-file=nrp_opt.py --from-file=target_n8000.json \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#   kubectl -n ssu-atlas-ai apply -f nrp_r2_job.yaml
+#   kubectl -n ssu-atlas-ai logs -l app=ovb-gen -f
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ovb-r2-refine
+  namespace: ssu-atlas-ai
+  labels:
+    app: ovb-gen
+    tier: swarm
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 172800
+  template:
+    metadata:
+      labels:
+        app: ovb-gen
+        tier: swarm
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: refine
+          image: python:3.12-slim
+          command: ["sh", "-c"]
+          args:
+            - "set -e; pip install -q --no-cache-dir structural-fuzzing 'https://github.com/ahb-sjsu/openvector-bench/archive/refs/heads/main.zip'; python3 /work/nrp_opt.py"
+          env:
+            - {name: OMP_NUM_THREADS, value: "1"}
+            - {name: OPENBLAS_NUM_THREADS, value: "1"}
+            - {name: MKL_NUM_THREADS, value: "1"}
+            - {name: MAXFEV, value: "60"}
+            - {name: N_BASE, value: "8000"}
+          resources:
+            requests: {cpu: "1", memory: "2Gi", ephemeral-storage: "4Gi"}
+            limits: {cpu: "1", memory: "2Gi", ephemeral-storage: "4Gi"}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+      volumes:
+        - name: work
+          configMap: {name: ovb-r2-job}
