@@ -237,11 +237,18 @@ term} the padded eigenvalues obey
 \quad\text{--- an explicit infinitesimal recolouring toward isotropy.}
 \]
 The cross-covariance
-$\delta\sqrt{1-\delta^2}\,M$ with $M = \tfrac1n \sum_i y_i v_i^\top$ is
-generically nonzero; by Weyl's inequality it perturbs each eigenvalue by at
-most $2\delta\sqrt{1-\delta^2}\,\|M\|_2$, and $\|M\|_2 = O(n^{-1/2})$ for
-generic $Y$. All spectral effects vanish as $\delta \to 0$, which is what
-Theorem~\ref{thm:independence} uses. The separation is therefore unusually
+$\delta\sqrt{1-\delta^2}\,M$ with $M = \tfrac1n \sum_i y_i v_i^\top =
+\tfrac1n Y^\top V$ is generically nonzero; by Weyl's inequality it perturbs
+each eigenvalue by at most $2\delta\sqrt{1-\delta^2}\,\|M\|_2$, and the bound
+is \emph{deterministic}: $\|Y\|_2 \le \sqrt{n}$ (unit rows) and
+$\|V\|_2 = \sqrt{n/(n-1)}$ (since $V^\top V = \tfrac{n}{n-1}I$), so
+\[
+\|M\|_2 \;\le\; \frac1n\,\|Y\|_2\,\|V\|_2 \;=\; \frac{1}{\sqrt{n-1}}
+\qquad\text{for \emph{every} unit-normalized corpus.}
+\]
+All spectral effects vanish as $\delta \to 0$, which is what
+Theorem~\ref{thm:independence} uses; no genericity assumption is needed
+anywhere in the construction. The separation is therefore unusually
 strong: query hubness moves by $O(1)$; corpus neighbour anatomy moves by
 exactly zero; spectral change is $O(\delta)$.
 
@@ -268,10 +275,40 @@ $\muC\bigl(B(y_{a\ell}, \epsilon r)\bigr)
 = \alpha_a \sum_{j:\|u_{aj}-u_{a\ell}\| \le r} \beta_{aj}$:
 the local ball-growth curve is exactly the template's, rescaled in radius ---
 precisely the degree of freedom behind ball-growth intrinsic-dimension
-estimators \cite{multiscaleid}. Any target macro covariance
-$\Sigma = \sum_{j=1}^r \lambda_j e_j e_j^\top$ is realizable by symmetric
-centres $c_{j,\pm} = \pm\sqrt{r\lambda_j}\, e_j$ with weights $1/(2r)$.
+estimators \cite{multiscaleid}.
 \end{lemma}
+
+\begin{lemma}[Common-sphere realization --- the bridge to the address block]
+\label{lem:bridge}
+The macro--micro corpus can be constructed with \emph{all points on a common
+sphere}, so that Lemma~\ref{lem:preserve}'s unit-norm hypothesis is met after
+one global rescaling:
+(i)~\emph{equal-norm macro centres}: for any target covariance $\Sigma$ with
+$m$ centres there is a mean-zero ensemble with $\|c_a\| \equiv R$,
+$R^2 = \operatorname{tr}\Sigma$ --- take $A$ with $AA^\top = \Sigma$ whose
+Gram matrix has constant diagonal (such $A$ exists by Schur--Horn: the
+constant diagonal $\operatorname{tr}\Sigma/m$ is majorized by every spectrum),
+then $\pm$-double the columns for mean zero;
+(ii)~\emph{spherical local templates}: require $\|u_{a\ell}\| \equiv c$, with
+$\pm$ pairs on the template sphere preserving the weighted-mean-zero
+condition. Registered ball-growth curves remain realizable --- a growth curve
+constrains pairwise chordal distances, which points on $S^{q}$ take freely in
+sufficient dimension. Then $\|y_{a\ell}\|^2 = R^2 + \epsilon^2 c^2$ is
+constant, with \emph{no} compensator coordinate (a compensator would perturb
+local distances at $O(\epsilon)$ --- the same order as the structure being
+protected --- and is therefore rejected).
+\end{lemma}
+
+Without Lemma~\ref{lem:bridge} the composition has a gap: the raw macro--micro
+corpus has unequal norms, under which Euclidean address selection can fail
+(norm variation is $O(1)$ while the address margin is $O(\delta)$) and
+cosine normalization would disturb the exact block structure. One remark
+survives even without it: under \emph{cosine} retrieval the address selection
+of Lemma~\ref{lem:address} is norm-robust as stated --- every $j \in S$ has
+strictly positive inner product with $q_S$ and every $j \notin S$ strictly
+negative, so $\NN_k(q_S) = S$ for arbitrary corpus norms; equal norms are
+needed for Lemma~\ref{lem:preserve}'s exact anatomy preservation and for
+Euclidean retrieval.
 
 \subsection{The Bond independence theorem}
 
@@ -290,14 +327,19 @@ observable.
 \end{theorem}
 
 \begin{proof}[Proof construction]
-(1)~Macro centres realize $\Lambda$ (Lemma~\ref{lem:macromicro}).
-(2)~$\epsilon$-scale centered microtemplates realize the local growth curves.
+(1)~Equal-norm macro centres realize $\Lambda$
+(Lemmas~\ref{lem:macromicro}--\ref{lem:bridge}(i)).
+(2)~$\epsilon$-scale centered \emph{spherical} microtemplates realize the
+local growth curves (Lemma~\ref{lem:bridge}(ii)); the corpus now lies on a
+common sphere --- rescale to unit norm.
 (3)~Choose $\epsilon$ small enough that the microstructure moves the global
 spectrum by less than $\eta/2$.
 (4)~Append the $\delta$-scale regular-simplex address block
-(Lemmas~\ref{lem:preserve}--\ref{lem:address}).
-(5)~Choose $\delta \ll \epsilon$ so its spectral and radial effects (including
-the Weyl cross-term bound) are below $\eta/2$.
+(Lemmas~\ref{lem:preserve}--\ref{lem:address}), applicable verbatim to the
+unit-normalized corpus.
+(5)~Choose $\delta \ll \epsilon$ so its spectral and radial effects (the
+deterministic Weyl cross-term bound $2\delta/\sqrt{n-1}$ included) are below
+$\eta/2$.
 (6)~Write $h$ as a convex combination of $k$-subset incidence vectors
 (Corollary~\ref{cor:hypersimplex}).
 (7)~Place the corresponding query mass on the simplex queries $q_S$.
