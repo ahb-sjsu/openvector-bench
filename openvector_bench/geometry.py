@@ -333,8 +333,18 @@ def main() -> None:
     print(f"target effective rank {eff:.1f} -> null_lowrank rank {rank}", flush=True)
 
     # Battery A holds out corpus points as queries, disjoint from the base.
+    # Registered protocol fix (results/RC1_ROUND2_CANDIDATE.md, finding 3): the
+    # holdout is sampled UNIFORMLY. Taking the first rows inherits the corpus's
+    # topical row ordering (Wikipedia arrives ordered), which smuggles a
+    # concentrated query marginal into the corpus-to-corpus battery; real
+    # battery-A targets are re-measured under this protocol before the next
+    # admission run.
     hold = min(N_QUERY * 2, len(corpus) // 10)
-    corpus_q, corpus_base = corpus[:hold], corpus[hold:]
+    hrng = np.random.default_rng(7)
+    hidx = np.sort(hrng.choice(len(corpus), size=hold, replace=False))
+    hmask = np.zeros(len(corpus), dtype=bool)
+    hmask[hidx] = True
+    corpus_q, corpus_base = corpus[hmask], corpus[~hmask]
 
     cells: list[dict] = []
     for sub in range(SUBSAMPLES):

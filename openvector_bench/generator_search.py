@@ -751,10 +751,13 @@ HIER_DUPQ_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_QUERY_PARAM
     ("dup_tail", 1.2, 3.0, 2.0),  # inert); kept at inert defaults, recorded
     ("query_tail_n", 0.0, 1.0, 0.0),  # cluster-Zipf n-coupling — saturated, inert
     ("q_anchor", 0.0, 0.9, 0.5),  # fraction of queries anchored to popular rows (G6)
-    ("anchor_tail", 0.5, 2.5, 1.0),  # Zipf over anchor-row popularity
-    ("q_jit", 0.1, 2.0, 0.8),  # IN-PATCH anchor jitter, x within_scale
+    ("anchor_tail", 0.5, 2.5, 1.0),  # Zipf popularity field: anchors AND cloud centres
+    ("q_jit", 0.1, 2.0, 0.8),  # IN-PATCH anchor offset radius, x within_scale
     ("log2_knee", 4.0, 9.0, 7.3),  # two-piece spectrum knee index (2**this)
     ("spectrum_decay2", 0.5, 2.5, 1.6),  # tail slope beyond the knee (G4)
+    ("cloud_mass", 0.0, 0.5, 0.25),  # fraction of base rows in paraphrase clouds
+    ("cloud_grade", 0.2, 2.0, 0.7),  # radius law P(r<=t) ~ t^grade (graded ladder)
+    ("cloud_span", 0.2, 1.5, 0.9),  # max cloud radius, x within_scale
 )
 _QT_ANCHOR_N = 8000.0  # n_base at which query_tail applies unmodified
 
@@ -807,25 +810,60 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
     q_anchor = float(p["q_anchor"])
     a_tail = float(p["anchor_tail"])
     q_jit = np.float32(float(p["q_jit"]))
+    cloud_mass = float(p["cloud_mass"])
+    cloud_grade = float(p["cloud_grade"])
+    cloud_span = np.float32(float(p["cloud_span"]))
+
+    def _unit_dirs(m: int) -> np.ndarray:
+        d = rng.standard_normal((m, d_local)).astype(np.float32)
+        return d / np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-9)
+
     for k in range(k_clusters):
         ck, qk = int(counts[k]), int(qcounts[k])
         if ck + qk == 0:
             continue
         basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
         ws_k = ws * np.float32((max(ck, 1) / mean_ck) ** (eq / d_local))
-        local = rng.standard_normal((ck + qk, d_local)).astype(np.float32) * ws_k
-        # Row-anchored queries (G6 level *and* growth): a fraction of this
-        # cluster's queries sit at q_jit x within_scale from a Zipf-popular base
-        # row, jittered IN THE PATCH SUBSPACE — ambient jitter puts queries
-        # off-manifold (two-NN reads ambient dim, lists decorrelate; probe v9c).
-        qa_k = int(round(q_anchor * qk)) if ck > 0 else 0
+        # One Zipf POPULARITY FIELD over this cluster's seed rows drives both
+        # mechanisms below: popular rows grow paraphrase clouds (the corpus
+        # measure) and attract anchored queries (the query measure) — the
+        # coupling real corpora have, by construction rather than coincidence.
+        n_cloud_k = int(round(cloud_mass * ck))
+        n_seed_k = ck - n_cloud_k
+        if n_seed_k <= 0:
+            n_seed_k, n_cloud_k = ck, 0
+        wpop = np.arange(1, n_seed_k + 1, dtype=np.float64) ** (-a_tail)
+        wpop /= wpop.sum()
+        # Radius unit for clouds and anchor offsets: the PATCH RADIUS
+        # ws_k * sqrt(d_local) (a Gaussian patch point's typical norm), so the
+        # knobs are fractions of the scale neighbours actually live at.
+        pr_k = ws_k * np.float32(np.sqrt(d_local))
+        local = np.empty((ck + qk, d_local), dtype=np.float32)
+        local[:n_seed_k] = (
+            rng.standard_normal((n_seed_k, d_local)).astype(np.float32) * ws_k
+        )
+        if n_cloud_k > 0:
+            # Paraphrase clouds: members at GRADED radii around popular rows —
+            # the short-range mu ladder (r spanning ~0..cloud_span x patch
+            # scale, denser near the centre for grade < 1) that pins the
+            # trimmed two-NN reading, smooths ball growth, and gives anchored
+            # queries neighbours at every fractional distance (probe D's gap).
+            owners = rng.choice(n_seed_k, size=n_cloud_k, p=wpop)
+            radii = (
+                cloud_span
+                * pr_k
+                * rng.random((n_cloud_k, 1)).astype(np.float32)
+                ** np.float32(1.0 / cloud_grade)
+            )
+            local[n_seed_k:ck] = local[owners] + radii * _unit_dirs(n_cloud_k)
+        # Queries: unanchored ones sample the patch; anchored ones sit at
+        # q_jit x within_scale from a popularity-weighted seed row, IN-PATCH
+        # (ambient jitter reads ambient dimension; probe v9c).
+        local[ck:] = rng.standard_normal((qk, d_local)).astype(np.float32) * ws_k
+        qa_k = int(round(q_anchor * qk)) if n_seed_k > 0 else 0
         if qa_k > 0:
-            wa = np.arange(1, ck + 1, dtype=np.float64) ** (-a_tail)
-            wa /= wa.sum()
-            anchors = rng.choice(ck, size=qa_k, p=wa)
-            local[ck : ck + qa_k] = local[anchors] + (
-                q_jit * ws_k
-            ) * rng.standard_normal((qa_k, d_local)).astype(np.float32)
+            anchors = rng.choice(n_seed_k, size=qa_k, p=wpop)
+            local[ck : ck + qa_k] = local[anchors] + (q_jit * pr_k) * _unit_dirs(qa_k)
         pts = centres[k] + local @ basis.T
         x[rowb : rowb + ck] = pts[:ck]
         x[rowq : rowq + qk] = pts[ck:]
@@ -895,11 +933,20 @@ def measure_corpus(
     for battery in batteries:
         if battery == "B" and queries is not None and len(queries):
             q = normalize(np.asarray(queries, dtype=np.float32))
+            searched = base
         else:
+            # WP0.1 (spec/NORMAL_FORMS.md): battery-A queries are held OUT of the
+            # searched base. Sampling them from the searched rows self-matches at
+            # distance 0, collapsing every neighbour diagnostic (id_twonn ~ 0.1) —
+            # the artifact documented in results/QUERY_COUPLING_ARTIFACT.md.
             rng = np.random.default_rng(seed + 99)
-            take = min(n_query, len(base))
-            q = base[rng.choice(len(base), size=take, replace=False)]
-        out[battery] = {int(k): geometry_vector(base, q, k, kmax) for k in ks}
+            take = min(n_query, len(base) // 2)
+            qi = rng.choice(len(base), size=take, replace=False)
+            hold = np.zeros(len(base), dtype=bool)
+            hold[qi] = True
+            q = base[qi]
+            searched = base[~hold]
+        out[battery] = {int(k): geometry_vector(searched, q, k, kmax) for k in ks}
     return out
 
 

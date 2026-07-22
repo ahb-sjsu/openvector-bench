@@ -22,8 +22,11 @@ P_STAR = np.array([4.0, 1.2, 1.0, 0.30, 0.05])  # PARAMS order
 
 
 def _target(p, seed=0):
-    base = synth_corpus(decode(p), N, DIM, seed)
-    q = synth_corpus(decode(p), NQ, DIM, seed + 1)
+    # Same-instance split, matching make_evaluate_fn: queries are held out from
+    # the SAME generated instance (results/QUERY_COUPLING_ARTIFACT.md) — an
+    # independent seed is a different manifold realization.
+    full = synth_corpus(decode(p), N + NQ, DIM, seed)
+    base, q = full[:N], full[N:]
     return measure_corpus(base, q, ks=KS, batteries=("A", "B"), n_query=NQ, seed=seed)
 
 
@@ -77,8 +80,9 @@ def test_make_evaluate_fn_accepts_the_manifold_family():
     )
 
     p_star = np.array([d for _, _, _, d in MANIFOLD_PARAMS])
-    base = manifold_corpus({n: d for n, _, _, d in MANIFOLD_PARAMS}, N, DIM, 0)
-    q = manifold_corpus({n: d for n, _, _, d in MANIFOLD_PARAMS}, NQ, DIM, 1)
+    # Same-instance split, matching make_evaluate_fn (see _target above).
+    full = manifold_corpus({n: d for n, _, _, d in MANIFOLD_PARAMS}, N + NQ, DIM, 0)
+    base, q = full[:N], full[N:]
     target = measure_corpus(base, q, ks=KS, batteries=("B",), n_query=NQ, seed=0)
     ev = make_evaluate_fn(
         target,
