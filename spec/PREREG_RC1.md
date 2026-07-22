@@ -226,3 +226,47 @@ G3 is useless. Therefore:
 - **Implementation.** v1's k-NN would allocate ~1.7 TB in the NumPy path and
   a 1.64 GB matrix in the Torch path; v2 requires doubly-blocked exact search
   with device-aware block sizes (`corpus_geometry.py`).
+
+---
+
+## 10. Anchoring (tamper-evident timestamping of the seal ordering)
+
+§7's seal records a SHA-256 and a timestamp, but that timestamp is
+author-asserted and git history is owner-mutable, so the ordering
+"goalposts fixed *before* sealed reveal" currently rests on trusting the
+maintainer. This clause removes the maintainer from that trust path.
+
+**Two distinct properties, two distinct tools — do not conflate them:**
+
+- **Authenticity + integrity ("who signed this, was it altered"):** the
+  repository's keypair signatures — GPG-signed commits and signed manifests
+  (`sign_manifest`), which are ordinary public/private-key / ECC-class
+  signatures. These already hold and are kept. A signature proves *who* and
+  *what*. It says **nothing about when**: the author holds their own private
+  key and can validly sign a weakened spec at any time, including after seeing
+  results. Signatures therefore cannot, by themselves, establish the
+  pre-registration ordering.
+- **Un-backdatable time ("this existed no later than T"):** an OpenTimestamps
+  Bitcoin anchor. This is the missing property, and it is orthogonal to
+  signing. **Registered rule:** the frozen `PREREG_RC1.md`, then `SEAL.md`
+  (immediately before the seal is opened), then the results file, are each
+  OTS-anchored, so `T_prereg < T_seal < T_results` is publicly verifiable by
+  anyone. Procedure and third-party verification: `spec/ANCHORING.md`.
+
+**Honest limits, registered rather than glossed:**
+- Anchoring proves *when*, not that the numbers are honest — **byte
+  reproducibility** (any party regenerates the corpus and re-runs §5) is what
+  makes the results trustless; the anchor only fixes the timeline.
+- **Peeking cannot be closed cryptographically here, and this is stated
+  plainly:** the target (Cohere Embed-V3 Wikipedia) is a *public* corpus, so
+  the "sealed 25%" is a self-discipline and audit boundary, not a secret — the
+  maintainer could reconstruct it from the public source. Encrypting the seal
+  or splitting its key (threshold/Shamir custody) would be theatrical against a
+  public plaintext and is deliberately **not** claimed to prevent peeking.
+- One asymmetric-crypto addition *would* harden §7 and is noted as an optional
+  future step (not yet binding): deriving the train/val/sealed partition from a
+  **verifiable random function** (ECVRF/Ed25519) over a committed seed, so the
+  split is publicly checkable as unbiased rather than trusted — closing "were
+  the sealed rows gerrymandered?", which is a *when-independent* hole that
+  anchoring does not touch. Registered here as scoped future work so its later
+  adoption cannot be mistaken for a silently changed rule.
