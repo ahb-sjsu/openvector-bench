@@ -1,23 +1,41 @@
 # The Bond Metric — a measure–metric–scale decomposition of embedding geometry
 
-*Working conjecture + operational programme, 2026-07-22. Status: conjecture with first
-empirical support; not yet a registered spec (nothing here gates RC-1/RC-2).*
+*Working conjecture + operational programme, 2026-07-22. Status: **strongly corroborated
+and materially sharpened** by the round 5–7 falsification chain — three constructive
+separations — but not universally confirmed (a general independence theorem would need
+formal construction under stated assumptions). Not yet a registered spec (nothing here
+gates RC-1/RC-2).*
 
 ## The conjecture
 
-High-dimensional embedding geometry factors into (at least) three distinct degrees of
-freedom that standard summary statistics conflate:
+High-dimensional embedding geometry factors into (at least) four distinct layers that
+standard summary statistics conflate:
 
-1. **Measure layer** — where probability mass sits: sampling density over the manifold,
-   *and separately* the query marginal's mass over the corpus (they need not agree).
-2. **Metric layer** — the scale structure: neighbour-distance quantiles, the across-query
-   d10 window, ball-growth behaviour through intermediate scales.
-3. **Spectral layer** — the global covariance shape: effective rank, dims90, PCA capture.
+| layer | main observable | control |
+|---|---|---|
+| **Global metric / spectral** | spectrum, effective rank, PCA retention | recolouring |
+| **Corpus measure** μ_C | cluster mass, density, angular capture | centre placement |
+| **Query measure** μ_Q | visitation frequency of corpus regions | query marginal |
+| **Local scale structure** | ball growth, neighbourhood transitions | radius/scale spectrum |
 
-**Apparent trade-offs between embedding statistics arise when a generator (or a model's
-representation) binds several layers to one mechanism — not because the statistics are
-intrinsically incompatible.** Corollary: a statistic's *value* underdetermines its
-*anatomy*; two corpora can share a gate reading produced by different layers.
+"Measure" is not one thing: there are **two interacting measures, μ_C and μ_Q**. Hubness
+must be written **H_k(C, Q, d)** — a function of corpus, query distribution, metric, and
+k — not H_k(C, d). The observed reverse-neighbour count of corpus point x_j samples how
+much query mass falls in its top-k **capture basin**:
+
+    N_k(x_j) ≈ |Q| · μ_Q( A_k(x_j; C, d) )
+
+where A_k(x_j; C, d) is the region of query space for which x_j appears in the top k.
+Corpus geometry defines the capture basins; the query marginal determines how heavily they
+are visited; **the same scalar skew can arise from huge basins or from concentrated query
+mass — so hubness skew alone cannot identify the mechanism.** The query measure acts as an
+*illumination pattern* over the corpus's capture basins.
+
+**The conjecture:** apparent trade-offs between embedding statistics arise when a
+generator (or a model's representation) binds several layers to one mechanism — not
+because the statistics are intrinsically incompatible. Corollary: a statistic's *value*
+underdetermines its *anatomy*; two corpora can share a gate reading produced by different
+layers, with opposite geometry and likely opposite ANN behaviour.
 
 ## Evidence so far (all from the generator-search campaign, results/ this repo)
 
@@ -30,13 +48,30 @@ intrinsically incompatible.** Corollary: a statistic's *value* underdetermines i
   (rank-corr(N₁₀, −d10) = +0.67), hubs' d10 only 8% under population. Round-6 winner:
   skew 7.0, max count **369**, extreme-centrality metric-layer hubs 34% closer than
   population. **The G6 gate cannot distinguish these; the decomposition can.**
-- **Round 7 diagnosis:** real's battery-B hubness (6.8) lives in the **query marginal**
-  (measure layer, query side); its corpus is metrically homogeneous (d10 window ≈1.17 —
-  which *is* G2 ≈ 15). Six corpus-side hub mechanisms failed because they attacked the
-  wrong layer; a Zipf query model moved G6 0.19×→2.20× with the metric layer untouched.
+- **Round 7 diagnosis:** real's battery-B hubness (6.8) lives in the **query measure μ_Q**;
+  its corpus is metrically homogeneous (d10 window ≈1.17 — which *is* G2 ≈ 15). Six
+  corpus-side hub mechanisms failed because they attacked the wrong layer; a Zipf query
+  model moved G6 0.19×→2.20× with the metric layer untouched and G2 *improving* to 0.65×.
+- **The G6–G2 "trade-off" was representational, not real.** Same-distribution queries
+  cannot produce query-induced G6, so the search grew corpus-side central super-hubs; those
+  require extreme local density contrast; that contrast is the patch/plateau anatomy; G2
+  collapses. The conflict was between *the wrong mechanism for hubness* and realistic ball
+  growth — a Zipf query marginal breaks the false dependency constructively.
 - **Amplification:** in high local dimension the measure layer is exponentially sensitive
   to the metric layer (count contrast ~ s^-d_local), so tiny metric perturbations produce
   large measure signatures — why binding the layers is both easy to do and expensive.
+
+## The hub anatomy vector (one number is non-identifying)
+
+Because scalar hubness underdetermines mechanism, report:
+
+A_hub = (query→base skew, base→base skew, max N_k, corr(N_k, centrality),
+corr(N_k, −d10), top-hub mass share)
+
+Round 6's winner and the real corpus share query→base G6 ≈ target while differing in every
+other component (78 vs 369 max count; density-driven vs centrality-driven). The round-7 P2
+falsifier (base→base skew < 3 at the best point) is the first registered use: it prevents
+the optimizer from reproducing the scalar by rebuilding the known pathology.
 
 ## Operational programme ("Fuzzing the Bond Metric")
 
