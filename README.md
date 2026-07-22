@@ -123,7 +123,7 @@ as produced:
 | **Geometry battery** (RC-1 instrument) | the battery tells real embeddings from wrong ones | ✅ **passed** | 3/3 frozen nulls rejected · [`RC1_ROUND1.md`](results/RC1_ROUND1.md) |
 | **§6 reconstruction** | a corpus regenerates **byte-identically** from a kB manifest | ✅ **passed** | 4/4 criteria · [experiment](harness/distribution/reconstruct_experiment.py) · [notebook](notebooks/reproduce.ipynb) |
 | **Distribution at scale** | regenerate-from-seed works at **10¹¹**, zero data movement | 🟡 **in progress** | sibling [turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro) fleet build (systems evidence) |
-| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | 🟡 **candidate found** | 8-round search closed: six gates + hub **anatomy** matched at n=8k, seed-stable · [`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md) · formal grid admission **not yet run** — [see below](#whats-blocking-rc-1-and-rc-2) |
+| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **candidate not admitted** | formal §5 grid run (validation-stage, seal closed): **0/24 cells**, G6-growth kills the exponents · full map + round-9 targets: [`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md) · fitting-stage result: [`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md) |
 | **RC-2** — sealed prediction | that geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after RC-1 |
 | **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires RC-1 **and** RC-2 |
 
@@ -158,19 +158,24 @@ substantially in the **query measure**, not the corpus
 satisfied by the wrong mechanism — the registered anatomy falsifier caught the
 optimizer doing exactly that ([`GEN_ROUND7_QUERY.md`](results/GEN_ROUND7_QUERY.md)).
 
-**What still stands between the candidate and RC-1 (why the row above is not
-green):**
+**The formal §5 admission has now been run** (validation-stage: sealed rows
+excluded, seal never opened) — **the candidate is not admitted: 0/24 cells,
+with all six scaling-exponent failures on hubness growth**
+([`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md)). Reported per
+the binding falsification rule. The run converts the gap into a measured map:
 
-- **The full grid.** Admission is n ∈ {25k…200k} × k ∈ {10,30,100}, **both**
-  batteries, cell-wise under the §5 rule (`score_rc1.py`) — the candidate is
-  fitted at n=8k, k=10, battery B only.
-- **G4 (dims90) is out of band** (~2.3× at the fitted point) — in-grid cells
-  scoring G4 will fail today.
-- **Hubness that grows correctly with N.** Real embeddings' hubness climbs with
-  n; the query-model mechanism's n-scaling is untested — and the grid stops at
-  2×10⁵, so extrapolation beyond it remains unproven regardless.
-- **Hash + seal.** RC-2 requires a frozen, byte-reproducible, hashed generator;
-  the candidate is not yet sealed.
+- **G5 passes 24/24** (and separates nothing, as §8 anticipated); **G2's centre
+  is right** (median 0.97 — the query-model ball-growth mechanism survives 25×
+  scale-up); G3/G4 are flat scale-independent colouring mis-tunes, not walls.
+- **Real's intrinsic dimension is n-flat (53–63 across 8× n); the candidate's
+  drifts** (64→76) — the n=8k fit does not transfer. Missing mechanism:
+  fine-scale near-duplicate structure that pins the two-NN reading.
+- **Hubness growth kills the mandatory gates**: a fixed query concentration
+  grows at +0.13/decade vs real's +0.22 (battery B), and battery A exposes a
+  protocol asymmetry now documented for a registered round-9 decision (real's
+  battery-A queries inherit Wikipedia's topical row ordering; the candidate's
+  held-out rows are exchangeable).
+- **Hash + seal** still follows any future validation pass; RC-2 unchanged.
 
 **RC-2 is blocked on RC-1.** It is a **sealed, single-use** test: hash one
 generator, open the sealed set **once**, and check whether matching the geometry
