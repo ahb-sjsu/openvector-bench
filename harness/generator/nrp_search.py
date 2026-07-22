@@ -19,11 +19,13 @@ import numpy as np
 
 from openvector_bench.generator_search import (
     CONCENTRATION_PARAMS,
+    HIER_PARAMS,
     MANIFOLD_PARAMS,
     PARAMS,
     STRATIFIED_PARAMS,
     concentration_corpus,
     decode,
+    hier_concentration_corpus,
     make_evaluate_fn,
     manifold_corpus,
     measure_corpus,
@@ -34,6 +36,7 @@ from openvector_bench.generator_search import (
 FAMILIES = {
     "concentration": (concentration_corpus, CONCENTRATION_PARAMS),
     "stratified": (stratified_corpus, STRATIFIED_PARAMS),
+    "hier": (hier_concentration_corpus, HIER_PARAMS),
     "manifold": (manifold_corpus, MANIFOLD_PARAMS),
     "synth": (synth_corpus, PARAMS),
 }

@@ -446,6 +446,79 @@ def whitney_b_defect(p: dict[str, float], n: int, dim: int, seed: int) -> float:
     return float(np.mean(defects)) if defects else float("nan")
 
 
+# Round-5 family: HIERARCHICAL concentration. Rounds 3-4 matched G1/G3/G7/G8 but hubness
+# (G6) stayed ~0.18x. Root cause (diagnosed round 4): the `curvature`/exp_0 map is RADIAL
+# (preserves direction), so after unit-normalisation it is discarded and does nothing to the
+# angular geometry the gates see -- which is why curving the centres never moved hubness.
+# On the sphere hubness = ANGULAR density variation: a few points that are the nearest
+# neighbour of many. Round 1 got it because exp_0 fed a NONLINEAR lift (radial -> angular);
+# the linear concentration embedding cannot. The fix is to build the angular density gradient
+# directly into CENTRE PLACEMENT: a self-similar codebook hierarchy (geometric-methods Ch.5
+# tree/hyperbolic theme) where a heavy-tailed choice at each level makes some angular regions
+# dense (hubs) and most sparse, while each cluster stays a flat local_dim patch (G1/G8) and a
+# range of cluster sizes/depths keeps the local-ID spread (G7). Byte-reproducible.
+HIER_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    ("local_dim", 8.0, 120.0, 55.0),  # within-cluster flat patch dim -> G1
+    ("log2_clusters", 4.0, 13.0, 9.0),  # 2**this leaf clusters
+    ("n_levels", 1.0, 5.0, 3.0),  # codebook hierarchy depth (angular multi-scale)
+    ("level_decay", 0.2, 0.95, 0.6),  # radius shrink per level (self-similar contrast)
+    ("branch_tail", 0.0, 3.0, 1.6),  # Zipf on codebook choice -> ANGULAR hubs (G6)
+    ("within_scale", 0.02, 0.6, 0.15),  # patch radius; < spacing (concentration)
+    ("size_tail", 0.0, 2.5, 1.3),  # heavy-tailed cluster sizes -> hubness assist
+    ("noise", 0.0, 0.2, 0.02),  # off-cluster floor
+)
+
+
+def hier_concentration_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int
+) -> np.ndarray:
+    """Concentration with a self-similar hierarchical CENTRE layout for angular hubness.
+
+    Each centre is a sum over ``n_levels`` scales of a codebook vector chosen by a
+    heavy-tailed (Zipf ``branch_tail``) draw: at each level the codebook grows, so
+    high-level codes carve coarse angular clusters and the Zipf choice makes a few of
+    them dense -> those angular regions become hubs (G6). Each leaf cluster is still a
+    flat ``local_dim`` patch in its own random subspace (G1/G8); heavy-tailed sizes give
+    a local-ID spread (G7). Unit-normed.
+    """
+    rng = np.random.default_rng(seed)
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n)
+    n_levels = min(max(1, int(round(p["n_levels"]))), 6)
+    decay = float(p["level_decay"])
+    tail = float(p["branch_tail"])
+    # Self-similar centres: sum of codebook vectors over levels, heavy-tailed choice.
+    centres = np.zeros((k_clusters, dim), dtype=np.float32)
+    scale = 1.0
+    for lvl in range(n_levels):
+        n_codes = max(
+            1, min(k_clusters, int(round(k_clusters ** ((lvl + 1) / n_levels))))
+        )
+        codes = rng.standard_normal((n_codes, dim)).astype(np.float32)
+        w = np.arange(1, n_codes + 1, dtype=np.float64) ** (-tail)
+        w /= w.sum()
+        assign = rng.choice(n_codes, size=k_clusters, p=w)
+        centres += np.float32(scale) * codes[assign]
+        scale *= decay
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n, w)
+    ws = np.float32(p["within_scale"])
+    x = np.empty((n, dim), dtype=np.float32)
+    row = 0
+    for k in range(k_clusters):
+        ck = int(counts[k])
+        if ck == 0:
+            continue
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        local = rng.standard_normal((ck, d_local)).astype(np.float32) * ws
+        x[row : row + ck] = centres[k] + local @ basis.T
+        row += ck
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)
+    return normalize(x)
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
