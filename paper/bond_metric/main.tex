@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage[letterpaper,margin=1in]{geometry}
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath,amssymb,amsthm}
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{caption}
@@ -9,9 +9,16 @@
 \captionsetup{font=small,labelfont=bf}
 
 \newcommand{\muC}{\mu_{\mathcal{C}}}
+\newcommand{\nuQ}{\nu_{\mathcal{Q}}}
 \newcommand{\muQ}{\mu_{\mathcal{Q}}}
 \newcommand{\capture}[1]{A_k(#1;\,\mathcal{C},d)}
+\newcommand{\NN}{\operatorname{NN}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\Cov}{\operatorname{Cov}}
 \newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
 
 \title{\textbf{The Bond Metric: Breaking Apparent Trade-offs in\\
 High-Dimensional Embedding Geometry}\\[4pt]
@@ -46,12 +53,20 @@ one-number hubness is non-identifying; (iii) hubness vs.\ ball growth, dissolved
 by recognising that the real system's hubness lives substantially in the query
 marginal: writing hubness as $H_k(\mathcal{C},\mathcal{Q},d)$, reverse-neighbour
 counts sample the query mass of top-$k$ capture basins,
-$N_k(x_j)\approx|\mathcal{Q}|\,\muQ(\capture{x_j})$. We conclude that apparent
-geometric trade-offs can be artifacts of forcing corpus metric, corpus measure,
-query measure, and local scale through a shared mechanism, propose a hub
-\emph{anatomy vector} as the reporting standard, and derive a registered
-anatomy falsifier that prevents optimizers from reproducing a scalar by
-rebuilding a known pathology. \todo{Round-7 verdict sentence.}
+$N_k(x_j)\approx|\mathcal{Q}|\,\muQ(\capture{x_j})$. We complement the
+empirical chain with an \emph{independent-realizability theorem}: the
+achievable hub vectors of a fixed corpus form a polytope (the convex hull of
+retrievable top-$k$ incidence vectors), and an arbitrarily small
+simplex-address augmentation --- which preserves every corpus-to-corpus
+neighbour ordering exactly and perturbs the spectrum by $O(\delta)$ ---
+expands that polytope to the full hypersimplex $\Delta(n,k)$, so no universal
+functional law of the form $G6=f(G2,G3,G7,G8)$ can hold over finite retrieval
+experiments. We conclude that apparent geometric trade-offs can be artifacts
+of forcing corpus metric, corpus measure, query measure, and local scale
+through a shared mechanism, propose a hub \emph{anatomy vector} as the
+reporting standard, and derive a registered anatomy falsifier that prevents
+optimizers from reproducing a scalar by rebuilding a known pathology.
+\todo{Round-7 verdict sentence.}
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -69,14 +84,18 @@ rebuilding a known pathology. \todo{Round-7 verdict sentence.}
 \item The resolution: the walls were properties of \emph{mechanism binding},
   not of the statistics. Contributions:
   \textbf{(C1)} the four-layer decomposition (\S\ref{sec:decomposition});
-  \textbf{(C2)} three constructive separations with pre-registered protocols
-  (\S\ref{sec:separations});
-  \textbf{(C3)} the capture-basin account of hubness,
-  $H_k(\mathcal{C},\mathcal{Q},d)$, and the non-identifiability of scalar
-  hubness (\S\ref{sec:hubness});
-  \textbf{(C4)} the anatomy vector $A_{\mathrm{hub}}$ and the registered
-  anatomy falsifier (\S\ref{sec:anatomy});
-  \textbf{(C5)} implications for ANN benchmark design and differential system
+  \textbf{(C2)} the hubness-polytope and Bond independence theorems ---
+  hubness as $H_k(\mathcal{C},\mathcal{Q},d)$, a linear image of the query
+  measure, with universal approximate independence of spectrum, local scale,
+  and query hubness by explicit construction (\S\ref{sec:theory});
+  \textbf{(C3)} three constructive empirical separations with pre-registered
+  protocols (\S\ref{sec:separations});
+  \textbf{(C4)} the capture-basin account and the non-identifiability of
+  scalar hubness (\S\ref{sec:hubness});
+  \textbf{(C5)} the anatomy vector $A_{\mathrm{hub}}$, the registered anatomy
+  falsifier, and the generator-specific Jacobian controllability test
+  (\S\ref{sec:anatomy}, \S\ref{sec:jacobian});
+  \textbf{(C6)} implications for ANN benchmark design and differential system
   testing (\S\ref{sec:implications}; companion paper: \emph{Fuzzing the Bond
   Metric}).
 \item Epistemic status, stated plainly: the decomposition is \emph{strongly
@@ -113,6 +132,215 @@ is an \emph{illumination pattern} over the corpus's capture basins.}
   respond as $s^{-d_{\ell}}$ to metric-layer perturbations of relative scale
   $s$ --- binding layers is easy to do by accident and expensive to undo.
 \end{itemize}
+
+\section{Theory: the hubness polytope and the Bond independence theorem}
+\label{sec:theory}
+
+The clean result available here is an \emph{independent-realizability theorem},
+not statistical independence. Define a retrieval experiment as the tuple
+\[
+\mathcal{E} = (X,\ \muC,\ \nuQ,\ d,\ k),
+\]
+where $X=\{x_1,\dots,x_n\}$ is the corpus, $\muC$ its measure, $\nuQ$ the query
+measure, $d$ the metric, and $k$ the retrieval depth. Classical hubness uses
+reverse-$k$NN occurrence counts \cite{radovanovic10}; order-$k$ Voronoi cells
+partition query space by which $k$ corpus points are retrieved. Throughout,
+assume queries in general position (ties $\nuQ$-null).
+
+\subsection{The hubness polytope}
+
+For $|S|=k$ define the order-$k$ cell
+$V^{(k)}_S = \{q : \NN_k(q;X) = S\}$ and the normalized query-induced hub mass
+$h_i(\nuQ) = \nuQ\{q : i \in \NN_k(q;X)\}$. Every query contributes exactly $k$
+selections, so $0 \le h_i \le 1$ and $\sum_i h_i = k$.
+
+\begin{theorem}[Hubness polytope]\label{thm:polytope}
+For any fixed corpus and metric, the set of achievable hub vectors is
+\[
+\mathcal{H}_k(X,d) \;=\; \conv\bigl\{\mathbf{1}_S : V^{(k)}_S \neq \varnothing\bigr\},
+\]
+where $\mathbf{1}_S$ is the $0/1$ incidence vector of $S$.
+\end{theorem}
+
+\begin{proof}
+For each query let $z(q) = \mathbf{1}_{\NN_k(q;X)}$; then
+$h(\nuQ) = \int z(q)\,d\nuQ(q)$. Since $z$ takes only the incidence-vector
+values of nonempty cells, its expectation lies in their convex hull.
+Conversely, given $h = \sum_S p_S \mathbf{1}_S$, choose $q_S \in V^{(k)}_S$ for
+each nonempty cell and set $\nuQ = \sum_S p_S\,\delta_{q_S}$.
+\end{proof}
+
+Query hubness is thus a \emph{linear image of the query measure} --- not
+intrinsically a corpus statistic. Equation~\eqref{eq:capture} is the coordinate
+form of this map.
+
+\subsection{The simplex-address lemma: every hub vector becomes reachable}
+
+Theorem~\ref{thm:polytope} is constrained by which cells happen to be nonempty.
+An arbitrarily small augmentation removes even that constraint. Let
+$Y = \{y_1,\dots,y_n\} \subset S^{d-1}$ be any unit-normalized corpus, and let
+$v_1,\dots,v_n$ be the vertices of a regular simplex in $\mathbb{R}^{n-1}$
+($v_i^\top v_i = 1$, $v_i^\top v_j = -\tfrac{1}{n-1}$ for $i \neq j$,
+$\sum_i v_i = 0$). For $0 < \delta < 1$ construct the augmented corpus
+\[
+x_i = \bigl(\sqrt{1-\delta^2}\; y_i,\ \delta\, v_i\bigr) \in S^{d+n-2}.
+\]
+
+\begin{lemma}[Corpus anatomy is exactly preserved]\label{lem:preserve}
+For $i \neq j$,
+$x_i^\top x_j = (1-\delta^2)\, y_i^\top y_j - \tfrac{\delta^2}{n-1}$,
+a strictly increasing affine map of the original cosine similarity. Hence every
+corpus-to-corpus neighbour ordering, the base-to-base $k$NN graph, base-to-base
+reverse-count hubness, and every rank-based local statistic are \emph{exactly}
+preserved. For chord distance,
+$\|x_i - x_j\|^2 = (1-\delta^2)\|y_i-y_j\|^2 + \tfrac{2n\delta^2}{n-1}$:
+the full pairwise-distance matrix undergoes one common monotone
+reparameterization.
+\end{lemma}
+
+\begin{lemma}[Every $k$-subset becomes retrievable]\label{lem:address}
+For any $S$ with $|S| = k$, let $u_S = \sum_{i \in S} v_i$ and
+$q_S = (0,\ u_S/\|u_S\|)$. Then $u_S^\top v_j = \tfrac{n-k}{n-1}$ for
+$j \in S$ and $u_S^\top v_j = -\tfrac{k}{n-1}$ for $j \notin S$, so
+$q_S^\top x_j$ is strictly larger for every $j \in S$ than for every
+$j \notin S$, i.e.\ $\NN_k(q_S; X_\delta) = S$. Every $k$-subset has a
+nonempty order-$k$ cell.
+\end{lemma}
+
+\begin{corollary}[Universal query-hubness control]\label{cor:hypersimplex}
+For the augmented corpus $X_\delta$, the hubness polytope is the full
+hypersimplex \cite{hypersimplex}:
+\[
+\mathcal{H}_k(X_\delta) \;=\; \Delta(n,k)
+\;=\; \Bigl\{h \in [0,1]^n : \textstyle\sum_i h_i = k\Bigr\}.
+\]
+Every mathematically feasible query-induced hub vector is realizable exactly
+(rational points exactly by finite query sets; arbitrary points to arbitrary
+precision), while the complete corpus-to-corpus neighbour graph is unchanged.
+\end{corollary}
+
+\subsection{Spectral effect of the address block}
+
+The address block's spectral footprint is controlled, though --- one correction
+to the naive account --- not exactly diagonal. Writing the covariance of
+$X_\delta$ in $(y,v)$ blocks: the diagonal blocks are $(1-\delta^2)\Cov(Y)$ and
+$\tfrac{\delta^2}{n-1} I_{n-1}$ (the regular simplex satisfies
+$\tfrac1n \sum_i v_i v_i^\top = \tfrac{1}{n-1} I$), so \emph{modulo the cross
+term} the padded eigenvalues obey
+\[
+\lambda_i(X_\delta) \;=\; (1-\delta^2)\,\lambda_i(Y) + \frac{\delta^2}{n-1}
+\quad\text{--- an explicit infinitesimal recolouring toward isotropy.}
+\]
+The cross-covariance
+$\delta\sqrt{1-\delta^2}\,M$ with $M = \tfrac1n \sum_i y_i v_i^\top$ is
+generically nonzero; by Weyl's inequality it perturbs each eigenvalue by at
+most $2\delta\sqrt{1-\delta^2}\,\|M\|_2$, and $\|M\|_2 = O(n^{-1/2})$ for
+generic $Y$. All spectral effects vanish as $\delta \to 0$, which is what
+Theorem~\ref{thm:independence} uses. The separation is therefore unusually
+strong: query hubness moves by $O(1)$; corpus neighbour anatomy moves by
+exactly zero; spectral change is $O(\delta)$.
+
+\subsection{Macro--micro scale separation}
+
+It remains to separate the global spectrum from local ball growth. Choose macro
+centres $c_a \in \mathbb{R}^p$ with minimum separation $\Delta > 0$, and for
+each a centered local template
+$U_a = \{u_{a1},\dots,u_{am_a}\} \subset \mathbb{R}^q$ with weights
+$\beta_{a\ell}$, $\sum_\ell \beta_{a\ell} u_{a\ell} = 0$. Construct
+$y_{a\ell} = (c_a,\ \epsilon\, u_{a\ell})$ with weight
+$\alpha_a \beta_{a\ell}$.
+
+\begin{lemma}[Spectrum and scale occupy orthogonal blocks]\label{lem:macromicro}
+The covariance is exactly block diagonal:
+\[
+\Cov(Y_\epsilon) \;=\; \Cov(C) \,\oplus\, \epsilon^2 \sum_a \alpha_a \Cov(U_a),
+\]
+(the per-cluster centering kills the cross term identically). The $O(1)$
+global spectrum is controlled by the macro centres; the microstructure enters
+at $O(\epsilon^2)$. At radius $\epsilon r < \Delta$ no other cluster is
+visible, and
+$\muC\bigl(B(y_{a\ell}, \epsilon r)\bigr)
+= \alpha_a \sum_{j:\|u_{aj}-u_{a\ell}\| \le r} \beta_{aj}$:
+the local ball-growth curve is exactly the template's, rescaled in radius ---
+precisely the degree of freedom behind ball-growth intrinsic-dimension
+estimators \cite{multiscaleid}. Any target macro covariance
+$\Sigma = \sum_{j=1}^r \lambda_j e_j e_j^\top$ is realizable by symmetric
+centres $c_{j,\pm} = \pm\sqrt{r\lambda_j}\, e_j$ with weights $1/(2r)$.
+\end{lemma}
+
+\subsection{The Bond independence theorem}
+
+\begin{theorem}[Universal approximate independence of spectrum, local scale,
+and query hubness]\label{thm:independence}
+Fix (i) a realizable target covariance spectrum $\Lambda$; (ii) finite target
+local ball-growth templates; (iii) a retrieval depth $1 \le k < n$; (iv) any
+feasible normalized hub vector $h \in \Delta(n,k)$; and (v) any tolerance
+$\eta > 0$. Then in sufficiently high finite dimension there exist a corpus
+$X$, corpus measure $\muC$, query measure $\nuQ$, and Euclidean or cosine
+metric such that: $\|\lambda(\Cov X) - \Lambda\| < \eta$; the registered local
+ball-growth profiles differ from their targets by less than $\eta$;
+$h_i = \nuQ\{q : i \in \NN_k(q;X)\}$ holds exactly; and $\nuQ$ can be varied
+throughout $\Delta(n,k)$ without modifying the corpus or any corpus-only
+observable.
+\end{theorem}
+
+\begin{proof}[Proof construction]
+(1)~Macro centres realize $\Lambda$ (Lemma~\ref{lem:macromicro}).
+(2)~$\epsilon$-scale centered microtemplates realize the local growth curves.
+(3)~Choose $\epsilon$ small enough that the microstructure moves the global
+spectrum by less than $\eta/2$.
+(4)~Append the $\delta$-scale regular-simplex address block
+(Lemmas~\ref{lem:preserve}--\ref{lem:address}).
+(5)~Choose $\delta \ll \epsilon$ so its spectral and radial effects (including
+the Weyl cross-term bound) are below $\eta/2$.
+(6)~Write $h$ as a convex combination of $k$-subset incidence vectors
+(Corollary~\ref{cor:hypersimplex}).
+(7)~Place the corresponding query mass on the simplex queries $q_S$.
+\end{proof}
+
+\paragraph{What this proves.} There is no universal functional law
+$G6 = f(G2, G3, G7, G8)$ over all finite retrieval experiments: G6 query
+hubness is controlled by the query measure over top-$k$ capture cells; G3/G8
+by the macro covariance; G2 by microstructure and radius distribution; and
+base-to-base hub anatomy can remain \emph{exactly} fixed while query-to-base
+hubness moves arbitrarily. This is stronger than the empirical observation
+that our knobs happened to separate.
+
+\paragraph{What it does not prove.} The construction is existential and
+deliberately permissive: the address block may require $n-1$ extra dimensions;
+the query and corpus marginals may differ substantially; independence is not
+established under $\nuQ = \muC$, nor in fixed dimension; nothing guarantees
+the constructed corpora resemble natural embeddings; and semantic, encoder,
+normalization, and shared-support restrictions can reintroduce coupling. The
+proper claim: \emph{there is no universal geometric necessity coupling these
+quantities --- any coupling observed in a restricted generator or a real
+embedding family arises from additional structural constraints.} That is
+exactly what rounds 5--7 exhibit empirically.
+
+\subsection{A generator-specific controllability test (registered)}
+\label{sec:jacobian}
+
+The universal theorem says nothing about whether independence holds
+\emph{inside a realistic family}. For the round-7 generator define the
+intervention map
+$F : (\theta_s, \theta_q, \theta_r) \mapsto (G3, G6, G2)$, where $\theta_s$ =
+\texttt{spectrum\_decay}, $\theta_q$ = \texttt{query\_tail}, and $\theta_r$ =
+the local-scale-homogeneity control (\texttt{equalize}; in this family G2's
+empirical controller is window homogenization rather than a radius spectrum,
+a fidelity note the experiment records). If the Jacobian
+\[
+J = \begin{pmatrix}
+\partial G3/\partial\theta_s & \partial G3/\partial\theta_q & \partial G3/\partial\theta_r\\
+\partial G6/\partial\theta_s & \partial G6/\partial\theta_q & \partial G6/\partial\theta_r\\
+\partial G2/\partial\theta_s & \partial G2/\partial\theta_q & \partial G2/\partial\theta_r
+\end{pmatrix}
+\]
+has full rank at the round-7 solution, the inverse-function theorem gives
+\emph{local independent controllability} within the actual family.
+Pre-registered expectations: $\theta_s$ dominates the G3 column, $\theta_q$
+the G6 column, $\theta_r$ the G2 column; $J$ nonsingular with acceptable
+condition number, stable across fresh seeds. \todo{Jacobian estimate at the
+round-7 best point, finite differences $\times$ 3 seeds}
 
 \section{Experimental substrate and protocol}\label{sec:substrate}
 \begin{itemize}
@@ -264,5 +492,22 @@ query marginal --- the statistics were never in conflict; the mechanisms were.}
 and raw numbers: \url{https://github.com/ahb-sjsu/openvector-bench}
 (\texttt{results/}, \texttt{spec/BOND\_METRIC.md}). Sealed evaluation rows were
 never loaded during any experiment reported here.
+
+\begin{thebibliography}{9}
+\bibitem{radovanovic10}
+M.~Radovanovi\'c, A.~Nanopoulos, M.~Ivanovi\'c.
+Hubs in space: popular nearest neighbors in high-dimensional data.
+\emph{JMLR} 11:2487--2531, 2010.
+
+\bibitem{hypersimplex}
+Hypersimplices as convex hulls of fixed-cardinality incidence vectors; see
+e.g.\ arXiv:1909.01189 and references therein.
+\todo{settle on the canonical combinatorics citation}
+
+\bibitem{multiscaleid}
+Multiscale estimation of intrinsic dimensionality of data sets
+(ball-growth/neighbourhood-mass estimators), AAAI.
+\todo{full citation}
+\end{thebibliography}
 
 \end{document}
