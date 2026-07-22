@@ -7,8 +7,10 @@ specifications.
 """
 
 from .generator_search import (
+    CONCENTRATION_PARAMS,
     MANIFOLD_PARAMS,
     PARAMS,
+    concentration_corpus,
     decode,
     geometry_vector,
     make_evaluate_fn,
@@ -45,8 +47,10 @@ __all__ = [
     "geometry_vector",
     "synth_corpus",
     "manifold_corpus",
+    "concentration_corpus",
     "PARAMS",
     "MANIFOLD_PARAMS",
+    "CONCENTRATION_PARAMS",
     "decode",
     "__version__",
 ]

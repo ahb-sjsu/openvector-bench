@@ -200,6 +200,87 @@ def manifold_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndar
     return normalize(x)
 
 
+# Round-3 family: CONCENTRATION. The EC falsification (results/EC_FALSIFICATION.md)
+# showed a flat 52-torus reads intrinsic dimension ~345, not 52 -- real embeddings
+# hit ~57 because they are *concentrated* (clustered/hierarchical -> locally
+# low-dimensional neighbourhoods), not merely low-dimensional. Round 2 confirmed no
+# smooth-manifold knob lowers the measured local dimension. So each cluster here is a
+# genuine `local_dim`-dimensional LINEAR patch in its OWN random subspace (a
+# Grassmannian sample, orthonormal basis by QR of a Gaussian): within a cluster the
+# neighbourhood is exactly `local_dim`-dimensional (two-NN reads it -> G1), while K
+# clusters in K different subspaces collectively span the effective rank (G3) and
+# break any single low-rank subspace (G8, the gate every smooth family failed).
+# Heavy-tailed cluster sizes + an optional hyperbolic (Ch.3 exp_0) layout of the
+# centres supply hubness (G6). Concentration requires ``within_scale`` < the centre
+# spacing, so nearest neighbours stay in-cluster -- that is the whole mechanism.
+CONCENTRATION_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    ("local_dim", 8.0, 120.0, 57.0),  # within-cluster (LOCAL) intrinsic dimension -> G1
+    ("log2_clusters", 2.0, 12.0, 8.0),  # 2**this local subspaces
+    (
+        "center_spread",
+        0.1,
+        3.0,
+        1.0,
+    ),  # separation of cluster centres -> effective rank (G3)
+    (
+        "within_scale",
+        0.02,
+        0.6,
+        0.12,
+    ),  # cluster radius; MUST stay < spacing (concentration)
+    ("size_tail", 0.0, 2.5, 1.3),  # heavy-tailed cluster sizes -> hubness (G6)
+    ("curvature", 0.0, 3.0, 1.5),  # hyperbolic centre layout (Ch.3 exp_0) -> hubness
+    ("noise", 0.0, 0.2, 0.02),  # off-cluster floor
+)
+
+
+def concentration_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int
+) -> np.ndarray:
+    """A byte-reproducible mixture-of-local-subspaces corpus from decoded knobs ``p``.
+
+    Each cluster is a ``local_dim``-dimensional linear patch in its own random
+    subspace of R^dim (orthonormal basis from QR of a Gaussian -- a Grassmannian
+    sample). If ``within_scale`` is below the centre spacing, a point's nearest
+    neighbours are its cluster-mates, so the two-NN estimator reads ``local_dim``
+    (G1) even though the K subspaces collectively span a much higher effective rank
+    (G3) and no single PCA subspace captures them (G8). Heavy-tailed sizes and an
+    optional hyperbolic centre layout give hubness (G6). Unit-normed.
+    """
+    rng = np.random.default_rng(seed)
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n)
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n, w)
+    centres = rng.standard_normal((k_clusters, dim)).astype(np.float32) * np.float32(
+        p["center_spread"]
+    )
+    if p["curvature"] > 0:
+        # Hyperbolic (Poincare exp_0) layout of the centres -- geometric-methods Ch.3;
+        # packs most centres near the boundary with a few central -> hub structure.
+        c = np.float32(p["curvature"])
+        vn = np.linalg.norm(centres, axis=1, keepdims=True).astype(np.float32)
+        centres = centres * (
+            np.tanh(np.sqrt(c) * vn) / (np.sqrt(c) * np.maximum(vn, 1e-9))
+        )
+    x = np.empty((n, dim), dtype=np.float32)
+    ws = np.float32(p["within_scale"])
+    row = 0
+    for k in range(k_clusters):
+        ck = int(counts[k])
+        if ck == 0:
+            continue
+        # A random local_dim-dim subspace of R^dim (Grassmannian sample).
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        local = rng.standard_normal((ck, d_local)).astype(np.float32) * ws
+        x[row : row + ck] = centres[k] + local @ basis.T
+        row += ck
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)
+    return normalize(x)
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
