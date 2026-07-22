@@ -27,7 +27,8 @@ and why one-number hubness is non-identifying}
 \author{Andrew H. Bond,~\emph{Senior Member, IEEE}\\
 Department of Computer Engineering, San Jos\'e State University\\
 \texttt{andrew.bond@sjsu.edu} ~\textbar~ ORCID: 0009-0003-2599-6158}
-\date{Working draft --- v0.1 (skeleton; Round-7 verdict pending)}
+\date{Working draft --- v0.3 (campaign closed through round 8; scale grid and
+round-9 frontier integrated)}
 
 \begin{document}
 \maketitle
@@ -79,39 +80,62 @@ fresh seeds --- real's numbers by real's mechanism.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
-% Narrative arc: six rounds spent solving a corpus-side problem that lived
-% substantially in the query marginal.
-\begin{itemize}
-\item The setting: procedural generators that must reproduce real embedding
-  geometry (benchmark admission gates G1--G8 of OpenVector Bench; RC-1/RC-2
-  discipline), searched adversarially with pre-registered predictions and named
-  falsifiers --- every round's misses reported as misses.
-\item The mystery: successive families each solved gates individually
-  (intrinsic dimension, rank, PCA retention, local-ID spread, hubness) yet hit
-  hard pairwise ``walls'': hubness $\times$ rank (round 5), then hubness
-  $\times$ ball growth (round 6--7 diagnosis).
-\item The resolution: the walls were properties of \emph{mechanism binding},
-  not of the statistics. Contributions:
-  \textbf{(C1)} the four-layer decomposition (\S\ref{sec:decomposition});
-  \textbf{(C2)} the hubness-polytope and Bond independence theorems ---
-  hubness as $H_k(\mathcal{C},\mathcal{Q},d)$, a linear image of the query
-  measure, with universal approximate independence of spectrum, local scale,
-  and query hubness by explicit construction (\S\ref{sec:theory});
-  \textbf{(C3)} three constructive empirical separations with pre-registered
-  protocols (\S\ref{sec:separations});
-  \textbf{(C4)} the capture-basin account and the non-identifiability of
-  scalar hubness (\S\ref{sec:hubness});
-  \textbf{(C5)} the anatomy vector $A_{\mathrm{hub}}$, the registered anatomy
-  falsifier, and the generator-specific Jacobian controllability test
-  (\S\ref{sec:anatomy}, \S\ref{sec:jacobian});
-  \textbf{(C6)} implications for ANN benchmark design and differential system
-  testing (\S\ref{sec:implications}; companion paper: \emph{Fuzzing the Bond
-  Metric}).
-\item Epistemic status, stated plainly: the decomposition is \emph{strongly
-  corroborated and materially sharpened} by the falsification chain --- not
-  universally confirmed; a general independence theorem would require formal
-  construction under stated assumptions (\S\ref{sec:limits}).
-\end{itemize}
+
+The setting is a benchmark-admission problem. OpenVector Bench requires a
+procedural corpus generator whose measured geometry matches real embeddings
+across eight registered gates --- intrinsic dimension, ball-growth slope,
+effective rank, dims-to-90\%, relative contrast, hubness skew, local-ID
+spread, and PCA retention (G1--G8) --- in two measurement batteries:
+corpus$\to$corpus and held-out-queries$\to$corpus. The search for such a
+generator was run under a falsification discipline: before every gating round
+a prediction and a named falsifier were registered; every miss was reported as
+a miss; a sealed evaluation set was never opened. This paper is about what
+that discipline surfaced.
+
+The mystery arose midway through the campaign. Successive generator families
+solved every gate \emph{individually} --- intrinsic dimension, rank, PCA
+retention, local-ID spread, hubness each fell to some construction --- yet
+each new family hit a hard \emph{pairwise} wall. In round 5, hubness
+$\times$ effective rank: twelve independent search shards (480 evaluations)
+mapped a clean two-ended Pareto frontier with nothing in the middle. In
+rounds 6--7, hubness $\times$ ball growth. Walls of this shape invite a
+physics reading: a genuine trade-off, a conservation law of embedding
+geometry, a reason the benchmark cannot be passed. The reading is wrong ---
+and showing \emph{why} it is wrong turns out to be more useful than passing
+the benchmark.
+
+The resolution is that the walls were properties of \emph{mechanism binding},
+not of the statistics. When one generative control (a Zipf codebook hierarchy,
+a shared immersion, a single query recipe) sets two geometric quantities at
+once, those quantities trade off \emph{under that family} --- and the
+frontier dissolves the moment the layers are given separate mechanisms. The
+contributions are:
+\textbf{(C1)} a four-layer decomposition of embedding geometry --- global
+metric/spectral structure, corpus measure $\muC$, query measure $\muQ$, and
+local scale structure (\S\ref{sec:decomposition});
+\textbf{(C2)} the hubness-polytope and independence theorems --- hubness as
+$H_k(\mathcal{C},\mathcal{Q},d)$, a linear image of the query measure, with
+universal approximate independence of spectrum, local scale, and query
+hubness by explicit construction (\S\ref{sec:theory});
+\textbf{(C3)} three constructive empirical separations under pre-registered
+protocols (\S\ref{sec:separations});
+\textbf{(C4)} the capture-basin account and the non-identifiability of scalar
+hubness (\S\ref{sec:hubness});
+\textbf{(C5)} the hub anatomy vector $A_{\mathrm{hub}}$, the registered
+anatomy falsifier that caught a scalar-gaming optimizer in the wild, and a
+generator-specific Jacobian controllability test
+(\S\ref{sec:anatomy}, \S\ref{sec:jacobian});
+\textbf{(C6)} implications for benchmark design and differential ANN testing
+(\S\ref{sec:implications}; companion paper: \emph{Fuzzing the Bond Metric}).
+
+Epistemic status, stated plainly: the decomposition is \emph{strongly
+corroborated and materially sharpened} by the falsification chain --- not
+universally confirmed. The theorems of \S\ref{sec:theory} establish that no
+universal law couples the layers; whether a \emph{particular} family or a
+\emph{particular} real embedding distribution couples them is an empirical
+question, and \S\ref{sec:limits} reports where coupling is real --- including
+at corpus scales beyond the fitting regime, where the campaign's own
+registered grid rejected its winning candidate.
 
 \section{The four-layer decomposition}\label{sec:decomposition}
 
@@ -132,15 +156,62 @@ is an \emph{illumination pattern} over the corpus's capture basins.}
 \label{tab:layers}
 \end{table}
 
-\begin{itemize}
-\item Formal statement of each layer; which registered gates (G1--G8) read
-  which layer, and which read mixtures. \todo{gate-to-layer map table}
-\item The binding thesis: a trade-off observed under one generative family is
-  evidence about that family's control structure, not about the statistics.
-\item Amplification: in local dimension $d_{\ell}$, measure-layer observables
-  respond as $s^{-d_{\ell}}$ to metric-layer perturbations of relative scale
-  $s$ --- binding layers is easy to do by accident and expensive to undo.
-\end{itemize}
+The four layers are distinct in what they quantify over. The \emph{global
+metric/spectral layer} is a property of the ambient inner-product structure
+after centering: the covariance spectrum and everything monotone in it. The
+\emph{corpus measure} $\muC$ is a distribution over that substrate: where
+corpus mass sits, how it clusters, what angular regions it occupies. The
+\emph{query measure} $\muQ$ is a second, independent distribution over the
+same substrate --- operationally an \emph{illumination pattern} over the
+corpus's capture basins (\S\ref{sec:hubness}), and the layer that six rounds
+of corpus-side search implicitly ignored. The \emph{local scale structure} is
+the within- and across-neighbourhood distance distribution: how the first $k$
+neighbour distances of a point relate to each other and how homogeneous that
+profile is across query points. None of these is reducible to another: the
+theorems of \S\ref{sec:theory} exhibit corpora in which any one is moved
+while the others are pinned.
+
+Table~\ref{tab:gatemap} records which registered gates read which layers.
+The single-layer gates (G3, G4) were solved early and stayed solved; every
+``wall'' in the campaign involved a \emph{mixture} gate whose generative
+control also set another layer.
+
+\begin{table}[h]\centering\small
+\begin{tabular}{llll}
+\toprule
+Gate & Statistic & Layer(s) read & Registered battery \\
+\midrule
+G1 & two-NN intrinsic dim & local scale $\times$ $\muC$ (short-range ladder) & A, B \\
+G2 & ball-growth slope & local scale (\emph{across-query} homogeneity) & A, B \\
+G3 & effective rank & global spectral & --- \\
+G4 & dims-to-90\% & global spectral & --- \\
+G5 & relative contrast & metric $\times$ scale mixture (weak separator) & A, B \\
+G6 & hubness skew & $\muQ$ over capture basins (B); $\muC$ anatomy (A) & A, B \\
+G7 & local-ID IQR & $\muC$ $\times$ local scale mixture & A, B \\
+G8 & PCA retention & global spectral $\times$ $\muC$ & A, B \\
+\bottomrule
+\end{tabular}
+\caption{Gate-to-layer map. G6 is the sharpest case: the \emph{same scalar}
+read in battery B is dominated by the query measure, and in battery A by
+corpus anatomy --- the campaign's central confusion until round 7. G2 is an
+across-query homogeneity statistic (\S\ref{sec:sep3}), not a
+within-neighbourhood one, which is why six within-neighbourhood mechanisms
+failed to move it.}
+\label{tab:gatemap}
+\end{table}
+
+Two general principles complete the frame. \emph{The binding thesis}: a
+trade-off observed under one generative family is evidence about that
+family's control structure, not about the statistics --- treating a family's
+Pareto frontier as a law of geometry is a category error, and
+\S\ref{sec:separations} shows the same frontier being erected and dissolved
+by moving one mechanism. \emph{Amplification}: in local dimension
+$d_{\ell}$, measure-layer observables respond as $s^{-d_{\ell}}$ to
+metric-layer perturbations of relative scale $s$, so binding layers is easy
+to do by accident and expensive to undo --- tiny metric nudges produce large
+measure signatures, which is why an optimizer given a bound mechanism will
+find grotesque metric configurations to satisfy a measure target
+(\S\ref{sec:anatomy}).
 
 \section{Theory: the hubness polytope and the Bond independence theorem}
 \label{sec:theory}
@@ -218,7 +289,7 @@ nonempty order-$k$ cell.
 
 \begin{corollary}[Universal query-hubness control]\label{cor:hypersimplex}
 For the augmented corpus $X_\delta$, the hubness polytope is the full
-hypersimplex \cite{hypersimplex}:
+hypersimplex \cite{ziegler95}:
 \[
 \mathcal{H}_k(X_\delta) \;=\; \Delta(n,k)
 \;=\; \Bigl\{h \in [0,1]^n : \textstyle\sum_i h_i = k\Bigr\}.
@@ -279,7 +350,7 @@ $\muC\bigl(B(y_{a\ell}, \epsilon r)\bigr)
 = \alpha_a \sum_{j:\|u_{aj}-u_{a\ell}\| \le r} \beta_{aj}$:
 the local ball-growth curve is exactly the template's, rescaled in radius ---
 precisely the degree of freedom behind ball-growth intrinsic-dimension
-estimators \cite{multiscaleid}.
+estimators \cite{levina04,facco17}.
 \end{lemma}
 
 \begin{lemma}[Common-sphere realization --- the bridge to the address block]
@@ -425,15 +496,28 @@ three controls, applied in sequence across rounds 6--8, reached the joint
 target.
 
 \section{Experimental substrate and protocol}\label{sec:substrate}
-\begin{itemize}
-\item OpenVector Bench: the eight geometry gates, battery A (corpus$\to$corpus)
-  vs.\ battery B (held-out queries$\to$corpus); real target = BGE-M3--class
-  $1024$-d text embeddings, $n=8$k--$16$k slices; sealed 25\% never touched.
-\item The search harness: \texttt{evaluate\_fn} contract, 12-shard swarm random
-  search (480 evals/round) on NRP Nautilus; searcher $\times$ adversary
-  $\times$ judge; pre-registration with named falsifiers before every gating
-  run; screening smokes disclosed in the registration when they occurred.
-\end{itemize}
+
+The real target is a $1024$-dimensional Cohere Embed-V3 Wikipedia corpus with
+its released held-out query set; fitting used $n = 8$k--$16$k working slices
+of the non-sealed rows (a hash-designated 25\% of rows is sealed and was
+never loaded in any experiment reported here). Geometry is measured on the
+unit sphere by the benchmark's registered battery: exact blocked $k$-NN, one
+neighbour structure per (corpus, $n$, subsample), gates read at
+$k \in \{10, 30, 100\}$, in battery A (held-out corpus rows as queries) and
+battery B (the real query set, or a generator's own registered query block).
+Synthetic queries are held out from the \emph{same generated instance} as
+their base --- an independently seeded draw is a different manifold
+realization, and measuring against it silently penalizes every concentrated
+family (the query-coupling artifact; \texttt{results/} in the repository).
+
+The search harness wraps the benchmark's own battery in a shared
+\texttt{evaluate\_fn} contract consumed by a 12-shard swarm random search
+(480 evaluations per gating round, one CPU and 2\,GB per shard, on the NRP
+Nautilus cluster) and by a structural-fuzzing adversary. Protocol: before
+every gating round, a prediction and its falsifier were registered; screening
+smokes, when they occurred, were disclosed in the registration; misses were
+recorded as misses in the round documents that Table~\ref{tab:provenance}
+summarizes.
 
 \begin{table}[h]\centering\small
 \begin{tabular}{clll}
@@ -601,81 +685,197 @@ cannot distinguish them; $A_{\mathrm{hub}}$ can.}
 
 \section{Hubness is $H_k(\mathcal{C},\mathcal{Q},d)$: the capture-basin account}
 \label{sec:hubness}
-\begin{itemize}
-\item Definition: $\capture{x_j}$ = the region of query space for which $x_j$
-  ranks in the top $k$ under metric $d$ against corpus $\mathcal{C}$. Then
-  \begin{equation}
-  N_k(x_j) \;\approx\; |\mathcal{Q}| \cdot \muQ\!\left(\capture{x_j}\right).
-  \label{eq:capture}
-  \end{equation}
-\item Corpus geometry defines the basins; the query marginal decides how
-  heavily each is visited; identical skew can arise from huge basins
-  (corpus-side pathology) or concentrated query mass (the real mechanism).
-\item Consequences for the hubness literature: base$\to$base hubness
-  (Radovanovi\'c-style, $H_k(\mathcal{C},d)$) and query-measured hubness are
-  different observables and should not be conflated; benchmark suites that
-  generate queries from the corpus distribution structurally cannot exhibit
-  the query-induced regime. \todo{position against related work}
-\end{itemize}
+
+Let $\capture{x_j}$ denote the region of query space for which $x_j$ ranks in
+the top $k$ under metric $d$ against corpus $\mathcal{C}$ --- the union of the
+order-$k$ Voronoi cells whose retrieved set contains $j$
+(\S\ref{sec:theory}). The observed reverse-neighbour count of $x_j$ under a
+query workload $\mathcal{Q}$ is then, up to sampling noise,
+\begin{equation}
+N_k(x_j) \;\approx\; |\mathcal{Q}| \cdot \muQ\!\left(\capture{x_j}\right).
+\label{eq:capture}
+\end{equation}
+Corpus geometry defines the basins; the query marginal decides how heavily
+each is visited. The identical scalar skew can therefore arise from two
+opposite worlds: a few \emph{huge basins} (corpus-side pathology --- extreme
+central points whose basins swallow query space) or \emph{concentrated query
+mass} falling on ordinary basins (the real system's mechanism,
+\S\ref{sec:sep3}). Equation~\eqref{eq:capture} is why no corpus-only account
+can close the gap: it is the coordinate form of the linear map of
+Theorem~\ref{thm:polytope}, and its left factor is a property of
+$\mathcal{Q}$, not of $\mathcal{C}$.
+
+This account asks for a small but consequential correction in how hubness is
+discussed. The classical results \cite{radovanovic10} establish hubness as a
+phenomenon of dimensionality with a spatial-centrality account, measured
+base$\to$base --- in the present notation $H_k(\mathcal{C},d)$, a property of
+the corpus experiment with $\muQ = \muC$. That observable is real and
+Table~\ref{tab:anatomy} reports it --- but it is a \emph{different
+observable} from the query-measured $H_k(\mathcal{C},\mathcal{Q},d)$ that a
+retrieval system experiences, and the two need not even be of the same order
+(real corpus: base$\to$base skew $1.5$, query-measured skew $6.8$).
+Hubness-reduction methods \cite{schnitzer12,zelnik04} act on the metric layer
+(rescaling distances); \eqref{eq:capture} says they reshape basins, while
+leaving untouched the possibility that the workload's illumination is itself
+concentrated. Benchmark suites whose queries are drawn from the corpus
+distribution \cite{aumuller20} structurally cannot exhibit the query-induced
+regime --- and the effect can enter through subtle channels: in this
+campaign's own registered harness, battery A drew its ``corpus-to-corpus''
+queries as the \emph{first} held-out rows, and because Wikipedia rows arrive
+topically ordered, those queries were topically clustered --- a de facto
+concentrated query marginal hiding inside the corpus battery (base$\to$base
+skew for uniformly drawn queries: $\approx 1.5$; for first-rows queries:
+$9.4$ at $n=25$k). The protocol was re-registered with uniform sampling once
+the decomposition made the asymmetry visible --- the query measure is not an
+exotic addition to the experiment; it is present, somewhere, in every
+retrieval measurement, and the only choice is whether it is controlled.
 
 \section{The anatomy vector and the registered anatomy falsifier}\label{sec:anatomy}
-\begin{itemize}
-\item Reporting standard:
-  \[
-  A_{\mathrm{hub}} = (\text{q$\to$b skew},\ \text{b$\to$b skew},\ \max N_k,\
-  \mathrm{corr}(N_k, d_M),\ \mathrm{corr}(N_k, -d_{10}),\ \text{top-hub mass share}).
-  \]
-\item The registered defense (round-7 P2): the optimizer's best point must keep
-  base$\to$base skew $<3$ --- the first pre-registered falsifier that looks
-  \emph{behind} a gate at the structure producing it. Verdict: \textbf{it
-  fired.} The score-optimal point read skew $6.8$--$7.8$ (max count
-  $\approx350$) across three seeds; without P2 it would have shipped as a
-  six-gate joint match. Consequence: anatomy constraints belong \emph{inside}
-  the fitness, not only in post-hoc checks (round-8 protocol).
-\item Generalization: every scalar gate deserves an anatomy check; sketch the
-  analogous vectors for G1 (near-duplicate spike vs.\ manifold bulk) and G3
-  (spectrum shape vs.\ participation ratio).
-\end{itemize}
+
+Because a scalar underdetermines its mechanism, we propose reporting hubness
+as a vector:
+\[
+A_{\mathrm{hub}} = (\text{q$\to$b skew},\ \text{b$\to$b skew},\ \max N_k,\
+\mathrm{corr}(N_k, d_M),\ \mathrm{corr}(N_k, -d_{10}),\ \text{top-hub mass share}),
+\]
+where $d_M$ is Mahalanobis centrality and $d_{10}$ the tenth-neighbour
+distance. The components are cheap (they reuse the reverse-$k$NN counts a
+hubness measurement already computes) and they separate precisely the worlds
+the scalar conflates: Table~\ref{tab:anatomy}'s two corpora agree in the
+gate and disagree in every anatomy component.
+
+The vector's operational form is the \emph{registered anatomy falsifier}. In
+round 7 the registration required, beyond the six gate bands, that the
+optimizer's best point keep base$\to$base skew $< 3$ --- the first
+pre-registered check in the campaign that looks \emph{behind} a gate at the
+structure producing it. It fired (\S\ref{sec:sep3}): the score-optimal point
+satisfied all six gate bands on three fresh seeds while manufacturing corpus
+super-hubs (skew $6.8$--$7.8$, max count ${\approx}350$), despite having a
+genuine query-measure knob available. Without P2 that point would have
+shipped as a success. The methodological consequence, adopted as the round-8
+protocol and vindicated by its result, is that anatomy constraints belong
+\emph{inside} the fitness, not only in post-hoc checks: an unpriced anatomy
+is an invitation the optimizer accepts.
+
+The same move generalizes gate by gate. G1's scalar (two-NN intrinsic
+dimension) deserves an anatomy separating the short-range near-duplicate
+ladder from manifold-bulk dimension --- the real corpus's reading is pinned
+by the former, a fact invisible in the scalar and decisive at scale
+(\S\ref{sec:limits}). G3's scalar (effective rank) deserves the spectrum
+\emph{shape} versus its participation-ratio summary. In each case the scalar
+is the trace of a mechanism, and optimizing the trace without registering
+the mechanism invites exactly the Goodharting round 7 exhibited.
 
 \section{Implications}\label{sec:implications}
-\begin{itemize}
-\item For benchmark design: corpus-only generators cannot reproduce
-  query-induced statistics; workload models need an explicit $\muQ$.
-\item For ANN evaluation: same-G6 corpora with opposite anatomy are natural
-  differential tests (exact vs.\ HNSW/DiskANN/FAISS/cuVS; fp32 vs.\ quantized;
-  metric choice; build order; sharding), with oracles on hub-rank divergence
-  and anti-hub-query recall collapse --- aggregate recall hides exactly the
-  tail the decomposition exposes. Companion paper: \emph{Fuzzing the Bond
-  Metric} (coverage signature over layer-separated cells).
-\item For representation learning: apparent statistic trade-offs in learned
-  embeddings deserve the same suspicion --- they may be facts about the
-  architecture's control structure, not about geometry.
-\end{itemize}
+
+\emph{For benchmark design.} A corpus-only generator cannot reproduce
+query-induced statistics --- not as a matter of tuning but of type: the
+observable is a functional of $\muQ$, which the generator does not model.
+Synthetic workloads therefore need an explicit, registered query process,
+sharing the corpus's structural realization, with its own marginal. This is
+now the admission convention in the benchmark this campaign served.
+
+\emph{For ANN evaluation.} Same-G6 corpora with opposite anatomy are natural
+differential test vectors: run exact $k$NN against HNSW, DiskANN, FAISS, and
+cuVS builds; fp32 against quantized operating points; cosine against
+Euclidean; alternative graph build orders and shardings --- with oracles on
+hub-rank divergence and on anti-hub-query recall collapse. Aggregate recall
+hides exactly the tail the decomposition exposes: a system can score
+identically on two corpora sharing every scalar gate and fail
+catastrophically on the queries that land in one corpus's anti-hub region.
+The companion paper (\emph{Fuzzing the Bond Metric}) develops the coverage
+signature over layer-separated cells and the differential harness.
+
+\emph{For representation learning.} Apparent statistic trade-offs in learned
+embeddings deserve the same suspicion the generator walls received here. An
+architecture, like a generator family, is a control structure binding
+geometric layers to shared mechanisms (normalization couples radial to
+angular structure; attention temperature couples spectrum to clustering); an
+observed trade-off across training runs is evidence about that control
+structure, and the constructive question --- what factored mechanism would
+dissolve it? --- is as answerable there as it was here.
 
 \section{Related work}\label{sec:related}
-\begin{itemize}
-\item Hubness: emergence with dimensionality, centrality accounts
-  (Radovanovi\'c et al.), hubness reduction (local scaling, mutual proximity)
-  --- reread as metric-layer vs.\ measure-layer interventions. \todo{cites}
-\item Query/corpus distribution shift in IR and ANN benchmarks. \todo{cites}
-\item Intrinsic-dimension estimation (TwoNN, Levina--Bickel) and its
-  sensitivity to near-duplicates and sampling. \todo{cites}
-\item Coverage-guided fuzzing and property-based testing (the methodological
-  transfer). \todo{cites}
-\end{itemize}
+
+\emph{Hubness.} The phenomenon --- some points appearing unusually often in
+$k$NN lists as dimension grows --- was established with a spatial-centrality
+account by Radovanovi\'c et al.~\cite{radovanovic10}, following the
+distance-concentration literature \cite{beyer99}. Hubness-reduction methods
+--- local scaling \cite{zelnik04}, mutual proximity \cite{schnitzer12} ---
+transform distances so that reverse-neighbour counts flatten. In the present
+frame these are metric-layer interventions on basin shapes; the
+decomposition adds that the observable itself is a functional of the query
+measure \eqref{eq:capture}, so an untransformed corpus under a concentrated
+workload and a pathological corpus under a uniform workload can present the
+same scalar --- a distinction invisible to corpus-side treatment and, per
+Theorem~\ref{thm:independence}, unresolvable from corpus-only observables.
+
+\emph{Difficulty measures and workload shift in ANN.} Relative contrast
+\cite{he12} and local intrinsic dimensionality \cite{levina04,facco17} are
+corpus- or query-local difficulty accounts; recent graph-native measures
+(Steiner-hardness \cite{steiner24}) explicitly tie difficulty to the index
+structure, and out-of-distribution query work \cite{jaiswal22} documents that
+query/corpus mismatch changes graph-ANN behaviour --- both consonant with
+treating $(\mathcal{C},\mathcal{Q})$ jointly. Standard benchmark practice
+\cite{aumuller20,simhadri21} fixes real query sets but characterizes
+datasets by corpus statistics; the decomposition explains why that
+characterization underdetermines system behaviour and what to report
+instead.
+
+\emph{Intrinsic-dimension estimation.} TwoNN \cite{facco17} and maximum-
+likelihood \cite{levina04} estimators read short-range distance ratios; their
+sensitivity to near-duplicates and sampling density is exactly the
+local-scale layer's signature, and \S\ref{sec:limits} reports it as the
+binding constraint at scale.
+
+\emph{Fuzzing and property-based testing.} The registered-falsifier
+discipline and the companion paper's coverage signature transfer
+methodology from coverage-guided fuzzing \cite{klees18} and property-based
+testing \cite{claessen00}: treat a corpus generator as a program under test,
+geometric cells as coverage, and gate-satisfying-but-anatomy-violating
+corpora as the crashing inputs.
 
 \section{Limitations and the road to a theorem}\label{sec:limits}
-\begin{itemize}
-\item Corroboration, not universal confirmation: three separations on one real
-  corpus family (text embeddings, one model class) and one generator lineage.
-\item What a theorem needs: a formal generative class in which the four layers
-  are independently parameterized, plus proofs that each gate is invariant to
-  the other layers' controls within stated ranges; candidate assumptions
-  (unit-sphere metric, sub-Gaussian patches, capture-basin regularity).
-\item Known couplings that are real, not representational: the $s^{-d_\ell}$
-  amplification; normalization's coupling of radial to angular structure;
-  where the decomposition should be expected to fail.
-\end{itemize}
+
+\emph{Corroboration, not universal confirmation.} The empirical chain is
+three separations on one real corpus family (text embeddings, one model
+class) and one generator lineage. The theorems are existential: they forbid
+universal coupling laws but do not predict which couplings a particular
+family exhibits.
+
+\emph{The scale postscript --- reported as the miss it is.} After the
+campaign closed at its fitting scale ($n=8$k), the benchmark's registered
+grid admission ($n$ from 25k to 200k, $\pm15\%$ equivalence bands, scaling-
+exponent criteria) rejected the round-8 candidate: 0 of 24 cells. The
+rejection map is itself decomposition-shaped, and each miss lands in a
+nameable layer. The G3/G4 miss is flat in $n$ --- a mis-tuned colouring
+(metric layer; the knob exists). G1 drifts upward with $n$ ($+0.04$--$0.06$
+per decade) where the real corpus is $n$-flat --- real's two-NN reading is
+pinned by a graded short-range ladder (nearest-neighbour distances at
+\emph{fractional} scales: 1\%-quantile $0.375$ vs.\ median $0.86$) that
+uniform-sparse patches lack; this is the G1 anatomy of \S\ref{sec:anatomy},
+now load-bearing. And every scaling-exponent failure is G6 growth: a fixed
+query concentration gives $+0.13$/decade where the real workload gives
+$+0.22$ --- capture basins shrink as ${\sim}1/n$ while real's per-basin
+query mass does not, so $\muQ$ is $n$-coupled. Both frontier mechanisms
+(the graded ladder; the $n$-coupled illumination) entered the campaign as
+predictions of the decomposition rather than post-hoc repairs; their
+registered test is the current round.
+
+\emph{What a theorem needs.} A formal generative class in which the four
+layers are independently parameterized, with proofs that each gate is
+invariant to the other layers' controls within stated ranges; candidate
+assumptions: unit-sphere metric, sub-Gaussian patches, capture-basin
+regularity, query support contained in the corpus's structural realization.
+
+\emph{Couplings that are real, not representational.} The $s^{-d_\ell}$
+amplification is a genuine cross-layer sensitivity, not an artifact;
+normalization couples radial to angular structure; and encoder families may
+impose joint constraints a factored generator does not. The decomposition
+should be expected to fail exactly where such shared physical mechanisms
+exist --- finding them is what the framework is \emph{for}: a coupling that
+survives mechanism-splitting is a discovery about the system, not about the
+statistics.
 
 \section{Conclusion}\label{sec:conclusion}
 Six rounds were spent solving a corpus-side problem whose target lived
@@ -685,31 +885,92 @@ looked behind the scalar caught it; pricing that anatomy into the objective
 and taking one derivative-informed step then reached, in a single round, the
 joint target eight rounds of scalar-gate search could not --- real's numbers
 by real's mechanism, stable across seeds. The statistics were never in
-conflict; the mechanisms were. Embedding geometry should be reported as an
-experiment $(X,\muC,\nuQ,d,k)$, its hubness as an anatomy, and its trade-offs
-as claims about control structure --- claims that a small amount of
-construction, or one pre-registered look behind a gate, can refute.
+conflict; the mechanisms were. The registered scale grid then rejected the
+same candidate beyond its fitting regime (\S\ref{sec:limits}) --- and each
+miss landed in a nameable layer, with the two frontier mechanisms entering as
+predictions of the decomposition rather than repairs. Embedding geometry
+should be reported as an experiment $(X,\muC,\nuQ,d,k)$, its hubness as an
+anatomy, and its trade-offs as claims about control structure --- claims that
+a small amount of construction, or one pre-registered look behind a gate, can
+refute.
 
 \paragraph{Reproducibility.} All rounds, pre-registrations, falsifier verdicts,
 and raw numbers: \url{https://github.com/ahb-sjsu/openvector-bench}
 (\texttt{results/}, \texttt{spec/BOND\_METRIC.md}). Sealed evaluation rows were
 never loaded during any experiment reported here.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{radovanovic10}
 M.~Radovanovi\'c, A.~Nanopoulos, M.~Ivanovi\'c.
 Hubs in space: popular nearest neighbors in high-dimensional data.
-\emph{JMLR} 11:2487--2531, 2010.
+\emph{Journal of Machine Learning Research} 11:2487--2531, 2010.
 
-\bibitem{hypersimplex}
-Hypersimplices as convex hulls of fixed-cardinality incidence vectors; see
-e.g.\ arXiv:1909.01189 and references therein.
-\todo{settle on the canonical combinatorics citation}
+\bibitem{beyer99}
+K.~Beyer, J.~Goldstein, R.~Ramakrishnan, U.~Shaft.
+When is ``nearest neighbor'' meaningful?
+In \emph{Proc.\ ICDT}, 217--235, 1999.
 
-\bibitem{multiscaleid}
-Multiscale estimation of intrinsic dimensionality of data sets
-(ball-growth/neighbourhood-mass estimators), AAAI.
-\todo{full citation}
+\bibitem{zelnik04}
+L.~Zelnik-Manor, P.~Perona.
+Self-tuning spectral clustering.
+In \emph{Advances in Neural Information Processing Systems} 17, 2004.
+
+\bibitem{schnitzer12}
+D.~Schnitzer, A.~Flexer, M.~Schedl, G.~Widmer.
+Local and global scaling reduce hubs in space.
+\emph{Journal of Machine Learning Research} 13:2871--2902, 2012.
+
+\bibitem{he12}
+J.~He, S.~Kumar, S.-F.~Chang.
+On the difficulty of nearest neighbor search.
+In \emph{Proc.\ ICML}, 2012.
+
+\bibitem{levina04}
+E.~Levina, P.~J.~Bickel.
+Maximum likelihood estimation of intrinsic dimension.
+In \emph{Advances in Neural Information Processing Systems} 17, 2004.
+
+\bibitem{facco17}
+E.~Facco, M.~d'Errico, A.~Rodriguez, A.~Laio.
+Estimating the intrinsic dimension of datasets by a minimal neighborhood
+information. \emph{Scientific Reports} 7:12140, 2017.
+
+\bibitem{steiner24}
+Z.~Wang, Q.~Wang, X.~Cheng, P.~Wang, T.~Palpanas, W.~Wang.
+Steiner-hardness: a query hardness measure for graph-based ANN indexes.
+arXiv:2408.13899, 2024.
+
+\bibitem{jaiswal22}
+S.~Jaiswal, R.~Krishnaswamy, A.~Garg, H.~V.~Simhadri, S.~Agrawal.
+OOD-DiskANN: efficient and scalable graph ANNS for out-of-distribution
+queries. arXiv:2211.12850, 2022.
+
+\bibitem{aumuller20}
+M.~Aum\"uller, E.~Bernhardsson, A.~Faithfull.
+ANN-Benchmarks: a benchmarking tool for approximate nearest neighbor
+algorithms. \emph{Information Systems} 87:101374, 2020.
+
+\bibitem{simhadri21}
+H.~V.~Simhadri et al.
+Results of the NeurIPS'21 challenge on billion-scale approximate nearest
+neighbor search. In \emph{Proc.\ NeurIPS 2021 Competitions and Demonstrations
+Track}, PMLR 176, 2022.
+
+\bibitem{ziegler95}
+G.~M.~Ziegler.
+\emph{Lectures on Polytopes}. Graduate Texts in Mathematics 152, Springer,
+1995. (Hypersimplices: the convex hulls of fixed-cardinality $0/1$ incidence
+vectors.)
+
+\bibitem{claessen00}
+K.~Claessen, J.~Hughes.
+QuickCheck: a lightweight tool for random testing of Haskell programs.
+In \emph{Proc.\ ICFP}, 268--279, 2000.
+
+\bibitem{klees18}
+G.~Klees, A.~Ruef, B.~Cooper, S.~Wei, M.~Hicks.
+Evaluating fuzz testing.
+In \emph{Proc.\ ACM CCS}, 2123--2138, 2018.
 \end{thebibliography}
 
 \end{document}
