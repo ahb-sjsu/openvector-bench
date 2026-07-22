@@ -21,16 +21,19 @@ from openvector_bench.generator_search import (
     CONCENTRATION_PARAMS,
     MANIFOLD_PARAMS,
     PARAMS,
+    STRATIFIED_PARAMS,
     concentration_corpus,
     decode,
     make_evaluate_fn,
     manifold_corpus,
     measure_corpus,
+    stratified_corpus,
     synth_corpus,
 )
 
 FAMILIES = {
     "concentration": (concentration_corpus, CONCENTRATION_PARAMS),
+    "stratified": (stratified_corpus, STRATIFIED_PARAMS),
     "manifold": (manifold_corpus, MANIFOLD_PARAMS),
     "synth": (synth_corpus, PARAMS),
 }

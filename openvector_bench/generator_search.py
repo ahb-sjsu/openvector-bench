@@ -281,6 +281,171 @@ def concentration_corpus(
     return normalize(x)
 
 
+# Round-4 family: STRATIFIED. The concentration family (round 3) fixed *one* local
+# dimension per cluster, so the local-ID DISTRIBUTION is a spike: it can chase the
+# G1 median but not the real G7 spread (real local-ID IQR = 25.6; every prior family
+# misses G1 and G7 *together* by ~4-5x because both are dragged by an ambient-
+# dominated local dimension). A Whitney (b)-regular stratified space is the principled
+# generalisation: within each cone the points live on a *flag* of nested subspaces
+# V_0 ⊃ V_1 ⊃ ... (strata of DECREASING dimension s_0 > s_1 > ... meeting along their
+# closures), so the per-point local dimension is a genuine SPECTRUM. Set that spectrum
+# to the target ID distribution and G1 (its centre) and G7 (its spread) are matched by
+# construction. Nesting gives Whitney (a) for free (a deeper stratum's tangent ⊆ the
+# shallower one's); ``frontier_conc`` shrinks the "shell" coordinates that separate a
+# stratum from the next-deeper one, so points accumulate onto the frontier (the (b)
+# secant condition) AND pile onto the low-dimensional strata -> hubness. K cones in K
+# independent flags span the effective rank (G3) exactly as the concentration family's
+# subspaces do. Byte-reproducible from ``seed`` like every family.
+#
+# HONEST PRE-REGISTERED RISK (see results/STRATIFIED_PREDICTION.md): a top stratum of
+# dimension ~80 is still undersampled at n=8-16k, so its two-NN reading may overshoot
+# s_0 exactly as the flat torus did. The bet is that the well-sampled, heavily
+# populated DEEP strata pull the ID *distribution* toward target even when the tail is
+# undersampled. That is what the experiment tests; it is not assumed.
+STRATIFIED_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    (
+        "top_dim",
+        8.0,
+        120.0,
+        88.0,
+    ),  # s_0: top stratum dim -> upper end of the ID spectrum
+    (
+        "bottom_dim",
+        2.0,
+        80.0,
+        38.0,
+    ),  # s_L: deepest stratum dim -> lower end (gap -> G7)
+    ("n_strata", 2.0, 8.0, 4.0),  # strata per flag -> granularity of the spectrum
+    ("log2_cones", 2.0, 12.0, 8.0),  # 2**this nested flags -> effective rank (G3)
+    ("frontier_conc", 0.2, 4.0, 1.5),  # frontier accumulation + deep-stratum tilt -> G6
+    ("cone_tail", 0.0, 2.5, 1.3),  # Zipf on cone sizes -> hubness (G6)
+    (
+        "within_scale",
+        0.02,
+        0.6,
+        0.12,
+    ),  # cone radius; MUST stay < spacing (concentration)
+    ("curvature", 0.0, 3.0, 1.5),  # hyperbolic (Ch.3 exp_0) centre layout -> hubness
+    ("noise", 0.0, 0.2, 0.02),  # off-stratum floor
+)
+
+
+def _stratum_dims(p: dict[str, float], dim: int) -> np.ndarray:
+    """The flag's stratum dimensions s_0 > s_1 > ... > s_L (strictly decreasing)."""
+    d_top = min(max(2, int(round(p["top_dim"]))), dim)
+    d_bot = min(max(1, int(round(p["bottom_dim"]))), d_top)
+    n_s = min(max(1, int(round(p["n_strata"]))), d_top - d_bot + 1)
+    s = np.unique(np.round(np.linspace(d_bot, d_top, n_s)).astype(int))[::-1]
+    return s  # descending; s[0] = d_top, s[-1] = d_bot
+
+
+def _stratum_latent(
+    rng: np.random.Generator, ck: int, s_dims: np.ndarray, fc: float, d_top: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Latent coordinates (in the flag basis) + stratum index for ``ck`` points.
+
+    Each point gets an active block of ``s_dims[stratum]`` Gaussian coordinates and
+    zeros beyond it (so it lies in V_stratum); the "shell" coordinates between its own
+    stratum dimension and the next-deeper one are shrunk toward 0 by ``fc`` (frontier
+    accumulation). Population is tilted toward the DEEP strata by ``fc`` too, so the
+    low-dimensional strata are the densely-sampled hubs.
+    """
+    n_s = len(s_dims)
+    depth = np.arange(n_s, dtype=np.float64)  # 0 = top ... n_s-1 = deepest
+    w = (depth + 1.0) ** fc
+    w /= w.sum()
+    strat = rng.choice(n_s, size=ck, p=w)
+    cols = np.arange(d_top)[None, :]
+    own = s_dims[strat][:, None]  # each point's own stratum dimension
+    nxt = s_dims[np.minimum(strat + 1, n_s - 1)][:, None]  # next-deeper dimension
+    u = rng.standard_normal((ck, d_top)).astype(np.float32) * (cols < own)
+    shell = (cols >= nxt) & (cols < own)  # coords separating this stratum from the next
+    shrink = rng.random((ck, d_top)).astype(np.float32) ** np.float32(fc)
+    u = np.where(shell, u * shrink, u).astype(np.float32)
+    return u, strat
+
+
+def stratified_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """A byte-reproducible Whitney-stratified corpus from decoded knobs ``p``.
+
+    K cones, each an independent flag of nested subspaces (orthonormal basis from QR
+    of a Gaussian): a point in stratum ``i`` has ``s_dims[i]`` active latent dimensions,
+    so the two-NN estimator reads a *distribution* of local dimensions across strata
+    (G1 = its centre, G7 = its spread) rather than a single value. Heavy-tailed cone
+    sizes and the deep-stratum frontier pile-up give hubness (G6); K independent flags
+    span the effective rank (G3). Unit-normed.
+    """
+    rng = np.random.default_rng(seed)
+    s_dims = _stratum_dims(p, dim)
+    d_top = int(s_dims[0])
+    fc = float(p["frontier_conc"])
+    k_cones = min(max(1, int(round(2 ** p["log2_cones"]))), n)
+    w = np.arange(1, k_cones + 1, dtype=np.float64) ** (-p["cone_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n, w)
+    centres = rng.standard_normal((k_cones, dim)).astype(np.float32)
+    if p["curvature"] > 0:  # hyperbolic (Poincare exp_0) centre layout -> hub structure
+        c = np.float32(p["curvature"])
+        vn = np.linalg.norm(centres, axis=1, keepdims=True).astype(np.float32)
+        centres = centres * (
+            np.tanh(np.sqrt(c) * vn) / (np.sqrt(c) * np.maximum(vn, 1e-9))
+        )
+    ws = np.float32(p["within_scale"])
+    x = np.empty((n, dim), dtype=np.float32)
+    row = 0
+    for kc in range(k_cones):
+        ck = int(counts[kc])
+        if ck == 0:
+            continue
+        u, _ = _stratum_latent(rng, ck, s_dims, fc, d_top)
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_top)).astype(np.float32))
+        x[row : row + ck] = centres[kc] + ws * (u @ basis.astype(np.float32).T)
+        row += ck
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)
+    return normalize(x)
+
+
+def whitney_b_defect(p: dict[str, float], n: int, dim: int, seed: int) -> float:
+    """Numerical Whitney (b)-condition defect of the stratified family (0 = regular).
+
+    For each shallow-stratum point, take its nearest deeper-stratum cone-mate; the
+    secant between them, expressed in the orthonormal flag basis, has coordinates
+    exactly ``u_shallow - u_deep`` (the QR basis is orthonormal, so no ambient vector
+    is needed). Whitney (b) asks the secant to lie in the shallow tangent as the pair
+    contracts; the defect is the mean fraction of the secant *outside* the shallow
+    stratum's subspace, ``||diff[s_shallow:]|| / ||diff||``. This is a CONSTRUCTION-side
+    diagnostic, not an RC-1 gate: the registered prediction is that the gates track the
+    dimension spectrum + cone count, and are *insensitive* to this defect at matched
+    spectrum (i.e. (b)-regularity is second-order). This function is what falsifies that.
+    """
+    rng = np.random.default_rng(seed)
+    s_dims = _stratum_dims(p, dim)
+    d_top = int(s_dims[0])
+    if len(s_dims) < 2:
+        return float("nan")  # a single stratum has no frontier
+    fc = float(p["frontier_conc"])
+    k_cones = min(max(1, int(round(2 ** p["log2_cones"]))), n)
+    per = max(2, n // k_cones)
+    defects: list[float] = []
+    for _ in range(k_cones):
+        u, strat = _stratum_latent(rng, per, s_dims, fc, d_top)
+        deep_dim = int(s_dims[-1])
+        deep = strat == (len(s_dims) - 1)
+        shallow = ~deep
+        if deep.sum() < 1 or shallow.sum() < 1:
+            continue
+        ud, us = u[deep], u[shallow]
+        # nearest deeper cone-mate for each shallow point (latent-space distance)
+        d2 = ((us[:, None, :] - ud[None, :, :]) ** 2).sum(-1)
+        j = np.argmin(d2, axis=1)
+        diff = us - ud[j]
+        num = np.linalg.norm(diff[:, deep_dim:], axis=1)
+        den = np.maximum(np.linalg.norm(diff, axis=1), 1e-9)
+        defects.append(float(np.mean(num / den)))
+    return float(np.mean(defects)) if defects else float("nan")
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
