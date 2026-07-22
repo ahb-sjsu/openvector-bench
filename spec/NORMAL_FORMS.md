@@ -1044,3 +1044,21 @@ N,
 ]
 
 If this approximation generalizes across models, modalities, algorithms and scale, the result would be much more than a synthetic benchmark. It would establish the beginnings of a database-style science of vector workloads: canonical workload descriptions, sufficient statistics, cost models, plan selection and experimentally validated universality classes.
+
+---
+
+## Appendix (repo-maintained, outside the registered v1 text): WP status ledger
+
+*Updated 2026-07-22. Maps campaign artifacts onto the work packages; the registered
+plan above is unchanged.*
+
+| WP | status | artifacts / evidence |
+|---|---|---|
+| **WP0** protocol repair | **DONE** (registered) | battery-A holdout in the fitness + uniform harness sampling (`760f766`); same-instance query convention (`QUERY_FRAC` families, rounds 7–9); structural/content split validated (`results/QUERY_COUPLING_ARTIFACT.md`); this registration |
+| **WP1** invariances & identifiability | **LARGELY DONE** | Bond Metric paper (`paper/bond_metric/`): hubness polytope, simplex-address lemma, independence theorem — the "identical diagnostics, different workload" construction; remaining: algorithm-relative pseudometrics, canonical forms |
+| **WP2** workload atlas | **NOT STARTED** | single workload (Cohere wiki1024); needs 2+ more embedding families minimum — well-shaped for an RA |
+| **WP3** mechanistic generator | **FAR ALONG** | rounds 1–9 (`results/GEN_*`), intervention knobs, Jacobian controllability test, anatomy-priced fitness; open: graded short-range ladder (round 9), n-coupled query concentration |
+| **WP4** minimal descriptors | **SEEDED** | eight gates + `A_hub` anatomy vector; no predictive fitting yet |
+| **WP5** normal-form matching | **PREREG DRAFTED** | `results/WP5LITE_PREDICTION.md` — first behavioral matched-pair test (real vs round-8 candidate vs anatomy-mismatched vs null, HNSW+IVF) |
+| **WP6** scaling laws | **SEEDED** | RC-1 round-2 grid map (0/24, per-gate n-behavior, exponent criteria; `results/RC1_ROUND2_CANDIDATE.md`) |
+| **WP7** query optimizer | **NOT STARTED** | — |
