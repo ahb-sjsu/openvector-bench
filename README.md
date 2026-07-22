@@ -123,14 +123,14 @@ as produced:
 | **Geometry battery** (RC-1 instrument) | the battery tells real embeddings from wrong ones | ✅ **passed** | 3/3 frozen nulls rejected · [`RC1_ROUND1.md`](results/RC1_ROUND1.md) |
 | **§6 reconstruction** | a corpus regenerates **byte-identically** from a kB manifest | ✅ **passed** | 4/4 criteria · [experiment](harness/distribution/reconstruct_experiment.py) · [notebook](notebooks/reproduce.ipynb) |
 | **Distribution at scale** | regenerate-from-seed works at **10¹¹**, zero data movement | 🟡 **in progress** | sibling [turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro) fleet build (systems evidence) |
-| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **blocked** | no generator yet — [see below](#whats-blocking-rc-1-and-rc-2) |
+| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | 🟡 **candidate found** | 8-round search closed: six gates + hub **anatomy** matched at n=8k, seed-stable · [`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md) · formal grid admission **not yet run** — [see below](#whats-blocking-rc-1-and-rc-2) |
 | **RC-2** — sealed prediction | that geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after RC-1 |
 | **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires RC-1 **and** RC-2 |
 
 ```mermaid
 flowchart LR
     B["Geometry battery<br/>✅ discriminates"] --> R1{"RC-1<br/>generator matches<br/>real geometry?"}
-    R1 -->|"⛔ not yet<br/>(no generator)"| FIT["Fit + select a<br/>generator"]
+    R1 -->|"🟡 candidate found —<br/>grid admission pending"| FIT["Run §5 admission<br/>on the full grid"]
     FIT --> R1
     R1 -->|pass| SEAL["Hash + seal<br/>the generator"]
     SEAL --> R2{"RC-2 (sealed,<br/>one shot):<br/>predicts ANN<br/>behaviour?"}
@@ -144,20 +144,33 @@ flowchart LR
 
 ### What's blocking RC-1 and RC-2
 
-**RC-1 is blocked on generator *design*, not on the instrument.** The battery
-works — it rejects every frozen null. What's missing is a **deterministic
-generator whose geometry matches real embeddings** on the grid (n ∈ {25k…200k} ×
-k ∈ {10,30,100}, both corpus→corpus and query→corpus batteries). The best current
-synthetic — `null_lowrank`, *the recipe behind the existing 1B/10B corpora* —
-fails the admission rule: ≈**1/7 the hubness** of real data, ≈**2× the intrinsic
-dimension**, and trivially PCA-compressible. Two hard parts:
+**RC-1's blocker has moved from generator *design* to formal *admission*.** An
+eight-round pre-registered search campaign (every prediction, miss, and
+falsifier committed in [`results/`](results/)) produced a candidate:
+`hier_query_corpus` — a homogeneous coloured cluster hierarchy with an explicit
+**query-marginal model** — matches all six registered fitting gates within
+[0.5, 2.0]× *and* the base→base **hub anatomy** (skew/max-count within real's
+range) at n=8k, k=10, battery B, stably across seeds
+([`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md)). Two findings from
+the campaign now documented for reuse: real retrieval hubness lives
+substantially in the **query measure**, not the corpus
+([`spec/BOND_METRIC.md`](spec/BOND_METRIC.md)), and a scalar gate can be
+satisfied by the wrong mechanism — the registered anatomy falsifier caught the
+optimizer doing exactly that ([`GEN_ROUND7_QUERY.md`](results/GEN_ROUND7_QUERY.md)).
 
+**What still stands between the candidate and RC-1 (why the row above is not
+green):**
+
+- **The full grid.** Admission is n ∈ {25k…200k} × k ∈ {10,30,100}, **both**
+  batteries, cell-wise under the §5 rule (`score_rc1.py`) — the candidate is
+  fitted at n=8k, k=10, battery B only.
+- **G4 (dims90) is out of band** (~2.3× at the fitted point) — in-grid cells
+  scoring G4 will fail today.
 - **Hubness that grows correctly with N.** Real embeddings' hubness climbs with
-  n (≈1.9 → 5.0 across the grid); a generator matched at 2×10⁵ can diverge badly
-  by 10⁹ — and the grid stops at 2×10⁵, so that extrapolation is unproven.
-- **Relative contrast can't carry the load.** At 1024-d every corpus is nearly
-  equidistant, so gate G5 discriminates nothing; the burden falls on intrinsic
-  dimension (G1) and hubness (G6).
+  n; the query-model mechanism's n-scaling is untested — and the grid stops at
+  2×10⁵, so extrapolation beyond it remains unproven regardless.
+- **Hash + seal.** RC-2 requires a frozen, byte-reproducible, hashed generator;
+  the candidate is not yet sealed.
 
 **RC-2 is blocked on RC-1.** It is a **sealed, single-use** test: hash one
 generator, open the sealed set **once**, and check whether matching the geometry
@@ -192,8 +205,10 @@ score, per_gate_errors = evaluate_fn(params)          # searcher minimises; fuzz
 
 Method, rationale, and the **binding integrity guardrails** (the seal stays
 sealed; search on train/validation only; report the budget):
-**[`spec/GENERATOR_SEARCH.md`](spec/GENERATOR_SEARCH.md)**. *Status: harness ships;
-no generator passes RC-1 yet.*
+**[`spec/GENERATOR_SEARCH.md`](spec/GENERATOR_SEARCH.md)**. *Status: the 8-round
+campaign is closed with a fitting-stage candidate (rounds 0–8 in
+[`results/`](results/), each pre-registered, misses included); **no generator
+passes RC-1** — formal grid admission is the next step.*
 
 ### Why the 10¹¹ recall numbers aren't a tier
 
