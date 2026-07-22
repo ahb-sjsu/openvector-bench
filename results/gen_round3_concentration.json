@@ -1,0 +1,158 @@
+{
+  "family": "concentration",
+  "platform": "NRP 12-shard swarm (corrected harness)",
+  "real": {
+    "g1_id_twonn": 57.7,
+    "g3_eff_rank": 187.9,
+    "g6_hubness_skew": 6.83,
+    "g8_pca_retention": 0.62
+  },
+  "best": {
+    "shard": 8,
+    "family": "concentration",
+    "best_score": 0.4926115546781074,
+    "params": {
+      "local_dim": 79.72800359860915,
+      "log2_clusters": 3.8066309890151966,
+      "center_spread": 0.20112352075626455,
+      "within_scale": 0.2765746943424337,
+      "size_tail": 0.5024144605194345,
+      "curvature": 0.7853147314150603,
+      "noise": 0.005406819951105613
+    },
+    "ratios": {
+      "g1_id_twonn": 0.9573765251564568,
+      "g3_eff_rank": 1.2810460275708493,
+      "g6_hubness_skew": 0.14709737776565135,
+      "g8_pca_retention": 0.9583001569936653
+    },
+    "gates": {
+      "g1_id_twonn": 55.206329345703125,
+      "g3_eff_rank": 240.761474609375,
+      "g6_hubness_skew": 1.004515728648872,
+      "g8_pca_retention": 0.5947404899022546
+    }
+  },
+  "all_shards": [
+    {
+      "shard": 8,
+      "score": 0.4926115546781074,
+      "ratios": {
+        "g1_id_twonn": 0.9573765251564568,
+        "g3_eff_rank": 1.2810460275708493,
+        "g6_hubness_skew": 0.14709737776565135,
+        "g8_pca_retention": 0.9583001569936653
+      }
+    },
+    {
+      "shard": 7,
+      "score": 0.4965792372161024,
+      "ratios": {
+        "g1_id_twonn": 1.0381895247242086,
+        "g3_eff_rank": 1.613842646726187,
+        "g6_hubness_skew": 0.15150133746901326,
+        "g8_pca_retention": 0.9817058819950796
+      }
+    },
+    {
+      "shard": 4,
+      "score": 0.5047509193299561,
+      "ratios": {
+        "g1_id_twonn": 1.1274716501730118,
+        "g3_eff_rank": 0.44142798013984336,
+        "g6_hubness_skew": 0.20051937990697713,
+        "g8_pca_retention": 1.029868346694493
+      }
+    },
+    {
+      "shard": 10,
+      "score": 0.5277590237895394,
+      "ratios": {
+        "g1_id_twonn": 1.2722219789237035,
+        "g3_eff_rank": 0.850395171780742,
+        "g6_hubness_skew": 0.19163475416669684,
+        "g8_pca_retention": 1.020245210312605
+      }
+    },
+    {
+      "shard": 6,
+      "score": 0.528811334986459,
+      "ratios": {
+        "g1_id_twonn": 1.2009357040517405,
+        "g3_eff_rank": 1.2752140510429473,
+        "g6_hubness_skew": 0.13501204205141967,
+        "g8_pca_retention": 1.295168853454607
+      }
+    },
+    {
+      "shard": 9,
+      "score": 0.5310304822297439,
+      "ratios": {
+        "g1_id_twonn": 1.2500186884134086,
+        "g3_eff_rank": 0.5621343140761953,
+        "g6_hubness_skew": 0.21336045811063623,
+        "g8_pca_retention": 1.0228582503946455
+      }
+    },
+    {
+      "shard": 2,
+      "score": 0.5314311389086607,
+      "ratios": {
+        "g1_id_twonn": 0.95065524554326,
+        "g3_eff_rank": 0.7297107995000699,
+        "g6_hubness_skew": 0.13569683973219457,
+        "g8_pca_retention": 1.3675693774143796
+      }
+    },
+    {
+      "shard": 0,
+      "score": 0.5361017315975236,
+      "ratios": {
+        "g1_id_twonn": 1.0028982586897153,
+        "g3_eff_rank": 0.7322232778611409,
+        "g6_hubness_skew": 0.14304244917110126,
+        "g8_pca_retention": 1.3467780823473545
+      }
+    },
+    {
+      "shard": 5,
+      "score": 0.5381720385113777,
+      "ratios": {
+        "g1_id_twonn": 1.1377257345340315,
+        "g3_eff_rank": 0.822702295265002,
+        "g6_hubness_skew": 0.14574619909342312,
+        "g8_pca_retention": 1.2805801987855232
+      }
+    },
+    {
+      "shard": 3,
+      "score": 0.5385091862217258,
+      "ratios": {
+        "g1_id_twonn": 1.236080241233348,
+        "g3_eff_rank": 1.0481817616446707,
+        "g6_hubness_skew": 0.13329156577384518,
+        "g8_pca_retention": 1.2631354297947281
+      }
+    },
+    {
+      "shard": 11,
+      "score": 0.545901415170862,
+      "ratios": {
+        "g1_id_twonn": 1.4207999593551817,
+        "g3_eff_rank": 1.0458630817017434,
+        "g6_hubness_skew": 0.16817314252150517,
+        "g8_pca_retention": 0.9518145526246296
+      }
+    },
+    {
+      "shard": 1,
+      "score": 0.5611049920692273,
+      "ratios": {
+        "g1_id_twonn": 0.9535881026054096,
+        "g3_eff_rank": 0.4563191193384191,
+        "g6_hubness_skew": 0.14680899500204694,
+        "g8_pca_retention": 1.3015401046761734
+      }
+    }
+  ]
+}
