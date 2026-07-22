@@ -373,8 +373,15 @@ def make_evaluate_fn(
 
     def evaluate_fn(params: np.ndarray) -> tuple[float, dict[str, float]]:
         p = decode(params, params_spec)
-        base = generator(p, n, dim, seed)
-        q_b = generator(p, n_query, dim, seed + 1)  # held-out queries
+        # Battery B queries must be held out from the SAME instance, not a fresh
+        # draw: for an instance-random generator (clusters/subspaces/projections
+        # depend on the seed) a different seed is a DIFFERENT manifold, so the
+        # queries land off the base's clusters and two-NN reads cross-instance
+        # (high) dimension instead of the local one -- silently penalising every
+        # concentrated family. Real queries.npy lie on the real manifold, so the
+        # faithful analog is one instance split into base + held-out queries.
+        full = generator(p, n + n_query, dim, seed)
+        base, q_b = full[:n], full[n:]
         prof = measure_corpus(
             base,
             q_b,

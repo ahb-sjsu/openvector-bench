@@ -78,9 +78,10 @@ def main() -> None:
             best_s, best_p = s, params
 
     p = decode(best_p, SPEC)
+    full = GEN(p, N + NQ, DIM, 0)  # same-instance base + held-out queries
     prof = measure_corpus(
-        GEN(p, N, DIM, 0),
-        GEN(p, NQ, DIM, 1),
+        full[:N],
+        full[N:],
         ks=KS,
         batteries=BATT,
         n_query=NQ,
