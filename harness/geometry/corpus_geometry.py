@@ -333,8 +333,20 @@ def main() -> None:
     print(f"target effective rank {eff:.1f} -> null_lowrank rank {rank}", flush=True)
 
     # Battery A holds out corpus points as queries, disjoint from the base.
+    # REGISTERED PROTOCOL FIX (2026-07-22, results/RC1_ROUND2_CANDIDATE.md
+    # finding 3): the held-out rows are sampled UNIFORMLY, not taken as the
+    # leading prefix. Source dumps arrive topically ordered, so a prefix is a
+    # topically clustered query set — an undocumented query-concentration
+    # (mu_Q) confound inside the corpus-to-corpus battery. PREREG §4 specifies
+    # "held-out corpus points" without a sampling rule; uniform is the reading
+    # consistent with battery A's definition. Disclosed, dated, and applied to
+    # real and generated corpora alike.
     hold = min(N_QUERY * 2, len(corpus) // 10)
-    corpus_q, corpus_base = corpus[:hold], corpus[hold:]
+    hold_rng = np.random.default_rng(777)
+    hold_idx = hold_rng.choice(len(corpus), size=hold, replace=False)
+    mask = np.zeros(len(corpus), dtype=bool)
+    mask[hold_idx] = True
+    corpus_q, corpus_base = corpus[mask], corpus[~mask]
 
     cells: list[dict] = []
     for sub in range(SUBSAMPLES):

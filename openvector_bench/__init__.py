@@ -9,6 +9,7 @@ specifications.
 from .generator_search import (
     CONCENTRATION_PARAMS,
     HIER_COLOURED_PARAMS,
+    HIER_DUPQ_PARAMS,
     HIER_MS_PARAMS,
     HIER_PARAMS,
     HIER_QUERY_PARAMS,
@@ -20,6 +21,7 @@ from .generator_search import (
     geometry_vector,
     hier_coloured_corpus,
     hier_concentration_corpus,
+    hier_dupq_corpus,
     hier_multiscale_corpus,
     hier_query_corpus,
     make_evaluate_fn,
@@ -64,6 +66,7 @@ __all__ = [
     "hier_coloured_corpus",
     "hier_multiscale_corpus",
     "hier_query_corpus",
+    "hier_dupq_corpus",
     "whitney_b_defect",
     "PARAMS",
     "MANIFOLD_PARAMS",
@@ -73,6 +76,7 @@ __all__ = [
     "HIER_COLOURED_PARAMS",
     "HIER_MS_PARAMS",
     "HIER_QUERY_PARAMS",
+    "HIER_DUPQ_PARAMS",
     "decode",
     "__version__",
 ]

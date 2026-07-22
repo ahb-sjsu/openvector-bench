@@ -551,8 +551,21 @@ def hier_coloured_corpus(
     return _recolour(x, float(p["spectrum_decay"]), float(p["reshape_mix"]))
 
 
-def _recolour(x: np.ndarray, decay: float, mix: float) -> np.ndarray:
-    """Mahalanobis reshape of the centred covariance toward ``i^-decay``; re-normalize."""
+def _recolour(
+    x: np.ndarray,
+    decay: float,
+    mix: float,
+    knee: float | None = None,
+    decay2: float | None = None,
+) -> np.ndarray:
+    """Mahalanobis reshape of the centred covariance toward a designed spectrum.
+
+    Default: the single power law ``i^-decay`` (byte-identical to all committed
+    families). With ``knee``/``decay2`` (round 9): ``i^-decay`` up to index
+    ``knee``, then continuously ``(knee^-decay)(i/knee)^-decay2`` — a second
+    spectral degree of freedom, because one power law rigidly couples effective
+    rank (G3) to dims90 (G4).
+    """
     dim = x.shape[1]
     mu = x.mean(0, keepdims=True)
     xc = x - mu
@@ -560,7 +573,12 @@ def _recolour(x: np.ndarray, decay: float, mix: float) -> np.ndarray:
     lam, vecs = np.linalg.eigh(cov)
     lam, vecs = lam[::-1], vecs[:, ::-1]  # descending
     lam = np.maximum(lam, 1e-12)
-    target = np.arange(1, dim + 1, dtype=np.float64) ** (-decay)
+    i = np.arange(1, dim + 1, dtype=np.float64)
+    if knee is None or decay2 is None:
+        target = i ** (-decay)
+    else:
+        kn = float(np.clip(knee, 1.0, dim))
+        target = np.where(i <= kn, i ** (-decay), (kn**-decay) * (i / kn) ** (-decay2))
     target *= lam.sum() / target.sum()  # match total energy
     new_lam = lam ** (1.0 - mix) * target**mix
     gain = np.sqrt(new_lam / lam).astype(np.float32)
@@ -712,6 +730,124 @@ def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nd
     x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
     rng.shuffle(x[:n_base])  # base rows only — the query block stays the tail
     return _recolour(normalize(x), float(p["spectrum_decay"]), float(p["reshape_mix"]))
+
+
+# Round-9 family: transfer to the RC-1 grid. The formal §5 admission of the round-8
+# point (results/RC1_ROUND2_CANDIDATE.md, 0/24) localized three scale defects the
+# n=8k fit could not see: (a) real's two-NN reading is n-FLAT (53-63 across 8x n) —
+# pinned by fine-scale near-duplicate pairs (diag_target.json: r1 1%-quantile 0.375
+# vs median 0.86) — while flat patches drift upward as sampling densifies; (b) real's
+# battery-B hubness grows at +0.22/decade while a FIXED query concentration gives
+# +0.13 (capture basins shrink ~1/n; real's per-basin query mass does not); (c) the
+# colouring was tuned to +-2x bands, not +-15%. This family adds the two missing
+# mechanisms as knobs and keeps everything else from round 8: `dup_mass` of base rows
+# are near-copies of other rows (Zipf family multiplicity, capped, jitter
+# `dup_scale` x within_scale) -> a short-range pair-distance spike that pins G1/G7;
+# `query_tail_n` raises the query Zipf exponent per decade of n above the fitting
+# anchor (n_base=8000) -> G6 growth becomes a knob instead of an accident.
+HIER_DUPQ_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_QUERY_PARAMS + (
+    ("dup_mass", 0.0, 0.25, 0.0),  # near-dup base rows — FALSIFIED for G1 (probes
+    ("dup_scale", 0.01, 1.0, 0.12),  # v9/v9b: invisible to the trimmed estimator or
+    ("dup_tail", 1.2, 3.0, 2.0),  # inert); kept at inert defaults, recorded
+    ("query_tail_n", 0.0, 1.0, 0.0),  # cluster-Zipf n-coupling — saturated, inert
+    ("q_anchor", 0.0, 0.9, 0.5),  # fraction of queries anchored to popular rows (G6)
+    ("anchor_tail", 0.5, 2.5, 1.0),  # Zipf over anchor-row popularity
+    ("q_jit", 0.1, 2.0, 0.8),  # IN-PATCH anchor jitter, x within_scale
+    ("log2_knee", 4.0, 9.0, 7.3),  # two-piece spectrum knee index (2**this)
+    ("spectrum_decay2", 0.5, 2.5, 1.6),  # tail slope beyond the knee (G4)
+)
+_QT_ANCHOR_N = 8000.0  # n_base at which query_tail applies unmodified
+
+
+def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """Round-8 construction + near-duplicate families + n-coupled query concentration.
+
+    Base rows [0, n_base): the hier_query construction on ``n_base - n_dup`` seed
+    rows, then ``n_dup`` near-copies of Zipf-multiplicity originals (jitter
+    ``dup_scale * within_scale``, applied pre-recolour). Query block rows
+    [n_base, n): cluster choice Zipf with exponent
+    ``query_tail + query_tail_n * log10(n_base / 8000)``.
+    """
+    rng = np.random.default_rng(seed)
+    n_query = int(round(n * QUERY_FRAC))
+    n_base = n - n_query
+    n_dup = min(int(round(float(p["dup_mass"]) * n_base)), n_base // 2)
+    n_seed_rows = n_base - n_dup
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n_seed_rows)
+    n_levels = min(max(1, int(round(p["n_levels"]))), 6)
+    decay = float(p["level_decay"])
+    tail = float(p["branch_tail"])
+    centres = np.zeros((k_clusters, dim), dtype=np.float32)
+    scale = 1.0
+    for lvl in range(n_levels):
+        n_codes = max(
+            1, min(k_clusters, int(round(k_clusters ** ((lvl + 1) / n_levels))))
+        )
+        codes = rng.standard_normal((n_codes, dim)).astype(np.float32)
+        w = np.arange(1, n_codes + 1, dtype=np.float64) ** (-tail)
+        w /= w.sum()
+        assign = rng.choice(n_codes, size=k_clusters, p=w)
+        centres += np.float32(scale) * codes[assign]
+        scale *= decay
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n_seed_rows, w)
+    mean_ck = max(1.0, float(counts[counts > 0].mean()))
+    qt = float(p["query_tail"]) + float(p["query_tail_n"]) * np.log10(
+        max(n_base, 2) / _QT_ANCHOR_N
+    )
+    wq = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-max(qt, 0.0))
+    wq /= wq.sum()
+    qcounts = rng.multinomial(n_query, wq)
+    ws = np.float32(p["within_scale"])
+    eq = float(p["equalize"])
+    x = np.empty((n, dim), dtype=np.float32)
+    rowb, rowq = 0, n_base
+    q_anchor = float(p["q_anchor"])
+    a_tail = float(p["anchor_tail"])
+    q_jit = np.float32(float(p["q_jit"]))
+    for k in range(k_clusters):
+        ck, qk = int(counts[k]), int(qcounts[k])
+        if ck + qk == 0:
+            continue
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        ws_k = ws * np.float32((max(ck, 1) / mean_ck) ** (eq / d_local))
+        local = rng.standard_normal((ck + qk, d_local)).astype(np.float32) * ws_k
+        # Row-anchored queries (G6 level *and* growth): a fraction of this
+        # cluster's queries sit at q_jit x within_scale from a Zipf-popular base
+        # row, jittered IN THE PATCH SUBSPACE — ambient jitter puts queries
+        # off-manifold (two-NN reads ambient dim, lists decorrelate; probe v9c).
+        qa_k = int(round(q_anchor * qk)) if ck > 0 else 0
+        if qa_k > 0:
+            wa = np.arange(1, ck + 1, dtype=np.float64) ** (-a_tail)
+            wa /= wa.sum()
+            anchors = rng.choice(ck, size=qa_k, p=wa)
+            local[ck : ck + qa_k] = local[anchors] + (
+                q_jit * ws_k
+            ) * rng.standard_normal((qa_k, d_local)).astype(np.float32)
+        pts = centres[k] + local @ basis.T
+        x[rowb : rowb + ck] = pts[:ck]
+        x[rowq : rowq + qk] = pts[ck:]
+        rowb += ck
+        rowq += qk
+    if n_dup > 0:  # near-duplicate families: a short-range pair-distance spike
+        fam = np.minimum(rng.zipf(float(p["dup_tail"]), size=n_dup), 8)
+        originals = rng.choice(n_seed_rows, size=n_dup)
+        reps = np.repeat(originals, fam)[:n_dup]
+        jit = np.float32(float(p["dup_scale"])) * ws
+        x[n_seed_rows:n_base] = x[reps] + jit * rng.standard_normal(
+            (n_dup, dim)
+        ).astype(np.float32)
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x[:n_base])  # base rows only — the query block stays the tail
+    return _recolour(
+        normalize(x),
+        float(p["spectrum_decay"]),
+        float(p["reshape_mix"]),
+        knee=2.0 ** float(p["log2_knee"]),
+        decay2=float(p["spectrum_decay2"]),
+    )
 
 
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
