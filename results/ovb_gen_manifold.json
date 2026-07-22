@@ -1,0 +1,40 @@
+{
+  "family": "manifold",
+  "real": {
+    "g1_id_twonn": 52.63689041137695,
+    "g3_eff_rank": 189.51431274414062,
+    "g6_hubness_skew": 3.7798221852960556,
+    "g8_pca_retention": 0.642328909652439
+  },
+  "best": {
+    "score": 0.9395870853614249,
+    "params": {
+      "latent_dim": 31.862389087916277,
+      "freq_scale": 4.089621605223056,
+      "log2_clusters": 7.766274138891001,
+      "size_tail": 1.5384627787031346,
+      "latent_spread": 0.606332453679731,
+      "curvature": 2.991629807367633,
+      "noise": 0.29425060163286904
+    },
+    "gates": {
+      "g1_id_twonn": 328.9739990234375,
+      "g3_eff_rank": 119.40062713623047,
+      "g6_hubness_skew": 3.195190215268785,
+      "g8_pca_retention": 0.06408748996674693
+    },
+    "ratios": {
+      "g1_id_twonn": 6.249875257683022,
+      "g3_eff_rank": 0.63003487919897,
+      "g6_hubness_skew": 0.8453281817590372,
+      "g8_pca_retention": 0.09977363466549302
+    }
+  },
+  "config": {
+    "n_base": 15000,
+    "n_query": 1500,
+    "n_evals": 50,
+    "battery": "B"
+  },
+  "seconds": 252.9
+}

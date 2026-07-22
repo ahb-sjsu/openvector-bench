@@ -7,11 +7,14 @@ specifications.
 """
 
 from .generator_search import (
+    MANIFOLD_PARAMS,
+    PARAMS,
     decode,
     geometry_vector,
     make_evaluate_fn,
-    synth_corpus,
+    manifold_corpus,
     measure_corpus,
+    synth_corpus,
 )
 from .manifest import (
     build_manifest,
@@ -41,6 +44,9 @@ __all__ = [
     "measure_corpus",
     "geometry_vector",
     "synth_corpus",
+    "manifold_corpus",
+    "PARAMS",
+    "MANIFOLD_PARAMS",
     "decode",
     "__version__",
 ]

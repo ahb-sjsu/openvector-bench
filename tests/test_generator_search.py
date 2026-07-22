@@ -55,3 +55,41 @@ def test_evaluate_fn_contract_and_rewards_match():
     assert np.isfinite([near, far]).all()
     assert near < 1e-6  # exact reproduction -> ~zero mismatch
     assert far > near  # matching the target's geometry fits it better
+
+
+def test_manifold_corpus_shape_norm_and_hyperbolic_branch():
+    from openvector_bench.generator_search import MANIFOLD_PARAMS, manifold_corpus
+
+    p = {name: dflt for name, _, _, dflt in MANIFOLD_PARAMS}
+    x = manifold_corpus(p, 600, DIM, 5)
+    assert x.shape == (600, DIM)
+    assert np.allclose(np.linalg.norm(x, axis=1), 1.0, atol=1e-4)
+    # the hyperbolic (Poincare exp_0) latent branch runs and stays finite
+    xh = manifold_corpus({**p, "curvature": 2.0}, 600, DIM, 5)
+    assert xh.shape == (600, DIM) and np.isfinite(xh).all()
+
+
+def test_make_evaluate_fn_accepts_the_manifold_family():
+    from openvector_bench.generator_search import (
+        MANIFOLD_PARAMS,
+        manifold_corpus,
+        measure_corpus,
+    )
+
+    p_star = np.array([d for _, _, _, d in MANIFOLD_PARAMS])
+    base = manifold_corpus({n: d for n, _, _, d in MANIFOLD_PARAMS}, N, DIM, 0)
+    q = manifold_corpus({n: d for n, _, _, d in MANIFOLD_PARAMS}, NQ, DIM, 1)
+    target = measure_corpus(base, q, ks=KS, batteries=("B",), n_query=NQ, seed=0)
+    ev = make_evaluate_fn(
+        target,
+        dim=DIM,
+        n=N,
+        n_query=NQ,
+        ks=KS,
+        batteries=("B",),
+        seed=0,
+        generator=manifold_corpus,
+        params_spec=MANIFOLD_PARAMS,
+    )
+    near, err = ev(p_star)
+    assert isinstance(near, float) and err and near < 1e-6  # candidate == target

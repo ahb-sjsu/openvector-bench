@@ -65,15 +65,16 @@ PARAMS: tuple[tuple[str, float, float, float], ...] = (
 _INACTIVE = 1e6  # structural-fuzzing convention: params >= 1e6 are "off"
 
 
-def decode(params: np.ndarray) -> dict[str, float]:
+def decode(params: np.ndarray, spec=PARAMS) -> dict[str, float]:
     """A parameter vector (structural-fuzzing convention) -> named knobs.
 
     A value ``>= 1e6`` (or a missing entry) turns that knob off, restoring its
     default, so a fuzzer can ablate dimensions exactly as it does for any model.
+    ``spec`` selects the generator family's (name, lo, hi, default) layout.
     """
     p = np.asarray(params, dtype=float).ravel()
     out: dict[str, float] = {}
-    for i, (name, lo, hi, dflt) in enumerate(PARAMS):
+    for i, (name, lo, hi, dflt) in enumerate(spec):
         v = float(p[i]) if i < len(p) else _INACTIVE
         out[name] = dflt if v >= _INACTIVE else float(np.clip(v, lo, hi))
     return out
@@ -99,6 +100,80 @@ def synth_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray
     x = centres[row_cluster] + np.float32(p["cluster_spread"]) * z
     x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
     rng.shuffle(x)  # de-correlate row order from cluster order
+    return normalize(x)
+
+
+# Round-1 family: a nonlinear low-dimensional manifold. `synth_corpus` (clusters
+# of anisotropic Gaussians) fills too many dimensions to reach real embeddings'
+# ~52-dim intrinsic dimension (see results/GEN_EXPLORE_ROUND0.md). Here the
+# intrinsic dimension is set *directly* by a `latent_dim`-dimensional latent,
+# lifted to the ambient space through random Fourier features -- a smooth CURVED
+# immersion, so the ambient effective rank stays high and the corpus is NOT
+# trivially PCA-compressible (the flaw that sinks a linear low-rank map), while
+# the local intrinsic dimension tracks the latent. Clustered, heavy-tailed latent
+# density supplies hubness. Byte-reproducible from `(seed, row)` like every family.
+MANIFOLD_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    ("latent_dim", 8.0, 200.0, 60.0),  # ~ intrinsic dimension (G1)
+    (
+        "freq_scale",
+        0.2,
+        6.0,
+        1.5,
+    ),  # RFF curvature -> eff-rank / PCA retention / ID fine-tune
+    (
+        "log2_clusters",
+        0.0,
+        12.0,
+        6.0,
+    ),  # density gradients on the latent -> hubness (G6)
+    ("size_tail", 0.0, 2.5, 1.1),  # heavy-tailed cluster sizes -> hubness
+    ("latent_spread", 0.05, 1.5, 0.5),  # within-cluster latent scale
+    (
+        "curvature",
+        0.0,
+        3.0,
+        0.0,
+    ),  # 0 = Euclidean latent; >0 = hyperbolic (Poincare exp_0)
+    ("noise", 0.0, 0.3, 0.03),  # off-manifold floor
+)
+_N_FREQ = 2048  # random-Fourier feature count (fixed; freq_scale tunes curvature)
+
+
+def manifold_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """A byte-reproducible nonlinear-manifold corpus from decoded knobs ``p``.
+
+    Latent (clustered, heavy-tailed for hubness) -> random Fourier features
+    (nonlinear lift) -> ambient projection + noise floor. Local intrinsic
+    dimension tracks ``latent_dim``; the cosine nonlinearity spreads the ambient
+    spectrum so effective rank stays high and it is not low-rank. Unit-normed.
+    """
+    rng = np.random.default_rng(seed)
+    d_latent = min(max(2, int(round(p["latent_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n)
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    counts = rng.multinomial(n, w)
+    centres = rng.standard_normal((k_clusters, d_latent)).astype(np.float32)
+    row_cluster = np.repeat(np.arange(k_clusters), counts)
+    z = centres[row_cluster] + np.float32(p["latent_spread"]) * rng.standard_normal(
+        (n, d_latent)
+    ).astype(np.float32)
+    if p["curvature"] > 0:
+        # Map the latent into the Poincare ball via exp_0 (geometric-methods Ch 3):
+        # the conformal factor packs most points near the boundary while a few sit
+        # central -- the boundary/hub structure of hierarchical data, hence hubness.
+        c = np.float32(p["curvature"])
+        vn = np.linalg.norm(z, axis=1, keepdims=True).astype(np.float32)
+        z = z * (np.tanh(np.sqrt(c) * vn) / (np.sqrt(c) * np.maximum(vn, 1e-9)))
+    freq = rng.standard_normal((d_latent, _N_FREQ)).astype(np.float32) * np.float32(
+        p["freq_scale"]
+    )
+    bias = rng.uniform(0.0, 2.0 * np.pi, _N_FREQ).astype(np.float32)
+    feats = np.cos(z @ freq + bias, dtype=np.float32)  # nonlinear lift
+    proj = rng.standard_normal((_N_FREQ, dim)).astype(np.float32) / np.sqrt(_N_FREQ)
+    x = feats @ proj
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)
     return normalize(x)
 
 
@@ -171,6 +246,8 @@ def make_evaluate_fn(
     seed: int = 0,
     weight_mandatory: float = 3.0,
     nan_penalty: float = 4.0,
+    generator=synth_corpus,
+    params_spec=PARAMS,
 ):
     """Build the shared ``evaluate_fn(params) -> (score, errors)``.
 
@@ -191,9 +268,9 @@ def make_evaluate_fn(
     kmax = max(ks)
 
     def evaluate_fn(params: np.ndarray) -> tuple[float, dict[str, float]]:
-        p = decode(params)
-        base = synth_corpus(p, n, dim, seed)
-        q_b = synth_corpus(p, n_query, dim, seed + 1)  # held-out queries
+        p = decode(params, params_spec)
+        base = generator(p, n, dim, seed)
+        q_b = generator(p, n_query, dim, seed + 1)  # held-out queries
         prof = measure_corpus(
             base,
             q_b,
