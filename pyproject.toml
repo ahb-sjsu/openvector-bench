@@ -29,7 +29,7 @@ dependencies = ["numpy>=1.24", "scipy>=1.10"]
 [project.optional-dependencies]
 gpu = ["torch>=2.0"]
 sources = ["huggingface-hub>=0.23", "pyarrow>=14"]
-dev = ["pytest>=7", "ruff>=0.5", "black>=24"]
+dev = ["pytest>=7", "ruff>=0.5", "black~=26.5"]
 
 [project.urls]
 Homepage = "https://github.com/ahb-sjsu/openvector-bench"
