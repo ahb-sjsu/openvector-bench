@@ -18,8 +18,9 @@ from .introspect import REPO, build_manifest
 
 def build(out_path: str | None = None) -> str:
     out_path = out_path or os.path.join(REPO, "ui_dashboard.html")
-    with open(os.path.join(os.path.dirname(__file__), "template.html"),
-              encoding="utf-8") as f:
+    with open(
+        os.path.join(os.path.dirname(__file__), "template.html"), encoding="utf-8"
+    ) as f:
         template = f.read()
     manifest = build_manifest()
     payload = json.dumps(manifest, separators=(",", ":"))

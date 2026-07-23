@@ -49,8 +49,32 @@ NPROBES = [1, 2, 4, 8, 16, 32, 64, 128]
 HNSW_SEEDS = [100, 200, 300]
 R_LO, R_HI = 0.80, 0.99
 
-RD8 = {"local_dim": 93.69715965226524, "log2_clusters": 6.281211232664926, "n_levels": 2.9624839351579957, "level_decay": 0.3583120511459201, "branch_tail": 1.0814563547833536, "within_scale": 0.5496126709750907, "size_tail": 0.15691675381713233, "noise": 0.04023716392232566, "spectrum_decay": 0.54, "reshape_mix": 0.9563312073493949, "query_tail": 2.3517230297419927, "equalize": 0.217048309017571}  # noqa: E501
-RD6 = {"local_dim": 75.16057028759155, "log2_clusters": 10.758928364116365, "n_levels": 4.306002392707525, "level_decay": 0.5063159082799275, "branch_tail": 0.5813727254625963, "within_scale": 0.4731687690337984, "size_tail": 1.3482923049279365, "noise": 0.012747409078290884, "spectrum_decay": 0.41687422159058096, "reshape_mix": 0.7895225155402837}  # noqa: E501
+RD8 = {
+    "local_dim": 93.69715965226524,
+    "log2_clusters": 6.281211232664926,
+    "n_levels": 2.9624839351579957,
+    "level_decay": 0.3583120511459201,
+    "branch_tail": 1.0814563547833536,
+    "within_scale": 0.5496126709750907,
+    "size_tail": 0.15691675381713233,
+    "noise": 0.04023716392232566,
+    "spectrum_decay": 0.54,
+    "reshape_mix": 0.9563312073493949,
+    "query_tail": 2.3517230297419927,
+    "equalize": 0.217048309017571,
+}  # noqa: E501
+RD6 = {
+    "local_dim": 75.16057028759155,
+    "log2_clusters": 10.758928364116365,
+    "n_levels": 4.306002392707525,
+    "level_decay": 0.5063159082799275,
+    "branch_tail": 0.5813727254625963,
+    "within_scale": 0.4731687690337984,
+    "size_tail": 1.3482923049279365,
+    "noise": 0.012747409078290884,
+    "spectrum_decay": 0.41687422159058096,
+    "reshape_mix": 0.7895225155402837,
+}  # noqa: E501
 
 
 def sealed(i: int) -> bool:
@@ -65,7 +89,9 @@ def load_real_pool():
     keep = np.fromiter(
         (i for i in range(min(200000, len(arr))) if not sealed(i)), np.int64
     )
-    q = normalize(np.asarray(np.load(os.path.join(TARGET, "queries.npy"))[:N_Q], np.float32))
+    q = normalize(
+        np.asarray(np.load(os.path.join(TARGET, "queries.npy"))[:N_Q], np.float32)
+    )
     return arr, keep, q
 
 
@@ -86,7 +112,9 @@ def corpus_instances():
         x = hier_coloured_corpus(RD6, N_BASE + N_Q, DIM, 700 + s)
         yield "rd6", s, x[:N_BASE], x[N_BASE:]
     rng = np.random.default_rng(42)
-    ref = normalize(np.asarray(arr[np.sort(rng.choice(keep, 20000, replace=False))], np.float32))
+    ref = normalize(
+        np.asarray(arr[np.sort(rng.choice(keep, 20000, replace=False))], np.float32)
+    )
     sd = float(ref.std())
     for s in range(3):
         g = np.random.default_rng(900 + s)
@@ -137,7 +165,11 @@ def run_ivf(base, q, gt):
         stats.reset()
         _, labels = ix.search(q, K)
         pts.append(
-            {"knob": npb, "work": float(stats.ndis) / len(q), "recall": recall_at_10(labels, gt)}
+            {
+                "knob": npb,
+                "work": float(stats.ndis) / len(q),
+                "recall": recall_at_10(labels, gt),
+            }
         )
     return [pts]
 

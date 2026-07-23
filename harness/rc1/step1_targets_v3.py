@@ -48,17 +48,19 @@ def uniform_holdout(x: np.ndarray, hold: int, seed: int):
 
 
 def main() -> None:
-    log(f"device={G._DEV} n_grid={G.N_GRID} k_grid={G.K_GRID} "
-        f"subs={G.SUBSAMPLES} nq={G.N_QUERY}")
+    log(
+        f"device={G._DEV} n_grid={G.N_GRID} k_grid={G.K_GRID} "
+        f"subs={G.SUBSAMPLES} nq={G.N_QUERY}"
+    )
     corpus, real_q = G.load_target(
         TARGET, cap=int(os.environ.get("RC_CAP", str(max(G.N_GRID) * 3)))
     )
-    keep = np.fromiter(
-        (i for i in range(len(corpus)) if not sealed(i)), dtype=np.int64
-    )
+    keep = np.fromiter((i for i in range(len(corpus)) if not sealed(i)), dtype=np.int64)
     corpus = np.asarray(corpus[keep])
-    log(f"non-sealed pool {corpus.shape}; real queries "
-        f"{None if real_q is None else real_q.shape}")
+    log(
+        f"non-sealed pool {corpus.shape}; real queries "
+        f"{None if real_q is None else real_q.shape}"
+    )
     eff, _ = G.spectrum(G.normalize(corpus[:50000]))
     rank = max(2, int(round(eff)))
     log(f"target effective rank {eff:.1f} -> null_lowrank rank {rank}")
@@ -88,8 +90,10 @@ def main() -> None:
                         continue
                     for c in G.measure(name, battery, base_x, qset, n, sub):
                         cells.append(asdict(c))
-                    log(f"sub {sub} {name:13s} n={n:6d} {battery}  "
-                        f"({len(cells)} cells)")
+                    log(
+                        f"sub {sub} {name:13s} n={n:6d} {battery}  "
+                        f"({len(cells)} cells)"
+                    )
                 with open(OUT, "w", encoding="utf-8") as f:
                     json.dump(cells, f, indent=1)
     log(f"wrote {OUT}")

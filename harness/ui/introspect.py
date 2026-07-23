@@ -34,6 +34,7 @@ REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # Families (knobs + tooltips)                                                  #
 # --------------------------------------------------------------------------- #
 
+
 def _knob_tooltips(source: str, const_name: str, knobs: list[str]) -> dict[str, str]:
     """Best-effort: trailing # comments inside the ``const_name = (...)`` block."""
     m = re.search(rf"^{const_name}\s*[:=]", source, re.M)
@@ -76,7 +77,10 @@ def families() -> list[dict]:
         fn_name = next(
             (
                 n
-                for n in (f"{stem}_corpus", "synth_corpus" if attr == "PARAMS" else None)
+                for n in (
+                    f"{stem}_corpus",
+                    "synth_corpus" if attr == "PARAMS" else None,
+                )
                 if n and hasattr(gs, n)
             ),
             None,
@@ -113,15 +117,26 @@ def families() -> list[dict]:
 # Results (shape-sniffed)                                                      #
 # --------------------------------------------------------------------------- #
 
+
 def _sniff(name: str, d) -> dict:
-    if isinstance(d, dict) and isinstance(d.get("shards"), list) and d["shards"] and \
-            isinstance(d["shards"][0], dict) and "params" in d["shards"][0]:
+    if (
+        isinstance(d, dict)
+        and isinstance(d.get("shards"), list)
+        and d["shards"]
+        and isinstance(d["shards"][0], dict)
+        and "params" in d["shards"][0]
+    ):
         return {"kind": "swarm", "file": name, "shards": d["shards"]}
     if isinstance(d, list) and d and isinstance(d[0], dict) and "g1_id_twonn" in d[0]:
         return {"kind": "cells", "file": name, "cells": d}
     if isinstance(d, dict) and "curves" in d and "verdict" in d:
-        return {"kind": "wp5", "file": name, "curves": d["curves"],
-                "verdict": d["verdict"], "p3": d.get("p3", {})}
+        return {
+            "kind": "wp5",
+            "file": name,
+            "curves": d["curves"],
+            "verdict": d["verdict"],
+            "p3": d.get("p3", {}),
+        }
     keys = list(d.keys())[:12] if isinstance(d, dict) else [f"list[{len(d)}]"]
     return {"kind": "generic", "file": name, "keys": keys}
 
@@ -143,6 +158,7 @@ def results() -> list[dict]:
 # --------------------------------------------------------------------------- #
 # Docs (registration cards) + WP ledger                                        #
 # --------------------------------------------------------------------------- #
+
 
 def docs() -> list[dict]:
     rdir = os.path.join(REPO, "results")
@@ -191,11 +207,15 @@ def ledger() -> list[dict]:
 # Manifest                                                                     #
 # --------------------------------------------------------------------------- #
 
+
 def build_manifest() -> dict:
     try:
         commit = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, cwd=REPO, check=True,
+            capture_output=True,
+            text=True,
+            cwd=REPO,
+            check=True,
         ).stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
         commit = "unknown"
