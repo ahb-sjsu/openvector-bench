@@ -551,6 +551,28 @@ def hier_coloured_corpus(
     return _recolour(x, float(p["spectrum_decay"]), float(p["reshape_mix"]))
 
 
+# Round-10: optional NONPARAMETRIC spectral target (PREREG v2 §7 — a fitted
+# distributional parameter, fitted on TRAIN rows only). When set, the recolouring
+# targets the measured real eigenvalue profile itself; the parametric knee capped
+# G4 at 1.52x because no one- or two-piece power law has the real spectrum's
+# shape. Drivers call ``set_spectrum_target(path_or_array)``; None (default)
+# preserves the parametric path byte-identically for all committed families.
+SPECTRUM_TARGET: np.ndarray | None = None
+
+
+def set_spectrum_target(source) -> None:
+    """Install the fitted spectral target (JSON path with 'eigenvalues', or array)."""
+    global SPECTRUM_TARGET
+    if source is None:
+        SPECTRUM_TARGET = None
+        return
+    if isinstance(source, (str, bytes)):
+        import json
+
+        source = json.load(open(source, encoding="utf-8"))["eigenvalues"]
+    SPECTRUM_TARGET = np.asarray(source, dtype=np.float64)
+
+
 def _recolour(
     x: np.ndarray,
     decay: float,
@@ -574,7 +596,9 @@ def _recolour(
     lam, vecs = lam[::-1], vecs[:, ::-1]  # descending
     lam = np.maximum(lam, 1e-12)
     i = np.arange(1, dim + 1, dtype=np.float64)
-    if knee is None or decay2 is None:
+    if SPECTRUM_TARGET is not None and len(SPECTRUM_TARGET) == dim:
+        target = np.maximum(SPECTRUM_TARGET, 1e-15)
+    elif knee is None or decay2 is None:
         target = i ** (-decay)
     else:
         kn = float(np.clip(knee, 1.0, dim))
@@ -758,7 +782,8 @@ HIER_DUPQ_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_QUERY_PARAM
     ("cloud_mass", 0.0, 0.5, 0.25),  # fraction of base rows in paraphrase clouds
     ("cloud_grade", 0.2, 2.0, 0.7),  # radius law P(r<=t) ~ t^grade (graded ladder)
     ("cloud_span", 0.2, 1.5, 0.9),  # max cloud radius, x within_scale
-)
+    ("cloud_tail", 0.5, 2.5, 1.0),  # Zipf on cloud OWNERSHIP (round 10: decoupled
+)  # from anchor_tail so k=100 capture depth and query concentration tune apart
 _QT_ANCHOR_N = 8000.0  # n_base at which query_tail applies unmodified
 
 
@@ -842,6 +867,10 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
         local[:n_seed_k] = (
             rng.standard_normal((n_seed_k, d_local)).astype(np.float32) * ws_k
         )
+        wcloud = np.arange(1, n_seed_k + 1, dtype=np.float64) ** (
+            -float(p.get("cloud_tail", a_tail))
+        )
+        wcloud /= wcloud.sum()
         owners = None
         if n_cloud_k > 0:
             # Paraphrase clouds: members at GRADED radii around popular rows —
@@ -849,7 +878,7 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
             # scale, denser near the centre for grade < 1) that pins the
             # trimmed two-NN reading, smooths ball growth, and gives anchored
             # queries neighbours at every fractional distance (probe D's gap).
-            owners = rng.choice(n_seed_k, size=n_cloud_k, p=wpop)
+            owners = rng.choice(n_seed_k, size=n_cloud_k, p=wcloud)
             radii = (
                 cloud_span
                 * pr_k
