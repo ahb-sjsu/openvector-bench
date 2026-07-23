@@ -123,7 +123,7 @@ as produced:
 | **Geometry battery** (RC-1 instrument) | the battery tells real embeddings from wrong ones | ✅ **passed** | 3/3 frozen nulls rejected · [`RC1_ROUND1.md`](results/RC1_ROUND1.md) |
 | **§6 reconstruction** | a corpus regenerates **byte-identically** from a kB manifest | ✅ **passed** | 4/4 criteria · [experiment](harness/distribution/reconstruct_experiment.py) · [notebook](notebooks/reproduce.ipynb) |
 | **Distribution at scale** | regenerate-from-seed works at **10¹¹**, zero data movement | 🟡 **in progress** | sibling [turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro) fleet build (systems evidence) |
-| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **candidate not admitted** | formal §5 grid run (validation-stage, seal closed): **0/24 cells**, G6-growth kills the exponents · full map + round-9 targets: [`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md) · fitting-stage result: [`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md) |
+| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **round-9 candidate not admitted** | second formal §5 run (v3 targets, seal closed): 0/24, **but the G6 growth exponents pass at k≤30 for the first time** and G3 reads 1.00 in 24/24 cells · verdicts + the sampling-operator diagnosis: [`ROUND9_RESULT.md`](results/ROUND9_RESULT.md) · prior runs: [`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md) |
 | **RC-2** — sealed prediction | that geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after RC-1 |
 | **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires RC-1 **and** RC-2 |
 
