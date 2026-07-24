@@ -929,6 +929,89 @@ def hier_dupq_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nda
     )
 
 
+# Round-11 primitive: PLANTED LOCAL CENTERS (results/PREREG_ROUND11.md, draft).
+# Round 10 closed with a generator-CAPABILITY diagnosis: no optimizer pass over
+# the existing family reaches real's battery-A count tail — donor mechanisms cap
+# a row's k-occurrence count at Theta(k) and the soft-gradient path at ~2.2k
+# (turboquant-pro STRATA fixture measurements). This primitive CONSTRUCTS the
+# tail instead of searching for it: m off-center unit shells (chordal radius r
+# on the unit sphere), each with p rows planted AT its local center. Every
+# shell member sits at ~r from the planted rows but ~r*sqrt(2) from its fellow
+# members, so the planted rows top each member's neighbour list and a planted
+# row's count response is near-deterministic — a dial (m, p, n_shell), not a
+# search target. Placement is population-typical (each shell center IS an
+# existing base row), so planted hubs occupy the same central band the
+# population does — the origin-shell trick that keeps the centrality signature
+# G1's mechanism constraint demands. The overlay composes AFTER the round-10
+# machinery (nonparametric spectral target + cloud_tail untouched, recolouring
+# already applied, so the constructed distances are exact); defaults keep the
+# primitive OFF and the family byte-identical to ``hier_dupq_corpus``.
+HIER_LC_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_DUPQ_PARAMS + (
+    ("lc_shells", 0.0, 256.0, 0.0),  # m: off-center unit shells (0 = primitive off)
+    ("lc_planted", 1.0, 64.0, 4.0),  # p: rows planted AT each local center
+    ("lc_shell_rows", 8.0, 8192.0, 512.0),  # n_shell: shell population per center
+    ("lc_radius", 0.02, 0.6, 0.15),  # r: shell radius (chordal, on the unit sphere)
+    ("lc_center_jit", 0.005, 0.3, 0.05),  # planted-row spread, x r (no exact dups)
+)
+
+
+def local_centers(
+    x: np.ndarray,
+    n_base: int,
+    m: int,
+    n_planted: int,
+    n_shell: int,
+    radius: float,
+    center_jit: float,
+    rng: np.random.Generator,
+    return_rows: bool = False,
+):
+    """Overwrite base rows with ``m`` planted-local-center shells (round 11).
+
+    Each shell takes ``n_planted + n_shell`` distinct base-row slots; the first
+    slot's ORIGINAL position becomes the shell's local center (ambient
+    placement per the existing geometry — population-typical centrality by
+    construction). ``n_planted`` rows land at the center (spread
+    ``center_jit * radius``) and ``n_shell`` rows on the chordal-radius-
+    ``radius`` shell around it. Rows at and beyond ``n_base`` (the query
+    block) are never touched, and the overlay refuses to claim more than half
+    the base (returned unchanged). With ``return_rows`` the planted row
+    indices are also returned, so calibration can read the constructed count
+    response directly.
+    """
+    per = n_planted + n_shell
+    if m <= 0 or per <= 0 or m * per > n_base // 2:
+        return (x, np.empty(0, dtype=np.int64)) if return_rows else x
+    x = np.array(x, copy=True)
+    dim = x.shape[1]
+    slots = rng.choice(n_base, size=m * per, replace=False)
+    centres = x[slots[::per]].copy()  # snapshot before any slot is overwritten
+    dirs = rng.standard_normal((m * per, dim)).astype(np.float32)
+    dirs /= np.maximum(np.linalg.norm(dirs, axis=1, keepdims=True), 1e-9)
+    rad = np.full((per, 1), radius, dtype=np.float32)
+    rad[:n_planted] = radius * center_jit
+    x[slots] = normalize(np.repeat(centres, per, axis=0) + np.tile(rad, (m, 1)) * dirs)
+    if return_rows:
+        return x, slots.reshape(m, per)[:, :n_planted].ravel()
+    return x
+
+
+def hier_lc_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """Round-10 corpus + the round-11 planted-local-center overlay."""
+    x = hier_dupq_corpus(p, n, dim, seed)
+    n_base = n - int(round(n * QUERY_FRAC))
+    return local_centers(
+        x,
+        n_base,
+        m=int(round(p.get("lc_shells", 0.0))),
+        n_planted=max(1, int(round(p.get("lc_planted", 4.0)))),
+        n_shell=max(0, int(round(p.get("lc_shell_rows", 512.0)))),
+        radius=float(p.get("lc_radius", 0.15)),
+        center_jit=float(p.get("lc_center_jit", 0.05)),
+        rng=np.random.default_rng(777_000 + seed),
+    )
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))

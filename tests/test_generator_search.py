@@ -72,6 +72,53 @@ def test_manifold_corpus_shape_norm_and_hyperbolic_branch():
     assert xh.shape == (600, DIM) and np.isfinite(xh).all()
 
 
+def test_local_centers_off_is_byte_identical_to_round10():
+    from openvector_bench.generator_search import (
+        HIER_LC_PARAMS,
+        hier_dupq_corpus,
+        hier_lc_corpus,
+    )
+
+    p = {name: dflt for name, _, _, dflt in HIER_LC_PARAMS}
+    assert p["lc_shells"] == 0.0  # the primitive's default is OFF
+    x_lc = hier_lc_corpus(p, 900, DIM, 7)
+    x_r10 = hier_dupq_corpus(p, 900, DIM, 7)
+    assert np.array_equal(x_lc, x_r10)
+
+
+def test_local_centers_count_response_is_a_dial():
+    """PREREG_ROUND11 mechanism claim at unit-test scale: every shell member's
+    nearest neighbours are its planted rows, so a planted row's k-occurrence
+    count ~ its shell's membership — constructed, not emergent."""
+    from openvector_bench.generator_search import local_centers
+    from openvector_bench.geometry import knn, normalize
+
+    n, m, p, n_shell = 2400, 4, 3, 80
+    base = normalize(np.random.default_rng(0).standard_normal((n, DIM)))
+    x, planted = local_centers(
+        base,
+        n_base=n,
+        m=m,
+        n_planted=p,
+        n_shell=n_shell,
+        radius=0.1,
+        center_jit=0.05,
+        rng=np.random.default_rng(1),
+        return_rows=True,
+    )
+    assert x.shape == base.shape and len(planted) == m * p
+    assert np.allclose(np.linalg.norm(x, axis=1), 1.0, atol=1e-4)
+    _, idx = knn(x, x, p + 1)  # self lands in column 0; count columns 1..p
+    counts = np.bincount(idx[:, 1:].ravel(), minlength=n).astype(np.float64)
+    pmask = np.zeros(n, dtype=bool)
+    pmask[planted] = True
+    # Near-deterministic response: planted rows capture ~all member slots ...
+    assert counts[pmask].sum() >= 0.9 * m * n_shell * p
+    assert counts[pmask].min() >= 0.7 * n_shell
+    # ... and no unplanted row comes close (the tail is constructed).
+    assert counts[~pmask].max() <= 0.25 * n_shell
+
+
 def test_make_evaluate_fn_accepts_the_manifold_family():
     from openvector_bench.generator_search import (
         MANIFOLD_PARAMS,
