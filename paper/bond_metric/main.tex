@@ -824,24 +824,68 @@ measure \eqref{eq:capture}, so an untransformed corpus under a concentrated
 workload and a pathological corpus under a uniform workload can present the
 same scalar --- a distinction invisible to corpus-side treatment and, per
 Theorem~\ref{thm:independence}, unresolvable from corpus-only observables.
+From the index side, a recent experiments-and-analysis study \cite{xu26}
+identifies hubness as the fundamental cause of long-tail latency
+instability in graph ANNS --- corroborating the treatment of hubness here
+as a first-class workload property rather than a nuisance statistic.
 
 \emph{Difficulty measures and workload shift in ANN.} Relative contrast
 \cite{he12} and local intrinsic dimensionality \cite{levina04,facco17} are
-corpus- or query-local difficulty accounts; recent graph-native measures
+corpus- or query-local difficulty accounts; Aum\"uller and Ceccarello
+\cite{aumuller21} use LID and relative-contrast profiles to assemble query
+workloads of controlled difficulty, and recent graph-native measures
 (Steiner-hardness \cite{steiner24}) explicitly tie difficulty to the index
-structure, and out-of-distribution query work \cite{jaiswal22} documents that
-query/corpus mismatch changes graph-ANN behaviour --- both consonant with
-treating $(\mathcal{C},\mathcal{Q})$ jointly. Standard benchmark practice
+structure. Out-of-distribution query work is the nearest prior art to the
+query-coupling protocol effect of \S\ref{sec:substrate}: OOD-DiskANN
+\cite{jaiswal22} and RoarGraph \cite{roargraph24} document that cross-modal
+query/corpus mismatch degrades graph-ANN performance (RoarGraph measures
+OOD queries lying $2.1$--$11.3\times$ farther from their true neighbours),
+and the big-ann-benchmarks OOD track \cite{simhadri21} made such workloads
+standard. The line to draw: that literature treats \emph{genuinely
+different} query distributions as an engineering problem for index
+construction, and \cite{aumuller21}'s same-sample query splits behave
+consistently across random draws --- the complementary observation. None of
+it treats the query set as part of the \emph{measurement operator}, whose
+sampling protocol (same structural realization vs.\ independent draw of a
+synthetic generator) can silently invalidate the difficulty and
+intrinsic-dimension readings themselves. Standard benchmark practice
 \cite{aumuller20,simhadri21} fixes real query sets but characterizes
 datasets by corpus statistics; the decomposition explains why that
 characterization underdetermines system behaviour and what to report
 instead.
 
+\emph{Synthetic vector generation for ANN benchmarking.} Prior generators
+are single-knob or uncalibrated: Elliott and Clark \cite{elliott24} generate
+vectors of prescribed intrinsic dimension by Gaussian combination within a
+linear subspace (one knob; effective rank tied to ID by construction), and
+industrial tooling synthesizes benchmark vectors as noise around a handful
+of sample seeds with no geometric target at all. Tabular synthesis lines
+(copula- and GAN-based) preserve marginals and correlation structure, not
+neighbourhood geometry, and we find no application of them to embedding
+corpora. No prior generator we could locate matches even two of the
+diagnostics measured here simultaneously, calibrates to measured values of
+a real embedding corpus, or exposes hubness as an independent control at
+fixed dimension and intrinsic dimension --- hubness in prior synthetic data
+is always emergent, dialable only implicitly through dimension
+\cite{radovanovic10}. The campaign reported here is, to our knowledge, the
+first to attempt --- and the registered admission the first to gate ---
+joint calibrated matching.
+
 \emph{Intrinsic-dimension estimation.} TwoNN \cite{facco17} and maximum-
 likelihood \cite{levina04} estimators read short-range distance ratios; their
 sensitivity to near-duplicates and sampling density is exactly the
 local-scale layer's signature, and \S\ref{sec:limits} reports it as the
-binding constraint at scale.
+binding constraint at scale. Fragments of the query-coupling mechanism
+(\S\ref{sec:substrate}) are separately on record: noise inflates TwoNN
+toward ambient \cite{facco17}, multiscale SVD exhibits the noisy-manifold
+crossover from intrinsic to ambient readings \cite{little17}, LID is
+defined from the outset as a query-relative quantity \cite{amsaleg15}, and
+off-manifold probes --- adversarial or out-of-distribution points --- read
+anomalously high LID \cite{ma18,kamkari24}. We find no prior statement,
+however, that probing an estimator with queries from an \emph{independent
+realization} of the same synthetic generator reads ambient while
+same-realization holdouts read the true dimension --- i.e.\ that for
+synthetic workloads the query protocol is part of the estimator.
 
 \emph{Fuzzing and property-based testing.} The registered-falsifier
 discipline and the companion paper's coverage signature transfer
@@ -876,6 +920,22 @@ query mass does not, so $\muQ$ is $n$-coupled. Both frontier mechanisms
 (the graded ladder; the $n$-coupled illumination) entered the campaign as
 predictions of the decomposition rather than post-hoc repairs; their
 registered test is the current round.
+
+\emph{Scope of the query-coupling effect.} The ambient two-NN reading under
+independent-seed queries (\S\ref{sec:substrate}) is a finite-sample,
+off-the-empirical-support phenomenon, and the claim is scoped accordingly.
+``Independent realization'' means a \emph{re-drawn structural realization}:
+the generators here re-draw the manifold itself --- patch centres, cluster
+hierarchy, colouring --- with the seed, so an independently seeded query
+lands off the corpus realization's support, its first and second neighbour
+distances nearly coincide, and the ratio estimator reads ambient. For query
+points re-drawn on a fixed, genuinely shared continuous manifold, NN-radius
+theory predicts the intrinsic reading, and the effect must vanish as
+sampling density grows. The finding is therefore a statement about
+measurement protocol for finite synthetic workloads --- the query process
+is part of the estimator and must share the corpus's structural
+realization --- not a property of manifolds; stated without this scoping it
+would be refutable.
 
 \emph{What a theorem needs.} A formal generative class in which the four
 layers are independently parameterized, with proofs that each gate is
@@ -970,6 +1030,55 @@ H.~V.~Simhadri et al.
 Results of the NeurIPS'21 challenge on billion-scale approximate nearest
 neighbor search. In \emph{Proc.\ NeurIPS 2021 Competitions and Demonstrations
 Track}, PMLR 176, 2022.
+
+\bibitem{aumuller21}
+M.~Aum\"uller, M.~Ceccarello.
+The role of local dimensionality measures in benchmarking nearest neighbor
+search. \emph{Information Systems} 101:101807, 2021.
+
+\bibitem{roargraph24}
+M.~Chen, K.~Zhang, Z.~He, Y.~Jing, X.~S.~Wang.
+RoarGraph: a projected bipartite graph for efficient cross-modal
+approximate nearest neighbor search.
+\emph{Proc.\ VLDB Endowment} 17(11):2735--2749, 2024.
+
+\bibitem{xu26}
+X.~Xu, H.~Dai, C.~Li, et al.
+Through the lens of hubness: a revisit on graph-based approximate nearest
+neighbor search [experiments \& analysis].
+\emph{Proc.\ ACM on Management of Data (SIGMOD)}, 2026.
+doi:10.1145/3802120.
+
+\bibitem{amsaleg15}
+L.~Amsaleg, O.~Chelly, T.~Furon, S.~Girard, M.~E.~Houle,
+K.~Kawarabayashi, M.~Nett.
+Estimating local intrinsic dimensionality.
+In \emph{Proc.\ ACM SIGKDD}, 29--38, 2015.
+
+\bibitem{ma18}
+X.~Ma, B.~Li, Y.~Wang, S.~M.~Erfani, S.~Wijewickrema, G.~Schoenebeck,
+D.~Song, M.~E.~Houle, J.~Bailey.
+Characterizing adversarial subspaces using local intrinsic dimensionality.
+In \emph{Proc.\ ICLR}, 2018.
+
+\bibitem{kamkari24}
+H.~Kamkari, B.~L.~Ross, R.~Hosseinzadeh, J.~C.~Cresswell,
+G.~Loaiza-Ganem.
+A geometric view of data complexity: efficient local intrinsic dimension
+estimation with diffusion models.
+In \emph{Advances in Neural Information Processing Systems} 37, 2024.
+
+\bibitem{little17}
+A.~V.~Little, M.~Maggioni, L.~Rosasco.
+Multiscale geometric methods for data sets I: multiscale SVD, noise and
+curvature. \emph{Applied and Computational Harmonic Analysis}
+43(3):504--567, 2017.
+
+\bibitem{elliott24}
+O.~P.~Elliott, J.~Clark.
+The impacts of data, ordering, and intrinsic dimensionality on recall in
+hierarchical navigable small worlds.
+In \emph{Proc.\ ACM SIGIR ICTIR}, 2024.
 
 \bibitem{ziegler95}
 G.~M.~Ziegler.

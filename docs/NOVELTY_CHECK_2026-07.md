@@ -33,7 +33,8 @@ on convergent absence across all five independent sweeps. One coverage hole is f
 - Partial precedents to cite and distinguish (they supply the mechanism in fragments, never the
   statement): Facco et al. 2017 noise→ambient drift + decimation mitigation · multiscale-SVD
   noisy-manifold crossover (Little/Maggioni; s41598-019-53549-9) · adversarial/OOD LID reads
-  high (Ma et al. ICLR 2018; Kamkari et al. ICML 2024) · LID as query-relative quantity
+  high (Ma et al. ICLR 2018; Kamkari et al. NeurIPS 2024, arXiv:2406.03537 — *venue
+  corrected 2026-07-24: originally recorded as ICML*) · LID as query-relative quantity
   (Amsaleg et al. KDD 2015).
 
 ### V2 — Geometry-matched synthetic corpus generation: **GAP CONFIRMED (twice, independently)**
@@ -72,18 +73,45 @@ embeddings hold RC ≈ 1.75–2.05 up to 12,288 dims — their synthetic baselin
 with uncontrolled ID. Direct motivation for geometry-matched generation and for reporting RC as
 a matched diagnostic.
 
+## Addendum 2026-07-24 — copula hole closed (dedicated adversarial sweep, 10 queries, 7 fetches)
+
+**Both V2 claims survive, with sharpened framing obligations.** The sweep hunted
+disconfirming evidence for (a) multi-diagnostic-matched generation and (b) the hubness knob.
+
+- **Copula line: closed, empty.** Vine copulas (Sun et al., AAAI 2019, arXiv:1812.01226),
+  Copula Flows (arXiv:2101.00598), SDV GaussianCopula/CopulaGAN, empirical-copula
+  augmentation (PeerJ CS 2025): all tabular, preserve marginals + correlation, never applied
+  to embedding corpora, no ID/hubness/RC/rank claims; the line itself flags quadratic-in-d
+  scaling hostile to 1024-d at 10^9+.
+- **Two near-misses that MUST be cited (now in the paper's related work):**
+  · Elliott & Clark, ICTIR 2024 (arXiv:2405.17813) — synthetic vectors of prescribed ID via
+    Gaussian combination in a linear subspace: one knob, rank tied to ID by construction, no
+    calibration to real corpora, 10^4 scale. Kills any "first synthetic generator with an ID
+    knob" phrasing; leaves joint calibrated matching intact.
+  · OpenSearch Benchmark synthetic-data generation (production tool) — noise around sample
+    vectors, no geometric targets. Kills "first synthetic vectors for ANN benchmarking"
+    phrasing.
+  · Also logged: Lopez Fune 2026 (arXiv:2606.28330, hubness emergent under dimension sweeps)
+    and Coleman et al. 2024 (arXiv:2412.01940, hubs in HNSW) — motivation, not generators.
+- **Hubness-knob framing caveat:** hubness rising with dimension is textbook since
+  Radovanović 2010, so "dialable via d" is implicit prior art. The defensible claim —
+  adopted in the paper — is *calibrated, independent control of hubness at fixed dimension
+  and fixed ID*. No prior art found for that.
+- Residual risk: very recent mid-2026 preprints under non-obvious terminology.
+
 ## Coverage caveats (honest accounting)
 
-- Angle 3 (generation) was rate-limit truncated: copula-based generators, GenAI-bench-style
-  work, and 2025–26 preprint sweeps were not probed. Angle 2's independent sweep partially
-  covers this hole (its Q3 also found nothing), so the gap claim is *moderately strong ×2*, not
-  exhaustive. A camera-ready pass should run the copula query.
-- Negative claims are absence-of-evidence across ~60 queries by five independent agents;
+- ~~Angle 3 (generation) was rate-limit truncated: copula-based generators, GenAI-bench-style
+  work, and 2025–26 preprint sweeps were not probed.~~ **Closed by the 2026-07-24 addendum
+  above; gap claim upgraded from *moderately strong ×2* to *strong ×3*.**
+- Negative claims are absence-of-evidence across ~70 queries by six independent sweeps;
   positive load-bearing claims were full-text verified (marked ✔).
 
 ## One-line dispositions for the paper
 
 - Finding #1 (query coupling): claim as novel; cite V1's four partial precedents; include the
   mechanism statement verbatim in the limitations; distinguish V3's OOD line in related work.
-- Generator: claim the open-problem framing (V2) and the hubness knob as first; use VIBE +
-  VDBBench + SIGMOD-2026 hubness lens as the motivation triad; V4 as the realism evidence.
+- Generator: claim the open-problem framing (V2) and *calibrated hubness control at fixed
+  d and ID* as first (not "a hubness knob" simpliciter — see 2026-07-24 addendum); cite
+  Elliott & Clark + OpenSearch SDG as generator near-misses; use VIBE + VDBBench +
+  SIGMOD-2026 hubness lens as the motivation triad; V4 as the realism evidence.
