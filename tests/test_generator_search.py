@@ -119,6 +119,79 @@ def test_local_centers_count_response_is_a_dial():
     assert counts[~pmask].max() <= 0.25 * n_shell
 
 
+def test_r12_mechanisms_off_is_byte_identical_to_round10():
+    from openvector_bench.generator_search import (
+        HIER_R12_PARAMS,
+        hier_dupq_corpus,
+        hier_r12_corpus,
+    )
+
+    p = {name: dflt for name, _, _, dflt in HIER_R12_PARAMS}
+    # Every round-12 mechanism defaults OFF.
+    assert p["grad_decay"] == 0.0 and p["grad_span"] == 1.0
+    assert p["occ_mix"] == 0.0 and p["dens_span"] == 0.0
+    x_r12 = hier_r12_corpus(p, 900, DIM, 7)
+    x_r10 = hier_dupq_corpus(p, 900, DIM, 7)
+    assert np.array_equal(x_r12, x_r10)
+
+
+def test_r12_gradient_moves_twonn_and_stays_count_quiet():
+    """PREREG_ROUND12 P-A at unit-test scale: the gradient field lowers the
+    TwoNN reading (anisotropy dials local effective dimension) while leaving
+    the count tail within noise of the mechanism-off control."""
+    from openvector_bench.generator_search import HIER_R12_PARAMS, hier_r12_corpus
+    from openvector_bench.geometry import id_twonn, knn
+
+    p0 = {name: dflt for name, _, _, dflt in HIER_R12_PARAMS}
+    p0 |= {"cloud_mass": 0.0, "dup_mass": 0.0, "q_anchor": 0.0}  # architecture off
+    pg = p0 | {"grad_decay": 0.8, "grad_span": 8.0}
+    n, nq, k = 3000, 300, 10
+
+    def _measure(p, seed=11):
+        x = hier_r12_corpus(p, n + nq, DIM, seed)
+        base, q = x[:n], x[n:]
+        d, idx = knn(base, q, k)
+        counts = np.bincount(idx[:, :k].ravel(), minlength=n).astype(np.float64)
+        sk = ((counts - counts.mean()) ** 3).mean() / max(counts.std() ** 3, 1e-12)
+        return id_twonn(d), sk
+
+    id0, sk0 = _measure(p0)
+    idg, skg = _measure(pg)
+    assert idg < 0.8 * id0  # the gradient mechanism moves G1 down
+    assert abs(skg - sk0) < 0.5 * max(abs(sk0), 1.0)  # and is count-quiet
+
+
+def test_r12_renewal_moves_count_tail():
+    """PREREG_ROUND12 P-B mechanism direction at unit-test scale: renewal
+    occupancy + density contrast raise the count tail. NOTE: strict
+    ID-quietness is the registered stage-2 DECOUPLING CHECK at ladder scale,
+    not a toy-scale property — at n=3000/DIM=64 the occupancy re-weighting
+    measurably lowers the pooled TwoNN reading (~0.77x control; more
+    within-patch neighbour pairs), which is exactly what the r12_stage1
+    sweeps exist to quantify. Here we assert the dial works and the ID
+    reading stays sane, not silent."""
+    from openvector_bench.generator_search import HIER_R12_PARAMS, hier_r12_corpus
+    from openvector_bench.geometry import id_twonn, knn
+
+    p0 = {name: dflt for name, _, _, dflt in HIER_R12_PARAMS}
+    p0 |= {"cloud_mass": 0.0, "dup_mass": 0.0, "q_anchor": 0.0}
+    po = p0 | {"occ_mix": 1.0, "occ_tail": 1.2, "dens_span": 0.9}
+    n, nq, k = 3000, 300, 10
+
+    def _measure(p, seed=13):
+        x = hier_r12_corpus(p, n + nq, DIM, seed)
+        base, q = x[:n], x[n:]
+        d, idx = knn(base, q, k)
+        counts = np.bincount(idx[:, :k].ravel(), minlength=n).astype(np.float64)
+        sk = ((counts - counts.mean()) ** 3).mean() / max(counts.std() ** 3, 1e-12)
+        return id_twonn(d), sk
+
+    id0, sk0 = _measure(p0)
+    ido, sko = _measure(po)
+    assert sko > 1.5 * max(sk0, 0.1)  # the renewal law moves the count tail up
+    assert ido > 0.5 * id0  # sanity: no collapse (quietness: stage-2, at scale)
+
+
 def test_make_evaluate_fn_accepts_the_manifold_family():
     from openvector_bench.generator_search import (
         MANIFOLD_PARAMS,

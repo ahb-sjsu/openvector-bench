@@ -1012,6 +1012,203 @@ def hier_lc_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarr
     )
 
 
+# Round-12 family: CONCENTRATION ARCHITECTURE, NOT KNOBS (results/PREREG_ROUND12.md,
+# draft). Round 11 v2 measured joint-constraint infeasibility at the fit_v10 family
+# level: the two levers that move battery-A counts each break a mandatory companion
+# (clouds <-> G1, hierarchy <-> G5 + Δslope), and the 5-draw real reference shows
+# why — real holds its count-skew LEVEL n-stably while its count MAXIMA thin
+# (42 -> 9.4 at k10 across 25k -> 200k). Fixed owners can only overshoot or vanish;
+# a population law re-expresses itself at every sampling scale. This family
+# decouples the two jobs the cloud ladder was doing:
+#   G1 by GRADIENTS — a within-patch anisotropic axis profile (``grad_decay``)
+#     sets the local effective dimension, and a scale-free per-point radial
+#     density field (``grad_span``, ``grad_shape``) supplies neighbour distances
+#     at every fractional scale (the μ ladder as a FIELD, not owner rows) —
+#     count-quiet by construction (the soft-gradient count cap measured in the
+#     turboquant-pro STRATA fixtures).
+#   G6 by RENEWAL — patch occupancy from iid scale-free density weights
+#     (``occ_mix``, ``occ_tail``), decoupled from hierarchy/branch rank, with
+#     local density CONTRAST ``dens_span`` (popular patches denser, not merely
+#     bigger): every subsample redraws the same law, so the skew level is
+#     n-stable while absolute maxima thin with the sample — real's measured
+#     covariance by construction rather than by calibration.
+# Defaults keep every mechanism OFF and the family byte-identical to
+# ``hier_dupq_corpus`` (regression-tested); the round-12 operating point removes
+# the old architecture by configuration (cloud_mass = dup_mass = 0) — a
+# replacement at the fitted-family level, not another overlay.
+HIER_R12_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_DUPQ_PARAMS + (
+    ("grad_decay", 0.0, 2.5, 0.0),  # axis-scale power law within the patch (G1)
+    ("grad_span", 1.0, 30.0, 1.0),  # densest->sparsest radial scale ratio (μ ladder)
+    ("grad_shape", 0.2, 5.0, 1.0),  # mass along the gradient: u**(1/shape)
+    ("occ_mix", 0.0, 1.0, 0.0),  # renewal blend: 0 = inherited Zipf-by-rank sizes
+    ("occ_tail", 1.05, 3.5, 2.0),  # Pareto tail of the iid patch density weights
+    ("dens_span", 0.0, 1.5, 0.0),  # density contrast: patch scale ~ share^(-this/d)
+)
+
+
+def hier_r12_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """Round-10 construction with the round-12 decoupled concentration mechanisms.
+
+    Byte-identical to ``hier_dupq_corpus`` at default knobs (same RNG call
+    sequence when every mechanism is off). ``occ_mix`` blends the Zipf-by-rank
+    occupancy toward iid Pareto(``occ_tail``) density weights; ``dens_span``
+    makes heavily weighted patches denser (scale ~ share^(-dens_span/d_local));
+    ``grad_decay``/``grad_span``/``grad_shape`` impose the within-patch gradient
+    field on every patch-sampled row — base and unanchored queries alike, so the
+    query block shares the structural realization (the query-coupling rule).
+    """
+    rng = np.random.default_rng(seed)
+    n_query = int(round(n * QUERY_FRAC))
+    n_base = n - n_query
+    n_dup = min(int(round(float(p["dup_mass"]) * n_base)), n_base // 2)
+    n_seed_rows = n_base - n_dup
+    d_local = min(max(2, int(round(p["local_dim"]))), dim)
+    k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n_seed_rows)
+    n_levels = min(max(1, int(round(p["n_levels"]))), 6)
+    decay = float(p["level_decay"])
+    tail = float(p["branch_tail"])
+    centres = np.zeros((k_clusters, dim), dtype=np.float32)
+    scale = 1.0
+    for lvl in range(n_levels):
+        n_codes = max(
+            1, min(k_clusters, int(round(k_clusters ** ((lvl + 1) / n_levels))))
+        )
+        codes = rng.standard_normal((n_codes, dim)).astype(np.float32)
+        w = np.arange(1, n_codes + 1, dtype=np.float64) ** (-tail)
+        w /= w.sum()
+        assign = rng.choice(n_codes, size=k_clusters, p=w)
+        centres += np.float32(scale) * codes[assign]
+        scale *= decay
+    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+    w /= w.sum()
+    occ_mix = float(p.get("occ_mix", 0.0))
+    if occ_mix > 0.0:
+        # RENEWAL occupancy: iid scale-free density weights, decoupled from
+        # hierarchy rank — the branch heads no longer own the concentration.
+        v = 1.0 + rng.pareto(float(p.get("occ_tail", 2.0)), size=k_clusters)
+        v /= v.sum()
+        w = (1.0 - occ_mix) * w + occ_mix * v
+        w /= w.sum()
+    counts = rng.multinomial(n_seed_rows, w)
+    mean_ck = max(1.0, float(counts[counts > 0].mean()))
+    qt = float(p["query_tail"]) + float(p["query_tail_n"]) * np.log10(
+        max(n_base, 2) / _QT_ANCHOR_N
+    )
+    wq = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-max(qt, 0.0))
+    wq /= wq.sum()
+    qcounts = rng.multinomial(n_query, wq)
+    ws = np.float32(p["within_scale"])
+    eq = float(p["equalize"])
+    x = np.empty((n, dim), dtype=np.float32)
+    rowb, rowq = 0, n_base
+    q_anchor = float(p["q_anchor"])
+    a_tail = float(p["anchor_tail"])
+    q_jit = np.float32(float(p["q_jit"]))
+    cloud_mass = float(p["cloud_mass"])
+    cloud_grade = float(p["cloud_grade"])
+    cloud_span = np.float32(float(p["cloud_span"]))
+    grad_span = float(p.get("grad_span", 1.0))
+    grad_shape = float(p.get("grad_shape", 1.0))
+    dens_span = float(p.get("dens_span", 0.0))
+    sigma: np.ndarray | None = None
+    if float(p.get("grad_decay", 0.0)) > 0.0:
+        # Anisotropic axis profile at unit mean-square energy: dials the local
+        # participation ratio (hence the TwoNN level) without moving the patch
+        # radius the count machinery sees.
+        j = np.arange(1, d_local + 1, dtype=np.float64)
+        s2 = j ** (-2.0 * float(p["grad_decay"]))
+        sigma = np.sqrt(s2 * (d_local / s2.sum())).astype(np.float32)[None, :]
+
+    def _graded(m: int) -> np.ndarray:
+        """Patch sample under the gradient field (identity when both knobs are
+        off — same RNG call sequence as the round-10 draw)."""
+        z = rng.standard_normal((m, d_local)).astype(np.float32)
+        if sigma is not None:
+            z *= sigma
+        if grad_span > 1.0:
+            # Scale-free radial density: per-point scale log-spaced in
+            # [1/grad_span, 1], mass along the gradient set by grad_shape —
+            # neighbour distances at every fractional scale, no owner rows.
+            t = rng.random((m, 1)).astype(np.float32) ** np.float32(1.0 / grad_shape)
+            z *= np.float32(grad_span) ** (t - np.float32(1.0))
+        return z
+
+    def _unit_dirs(m: int) -> np.ndarray:
+        d = rng.standard_normal((m, d_local)).astype(np.float32)
+        return d / np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-9)
+
+    for k in range(k_clusters):
+        ck, qk = int(counts[k]), int(qcounts[k])
+        if ck + qk == 0:
+            continue
+        basis, _ = np.linalg.qr(rng.standard_normal((dim, d_local)).astype(np.float32))
+        ws_k = ws * np.float32((max(ck, 1) / mean_ck) ** (eq / d_local))
+        if dens_span > 0.0:
+            # Density CONTRAST: heavily weighted patches are denser, not just
+            # bigger — hub mass carried by relative density, a per-row law
+            # every subsample redraws. Direct exponent, clipped to [1/3, 3]:
+            # a /d_local normalization (the equalize convention) caps the
+            # factor at ~1.04 over two decades of share — measured inert.
+            ws_k = ws_k * np.float32(
+                np.clip(max(w[k] * k_clusters, 1e-9) ** (-dens_span), 1.0 / 3.0, 3.0)
+            )
+        n_cloud_k = int(round(cloud_mass * ck))
+        n_seed_k = ck - n_cloud_k
+        if n_seed_k <= 0:
+            n_seed_k, n_cloud_k = ck, 0
+        wpop = np.arange(1, n_seed_k + 1, dtype=np.float64) ** (-a_tail)
+        wpop /= wpop.sum()
+        pr_k = ws_k * np.float32(np.sqrt(d_local))
+        local = np.empty((ck + qk, d_local), dtype=np.float32)
+        local[:n_seed_k] = _graded(n_seed_k) * ws_k
+        wcloud = np.arange(1, n_seed_k + 1, dtype=np.float64) ** (
+            -float(p.get("cloud_tail", a_tail))
+        )
+        wcloud /= wcloud.sum()
+        owners = None
+        if n_cloud_k > 0:
+            owners = rng.choice(n_seed_k, size=n_cloud_k, p=wcloud)
+            radii = (
+                cloud_span
+                * pr_k
+                * rng.random((n_cloud_k, 1)).astype(np.float32)
+                ** np.float32(1.0 / cloud_grade)
+            )
+            local[n_seed_k:ck] = local[owners] + radii * _unit_dirs(n_cloud_k)
+        local[ck:] = _graded(qk) * ws_k
+        qa_k = int(round(q_anchor * qk)) if n_seed_k > 0 else 0
+        if qa_k > 0:
+            pool = owners if owners is not None and len(owners) else None
+            anchors = (
+                rng.choice(pool, size=qa_k)
+                if pool is not None
+                else rng.choice(n_seed_k, size=qa_k, p=wpop)
+            )
+            local[ck : ck + qa_k] = local[anchors] + (q_jit * pr_k) * _unit_dirs(qa_k)
+        pts = centres[k] + local @ basis.T
+        x[rowb : rowb + ck] = pts[:ck]
+        x[rowq : rowq + qk] = pts[ck:]
+        rowb += ck
+        rowq += qk
+    if n_dup > 0:
+        fam = np.minimum(rng.zipf(float(p["dup_tail"]), size=n_dup), 8)
+        originals = rng.choice(n_seed_rows, size=n_dup)
+        reps = np.repeat(originals, fam)[:n_dup]
+        jit = np.float32(float(p["dup_scale"])) * ws
+        x[n_seed_rows:n_base] = x[reps] + jit * rng.standard_normal(
+            (n_dup, dim)
+        ).astype(np.float32)
+    x += np.float32(p["noise"]) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x[:n_base])  # base rows only — the query block stays the tail
+    return _recolour(
+        normalize(x),
+        float(p["spectrum_decay"]),
+        float(p["reshape_mix"]),
+        knee=2.0 ** float(p["log2_knee"]),
+        decay2=float(p["spectrum_decay2"]),
+    )
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
