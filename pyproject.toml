@@ -29,7 +29,7 @@ dependencies = ["numpy>=1.24", "scipy>=1.10"]
 [project.optional-dependencies]
 gpu = ["torch>=2.0"]
 sources = ["huggingface-hub>=0.23", "pyarrow>=14"]
-dev = ["pytest>=7", "ruff>=0.5", "black~=26.5"]
+dev = ["pytest>=7", "ruff~=0.15.0", "black~=26.5"]
 
 [project.urls]
 Homepage = "https://github.com/ahb-sjsu/openvector-bench"
@@ -44,3 +44,4 @@ line-length = 88
 
 [tool.black]
 line-length = 88
+target-version = ["py310", "py311", "py312"]
