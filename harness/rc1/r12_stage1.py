@@ -88,10 +88,24 @@ GRID_O: list[dict[str, float]] = [
     {"occ_mix": 1.0, "occ_tail": 1.8, "dens_span": 0.6},
     {"occ_mix": 1.0, "occ_tail": 1.3, "dens_span": 0.6},
 ]
+# Round-12 v2 (P-A'): the cascade sweep — drift is the target statistic.
+# First entry is the sweep's own control (level dial on, cascade off).
+GRID_C: list[dict[str, float]] = [
+    {"grad_decay": 0.5},
+    {"grad_decay": 0.5, "cascade_frac": 0.3},
+    {"grad_decay": 0.5, "cascade_frac": 0.5},
+    {"grad_decay": 0.5, "cascade_frac": 0.7},
+    {"grad_decay": 0.5, "cascade_frac": 0.5, "cascade_smin": 0.005},
+    {"grad_decay": 0.5, "cascade_frac": 0.5, "cascade_smin": 0.06},
+    {"grad_decay": 0.5, "cascade_frac": 0.5, "cascade_alpha": 1.6},
+    {"cascade_frac": 0.5},  # cascade alone — drift isolation without the dial
+]
 if os.environ.get("R12_GRID_G"):
     GRID_G = json.loads(os.environ["R12_GRID_G"])
 if os.environ.get("R12_GRID_O"):
     GRID_O = json.loads(os.environ["R12_GRID_O"])
+if os.environ.get("R12_GRID_C"):
+    GRID_C = json.loads(os.environ["R12_GRID_C"])
 
 _T0 = time.time()
 
@@ -220,10 +234,13 @@ def summarize(rows: list[dict], name: str, control: str, real: dict) -> dict:
         if (n, k) in sk_c
     }
     real_means: dict = {}
+    real_g1_means: dict = {}
     for (scope, sub, k), r in real.items():
         if scope.startswith("n"):
             real_means.setdefault((int(scope[1:]), k), []).append(r["s_k"])
+            real_g1_means.setdefault((int(scope[1:]), k), []).append(r["g1_id_twonn"])
     real_sk = {key: float(np.mean(v)) for key, v in real_means.items()}
+    real_g1 = {key: float(np.mean(v)) for key, v in real_g1_means.items()}
     out["dslope_sk_per_k"] = {
         f"k{k}": (
             None
@@ -232,6 +249,12 @@ def summarize(rows: list[dict], name: str, control: str, real: dict) -> dict:
         )
         for k in G.K_GRID
     }
+    # G1 drift vs real (P-A' target statistic; G1 is k-independent, use k0).
+    k0 = G.K_GRID[0]
+    s_cand, s_real = slope_per_k(g1_m, k0), slope_per_k(real_g1, k0)
+    out["dslope_g1"] = (
+        None if s_cand is None or s_real is None else round(s_cand - s_real, 3)
+    )
     return out
 
 
@@ -255,6 +278,7 @@ def main() -> None:
         "seed": SEED,
         "grid_g": GRID_G,
         "grid_o": GRID_O,
+        "grid_c": GRID_C,
         "screening": bool(
             os.environ.get("R12_NS")
             or os.environ.get("R12_POOL")
@@ -263,7 +287,7 @@ def main() -> None:
         "n_query": G.N_QUERY,
     }
     cells: list[dict] = []
-    summaries: dict[str, list] = {"G": [], "O": []}
+    summaries: dict[str, list] = {"G": [], "O": [], "C": []}
 
     def flush() -> None:
         with open(OUT, "w", encoding="utf-8") as f:
@@ -294,6 +318,17 @@ def main() -> None:
         name = run("O", over)
         summaries["O"].append(summarize(cells, name, ctrl, real))
         flush()
+    # Sweep C: the cascade. Its first grid entry is its OWN control (the
+    # level-dial point, cascade off) — count-quietness and drift are read
+    # against that, not the bare-architecture control.
+    if GRID_C:
+        ctrl_c = run("C", GRID_C[0])
+        summaries["C"].append(summarize(cells, ctrl_c, ctrl_c, real))
+        flush()
+        for over in GRID_C[1:]:
+            name = run("C", over)
+            summaries["C"].append(summarize(cells, name, ctrl_c, real))
+            flush()
     summaries["G"].insert(0, summarize(cells, ctrl, ctrl, real))
     flush()
     log(f"wrote {OUT} ({len(cells)} rows)")

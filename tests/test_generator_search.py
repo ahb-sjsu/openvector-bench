@@ -192,6 +192,43 @@ def test_r12_renewal_moves_count_tail():
     assert ido > 0.5 * id0  # sanity: no collapse (quietness: stage-2, at scale)
 
 
+def test_r12_cascade_builds_the_graded_ladder():
+    """Round-12 v2 P-A' mechanism signature at unit-test scale: the cascade
+    puts base->base NN distances at graded fractional scales (real's
+    diagnostic: r1 1%-quantile 0.375 vs median 0.86, diag_target.json), so
+    the 1%-quantile/median ratio must drop sharply vs cascade-off — while
+    the count tail stays within noise (uniform parents, no owners).
+    n-FLATNESS itself is the registered ladder-scale question, not a toy
+    property."""
+    from openvector_bench.generator_search import HIER_R12_PARAMS, hier_r12_corpus
+    from openvector_bench.geometry import knn
+
+    p0 = {name: dflt for name, _, _, dflt in HIER_R12_PARAMS}
+    p0 |= {"cloud_mass": 0.0, "dup_mass": 0.0, "q_anchor": 0.0}
+    pc = p0 | {"cascade_frac": 0.5}
+    n, k = 3000, 10
+
+    def _measure(p, seed=19):
+        x = hier_r12_corpus(p, n, DIM, seed)
+        base = x[: n - int(round(n / 9))]
+        d, idx = knn(base, base, 2)  # col 0 = self, col 1 = true NN
+        r1 = d[:, 1]
+        ladder = float(np.quantile(r1, 0.01) / max(np.median(r1), 1e-12))
+        d10, i10 = knn(base, base, k + 1)
+        counts = np.bincount(i10[:, 1:].ravel(), minlength=len(base)).astype(np.float64)
+        sk = ((counts - counts.mean()) ** 3).mean() / max(counts.std() ** 3, 1e-12)
+        return ladder, sk
+
+    lad0, sk0 = _measure(p0)
+    ladc, skc = _measure(pc)
+    # Measured at these settings: ratio 0.637 (off) -> 0.443 (frac 0.5) —
+    # the cascade grades the WHOLE r1 distribution (median 0.49 -> 0.13),
+    # and the shape ratio lands at real's 0.375/0.86 = 0.44. The threshold
+    # asserts the direction, not the coincidence of the toy-scale match.
+    assert ladc < 0.75 * lad0  # graded short-range mass appears
+    assert abs(skc - sk0) < 0.75 * max(abs(sk0), 1.0)  # and no count tail
+
+
 def test_make_evaluate_fn_accepts_the_manifold_family():
     from openvector_bench.generator_search import (
         MANIFOLD_PARAMS,

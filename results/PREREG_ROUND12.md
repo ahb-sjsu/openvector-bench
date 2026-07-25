@@ -1,4 +1,4 @@
-# Pre-registration — Round 12: concentration architecture, not knobs (DRAFT for review)
+# Pre-registration — Round 12: concentration architecture, not knobs (DRAFT v2 for review)
 
 **Status: DRAFT ⚪ — not frozen.** Drafted 2026-07-24 following the round-11
 v2 pre-freeze result ([`ROUND11_PREFREEZE.md`](ROUND11_PREFREEZE.md),
@@ -11,6 +11,57 @@ operating-point precondition has no solution in the family); whether this
 document supersedes it or is renamed an r11-v3 amendment is the author's
 naming call. Freezing is the author's call. Bands are those of RC-1 §5,
 untouched here and not adjustable by anything downstream of this draft.
+
+## Amendment history
+
+- **v1 → v2 (2026-07-25).** The v1-permitted stage-1 mechanism anatomy
+  sweeps ran before any freeze ([`R12_STAGE1_RESULT.md`](R12_STAGE1_RESULT.md),
+  `42bb3a2`; fit_v10 base, full ladder, 336 cells) and decided part of v1's
+  predictive content — freezing v1 afterwards would register predictions
+  against data already in hand (the r11 v1→v2 situation, resolved the same
+  way: amend the draft, bands untouched). Measured: (a) `grad_decay` is a
+  clean monotone G1 **level** dial (1.12× real at the 25k end at 0.6, G3
+  unharmed) — no longer a prediction; (b) the G1 **n-drift (+0.24/decade) is
+  invariant** across the entire gradient sweep — v1's P-A, read per-cell,
+  is already refuted: anisotropy cannot pin flatness; (c) the patch-wide
+  radial field (`grad_span`) is falsified outright (G1 wrong way, count
+  maxima to 10× real); (d) renewal occupancy alone is inert; occupancy ×
+  density contrast at `occ_tail 1.8–2.5, dens_span ≈ 0.3` is the admissible
+  G6 region — S_k 1.2–2.0× control with G1 leak ≤ 4% and **k30 Δslope
+  0.00**, at a G3 cost (0.85 → 0.70). v2 therefore (1) replaces the
+  gradient mechanism's flatness role with a **self-similar within-patch
+  point process** (the cascade: correlated pairs at graded sub-patch
+  scales — per-row radial laws cannot make pairs), keeping `grad_decay` as
+  the measured level dial; (2) freezes P-B's operating region to the
+  measured admissible region with the surviving unknowns (all-k Δslope,
+  G3 recovery under colouring re-fit) as the prediction; (3) re-states the
+  decoupling check accordingly. Bands untouched. Nothing in v1 was frozen,
+  so this is an amendment of a draft, not a deviation.
+
+## v2 predictions (supersede v1's P-A/P-B; to be frozen by the author)
+
+- **P-A′ (cascade flatness):** a within-patch self-similar point process
+  (cluster-in-cluster cascade over ≥ 3 scale octaves, scale-free pair
+  distances, no fixed owners) brings the G1 ladder drift from the measured
+  +0.24/decade to **|drift| ≤ 0.05/decade** with the level in band via
+  `grad_decay`, while count statistics stay within draw noise of the
+  cascade-off control at every ladder cell. Mechanism claim: on a
+  scale-free pair-distance distribution the TwoNN μ-statistics are
+  subsample-invariant — n-flatness as a symmetry, not a tuning target
+  (the same renewal principle that carried P-B, applied at sub-patch
+  scale).
+- **P-B′ (renewal region):** within `occ_tail ∈ [1.8, 2.5], dens_span ∈
+  [0.2, 0.4]` there exists a setting with S_k level in band after a
+  colouring re-fit, **|Δslope| ≤ 0.05/decade at every k** (k10's measured
+  −0.15 at dens 0.3 is the live risk), G1 leak within band, and G3
+  recovered to ≥ 0.85 by the re-fit alone (no structural change).
+- **Failure clauses (unchanged in spirit, retargeted):** P-A′ fails → ID
+  n-flatness in this geometry family requires explicit near-duplicate
+  owners; that is the round-9 suspect confirmed at mechanism level and
+  primary capacity-conjecture evidence — report, do not tune. P-B′ fails
+  on Δslope → the renewal law does not extend below k30; report the k
+  profile as the finding. Joint failure after singles pass → the
+  interaction is the object. Bands are not adjusted under any clause.
 
 ## Premise (what the negatives localize)
 

@@ -1043,6 +1043,14 @@ HIER_R12_PARAMS: tuple[tuple[str, float, float, float], ...] = HIER_DUPQ_PARAMS 
     ("occ_mix", 0.0, 1.0, 0.0),  # renewal blend: 0 = inherited Zipf-by-rank sizes
     ("occ_tail", 1.05, 3.5, 2.0),  # Pareto tail of the iid patch density weights
     ("dens_span", 0.0, 1.5, 0.0),  # density contrast: patch scale ~ share^(-this/d)
+    # Round-12 v2 (P-A'): the self-similar within-patch CASCADE — correlated
+    # pairs at graded sub-patch scales (a per-row radial law cannot make
+    # pairs; R12_STAGE1_RESULT.md isolated G1 n-flatness as the missing
+    # mechanism). Generational attachment to uniform parents: no fixed
+    # owners, scale-free pair spectrum, subsample-covariant by construction.
+    ("cascade_frac", 0.0, 0.9, 0.0),  # fraction of seed rows drawn by attachment
+    ("cascade_smin", 0.001, 0.3, 0.02),  # finest attachment scale, x patch radius
+    ("cascade_alpha", 0.3, 3.0, 1.0),  # scale law s = smin**(u**alpha); 1 = log-uniform
 )
 
 
@@ -1110,6 +1118,9 @@ def hier_r12_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndar
     grad_span = float(p.get("grad_span", 1.0))
     grad_shape = float(p.get("grad_shape", 1.0))
     dens_span = float(p.get("dens_span", 0.0))
+    cascade_frac = float(p.get("cascade_frac", 0.0))
+    cascade_smin = float(p.get("cascade_smin", 0.02))
+    cascade_alpha = float(p.get("cascade_alpha", 1.0))
     sigma: np.ndarray | None = None
     if float(p.get("grad_decay", 0.0)) > 0.0:
         # Anisotropic axis profile at unit mean-square energy: dials the local
@@ -1161,6 +1172,29 @@ def hier_r12_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndar
         pr_k = ws_k * np.float32(np.sqrt(d_local))
         local = np.empty((ck + qk, d_local), dtype=np.float32)
         local[:n_seed_k] = _graded(n_seed_k) * ws_k
+        n_casc = (
+            min(int(round(cascade_frac * n_seed_k)), n_seed_k - 1)
+            if cascade_frac > 0.0 and n_seed_k >= 2
+            else 0
+        )
+        if n_casc > 0:
+            # Self-similar CASCADE (round-12 v2, P-A'): the last n_casc seed
+            # rows are re-drawn by generational attachment — each attaches to
+            # a uniformly chosen EARLIER row (fresh or cascaded: ladders grow
+            # on ladders) at a scale-free offset in [cascade_smin, 1] x patch
+            # radius. Correlated pairs at every fractional octave with no
+            # fixed owners; if the pair spectrum is scale-free the TwoNN
+            # mu-statistics are subsample-invariant — n-flatness as a
+            # symmetry (the renewal principle at sub-patch scale).
+            done = n_seed_k - n_casc
+            per_gen = max(1, (n_casc + 3) // 4)
+            while done < n_seed_k:
+                m = min(per_gen, n_seed_k - done)
+                parents = rng.integers(0, done, size=m)
+                u = rng.random((m, 1)).astype(np.float32)
+                s = np.float32(cascade_smin) ** (u ** np.float32(cascade_alpha))
+                local[done : done + m] = local[parents] + (s * pr_k) * _unit_dirs(m)
+                done += m
         wcloud = np.arange(1, n_seed_k + 1, dtype=np.float64) ** (
             -float(p.get("cloud_tail", a_tail))
         )
