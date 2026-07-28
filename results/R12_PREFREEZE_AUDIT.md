@@ -151,16 +151,80 @@ which is the property P-A′'s mechanism claim actually names.
 
 ---
 
+## 6. Gate built and run — measured results (2026-07-28)
+
+The item-5 gate is implemented as `geometry.cascade_spectrum_gate` and
+exercised by `test_r12_cascade_passes_its_mechanism_presence_gate`. It reports
+three readings on the sub-ambient rows the cascade creates (cut at the
+cascade-off median r1): octaves spanned, KS distance of `log2 r1` from uniform
+(flatness ⇒ scale-freedom), and the spread of `log2 μ`. Thresholds were fixed
+a priori from the prereg text — ≥ 3 octaves, KS ≤ 0.15, μ-spread ≥ 0.5 — and
+**were not adjusted after seeing these numbers.** Unit scale (n = 3000,
+dim = 64, seed 19), run on Atlas.
+
+| setting | octaves | KS | μ-spread | gate |
+|---|---|---|---|---|
+| cascade OFF (control) | 0.74 | 0.463 | 0.178 | **fail** (as required — gate is not vacuous) |
+| frac 0.50, smin 0.05, α 1 | 3.02 | 0.134 | 0.907 | **pass** |
+| frac 0.85, smin 0.05, α 1 ← audit's freeze candidate | 3.05 | **0.219** | 0.705 | **fail** (flatness) |
+| frac 0.85, smin 0.30, α 1 | **2.18** | 0.141 | 0.472 | **fail** (octaves) |
+| frac 0.85, smin 0.05, α 3 | 3.02 | **0.118** | 0.708 | **pass** |
+
+Three consequences, one of which reverses a recommendation above.
+
+**(a) A new tension, and it is the r11 shape again — caught before freeze this
+time.** The operating point §1's arithmetic requires (`frac ≳ 0.79`) is
+precisely where the realized spectrum stops being log-uniform: KS climbs
+0.134 → 0.219 as frac goes 0.5 → 0.85. The mechanism is plausibly that with
+only ~15% fresh parents, most rows attach to already-cascaded rows, so a pair
+distance becomes a **sum of offsets along the tree path** rather than a single
+log-uniform draw — and sums of log-uniform variables concentrate toward their
+largest term. So the same knob again buys one property at the cost of another:
+`frac` trades ID-flatness reach against spectrum scale-freedom. This is pinned
+as a characterization assertion in the test so it cannot be lost.
+
+**(b) Item 4 is WITHDRAWN, and inverted: `alpha` is the compensator, not a
+threat.** The audit argued the mechanism claim holds only at `alpha = 1`
+because that is where the *offset law* is log-uniform. Measured, the opposite
+matters: at frac 0.85 the *realized* spectrum is flatter at `alpha = 3`
+(KS 0.118) than at `alpha = 1` (0.219). The claim in P-A′ is about the
+pair-distance distribution the μ-statistics actually see, not about the input
+draw, and warping the input law evidently offsets the tree-sum distortion at
+high frac. **My a priori reasoning conflated the input law with the realized
+spectrum and was wrong.**
+
+**(c) There is therefore a candidate operating point that satisfies both
+constraints at once: `frac 0.85, smin 0.05, alpha ≈ 3`** — high enough frac for
+§1's mixture arithmetic, and passing the presence gate (3.02 octaves,
+KS 0.118, μ-spread 0.708). That is the setting I would take into the stage-2
+decoupling check. Whether it is *count-quiet* at frac 0.85 is unmeasured and is
+exactly what stage 2 must answer.
+
+**Item 3a is confirmed by measurement:** `smin = 0.30` yields 2.18 realized
+octaves, below P-A′'s own ≥ 3 floor. (Predicted 1.74 from the offset law alone;
+the realized value is higher because ambient structure contributes to the
+sub-ambient tail. The conclusion is unchanged.)
+
+**What this does not do.** None of the above measures G1 n-drift across the
+ladder, so P-A′ remains entirely undecided and unfrozen. These are precondition
+readings of the same kind as the existing unit-scale mechanism tests, which the
+prereg explicitly treats as not-the-registered-question.
+
+---
+
 ## Summary of recommendations (all pre-freeze, all the author's call)
 
-| # | Item | Why it matters |
-|---|---|---|
-| 1 | Sweep grid for `cascade_frac` must reach ≥ 0.85 | Below ~0.8, P-A′ fails on arithmetic, not mechanism |
-| 2 | Run the stage-2 decoupling check at the `f` P-A′ needs | A pass at `f = 0.5` does not license `f = 0.9` |
-| 3 | Restrict grid to `smin ≤ 0.125` | `smin = 0.3` violates P-A′'s own ≥ 3-octave precondition |
-| 4 | Test the claim at `alpha = 1`; declare `alpha` robustness-only | Scale-freedom holds only at `alpha = 1` |
-| 5 | Either narrow P-A′'s failure clause or add a mechanism-presence gate | Otherwise an implementation limit can be recorded as capacity-conjecture evidence |
+| # | Item | Status after §6 | Why it matters |
+|---|---|---|---|
+| 1 | Sweep grid for `cascade_frac` must reach ≥ 0.85 | **stands** | Below ~0.8, P-A′ fails on arithmetic, not mechanism |
+| 2 | Run the stage-2 decoupling check at the `f` P-A′ needs | **stands, now sharper** | A pass at `f = 0.5` does not license `f = 0.85`; count-quietness at high frac is the open question |
+| 3 | Restrict grid to `smin ≤ 0.125` | **confirmed by measurement** (2.18 octaves at 0.30) | `smin = 0.3` violates P-A′'s own ≥ 3-octave precondition |
+| 4 | Test the claim at `alpha = 1`; declare `alpha` robustness-only | **WITHDRAWN — inverted** | I conflated the input offset law with the realized spectrum; `alpha ≈ 3` is what makes the realized spectrum flat at high frac |
+| 5 | Add a mechanism-presence gate before the failure clause can fire | **DONE** (`cascade_spectrum_gate` + test) | A P-A′ failure is now separable from mechanism-absent |
+| 6 | Take `frac 0.85 / smin 0.05 / alpha 3` into stage 2 | **new** | The only setting measured to satisfy both the mixture arithmetic and the presence gate |
+| 7 | State P-A′'s mechanism claim over the **realized** pair spectrum, not the input draw | **new** | The μ-statistics see the realized distribution; §6(b) shows the two can disagree sharply |
 
-None of these adjust a band. Items 1–4 are grid/scope declarations; item 5 is
-either a scope narrowing or an added gate — all strictly *tightening* moves of
-the kind the amendment rule permits on a draft.
+None of these adjust a band. Items 1–3 and 6 are grid/scope declarations, 5 is
+an added gate, and 7 is a wording precision — all strictly *tightening* moves of
+the kind the amendment rule permits on a draft. Item 4 is a withdrawal of my own
+recommendation on measured evidence.

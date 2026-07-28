@@ -229,6 +229,80 @@ def test_r12_cascade_builds_the_graded_ladder():
     assert abs(skc - sk0) < 0.75 * max(abs(sk0), 1.0)  # and no count tail
 
 
+def test_r12_cascade_passes_its_mechanism_presence_gate():
+    """The P-A' PRECONDITION gate (R12_PREFREEZE_AUDIT.md item 5).
+
+    ``test_r12_cascade_builds_the_graded_ladder`` shows the cascade *changes*
+    the ladder; it does not show the ladder is *scale-free*, which is the
+    property P-A's mechanism claim actually names. Since P-A's failure clause
+    promotes a failure to primary capacity-conjecture evidence, that inference
+    needs the mechanism demonstrably present first.
+
+    Checked at the freeze-CANDIDATE setting the audit derives, not at the
+    convenience setting: cascade_frac 0.85 (>= the ~0.79 the mixture
+    arithmetic requires), cascade_smin 0.05 (>= 4.3 octaves, satisfying the
+    >= 3-octave precondition), cascade_alpha 1.0 (the only value at which the
+    offset law is log-uniform, hence scale-free).
+
+    Thresholds are fixed a priori from the prereg text, NOT tuned to pass: if
+    the cascade fails its own presence gate here, that is a finding about the
+    mechanism and belongs in the record.
+    """
+    from openvector_bench.generator_search import HIER_R12_PARAMS, hier_r12_corpus
+    from openvector_bench.geometry import cascade_spectrum_gate, knn
+
+    p0 = {name: dflt for name, _, _, dflt in HIER_R12_PARAMS}
+    p0 |= {"cloud_mass": 0.0, "dup_mass": 0.0, "q_anchor": 0.0}
+    pc = p0 | {"cascade_frac": 0.85, "cascade_smin": 0.05, "cascade_alpha": 1.0}
+    n = 3000
+
+    def _dists(p, seed=19):
+        x = hier_r12_corpus(p, n, DIM, seed)
+        base = x[: n - int(round(n / 9))]
+        d, _ = knn(base, base, 4)
+        return d[:, 1:]  # drop the self column
+
+    d_off = _dists(p0)
+    ref = float(np.median(d_off[:, 0]))
+    gate = lambda over: cascade_spectrum_gate(  # noqa: E731
+        _dists(p0 | over), ref_r1_median=ref
+    )
+    g_off = cascade_spectrum_gate(d_off, ref_r1_median=ref)
+
+    # (1) The gate must DISCRIMINATE, or it is vacuous: cascade-off has no
+    #     sub-ambient scale-free ladder to find. Measured off: 0.74 octaves,
+    #     ks 0.46, mu spread 0.18.
+    assert not g_off["passed"], f"gate is vacuous — passes with cascade off: {g_off}"
+
+    # (2) The mechanism IS demonstrably present somewhere in the family:
+    #     frac 0.5 / smin 0.05 / alpha 1 measures 3.02 octaves, ks 0.134,
+    #     mu spread 0.91.
+    g_half = gate({"cascade_frac": 0.5, "cascade_smin": 0.05, "cascade_alpha": 1.0})
+    assert g_half["passed"], f"cascade absent even at frac 0.5: {g_half}"
+    assert g_half["octaves_spanned"] >= 3.0  # P-A's own precondition
+    assert g_half["logmu_spread"] > g_off["logmu_spread"]  # mu broadened
+
+    # (3) smin at its declared maximum cannot satisfy the >= 3-octave
+    #     precondition (measured 2.18) — the grid restriction in
+    #     R12_PREFREEZE_AUDIT.md item 3a, pinned as a regression guard.
+    assert not gate({"cascade_frac": 0.85, "cascade_smin": 0.3})["passed"]
+
+    # (4) CHARACTERIZATION — the open finding, deliberately asserted so it
+    #     cannot be lost. At the frac P-A' actually needs (>= ~0.79 by the
+    #     audit's mixture arithmetic) the realized spectrum stops being
+    #     log-uniform: frac 0.85 measures ks 0.219 against the 0.15 bound,
+    #     because deep attachment makes pair distances SUMS of offsets along
+    #     the tree path rather than single log-uniform draws. If this
+    #     assertion ever starts failing, the tension is resolved — update
+    #     R12_PREFREEZE_AUDIT.md and delete this guard.
+    g_cand = gate(pc)
+    assert not g_cand["passed"], (
+        "frac 0.85 now passes the presence gate — the frac tension recorded in "
+        f"R12_PREFREEZE_AUDIT.md is resolved; update the audit. {g_cand}"
+    )
+    assert g_cand["ks_uniform"] > g_half["ks_uniform"]  # flatness degrades with frac
+
+
 def test_make_evaluate_fn_accepts_the_manifold_family():
     from openvector_bench.generator_search import (
         MANIFOLD_PARAMS,

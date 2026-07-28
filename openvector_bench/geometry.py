@@ -146,6 +146,78 @@ def id_twonn(d: np.ndarray) -> float:
     return float(len(mu) / np.sum(np.log(mu)))
 
 
+def cascade_spectrum_gate(
+    d: np.ndarray,
+    *,
+    ref_r1_median: float | None = None,
+    min_octaves: float = 3.0,
+    max_ks: float = 0.15,
+    min_logmu_spread: float = 0.5,
+) -> dict:
+    """Mechanism-PRESENCE gate for the round-12 cascade (P-A' precondition).
+
+    P-A' claims that *on a scale-free pair-distance distribution* the TwoNN
+    mu-statistics are subsample-invariant, and its failure clause promotes a
+    failure to primary capacity-conjecture evidence. That inference is only
+    valid if the scale-free ladder was actually present when the prediction
+    failed. This gate checks the realized structure has the property the claim
+    names, so a P-A' failure means "mechanism present but insufficient" rather
+    than being confounded with "mechanism absent" or "grid too narrow".
+
+    It is a *precondition* check, not the registered prediction: P-A' is about
+    G1 n-drift across the ladder, which this does not touch.
+
+    ``d``: (n, k>=2) sorted neighbour distances EXCLUDING self.
+    ``ref_r1_median``: median r1 of the cascade-OFF control, used as the
+        sub-ambient cut. Pass it — using this sample's own median (the
+        fallback) conflates the cascade with the ambient scale.
+
+    Three readings, all on the sub-ambient rows the cascade is supposed to
+    create: how many octaves the ladder spans, how close to log-uniform
+    (scale-free) it is, and whether mu itself is broad rather than
+    concentrated at 1 (high-dimensional concentration is precisely what makes
+    TwoNN finite-sample-biased, so a mechanism that does not broaden mu cannot
+    stabilize it).
+    """
+    r1 = d[:, 0].astype(np.float64)
+    r2 = d[:, 1].astype(np.float64)
+    ok = r1 > 0
+    cut = float(ref_r1_median) if ref_r1_median is not None else float(np.median(r1[ok]))
+    sub = r1[ok & (r1 < cut)]
+    out: dict[str, float | bool | int | str] = {
+        "n_sub_ambient": int(len(sub)),
+        "cut": cut,
+        "octaves_spanned": 0.0,
+        "ks_uniform": 1.0,
+        "logmu_spread": 0.0,
+        "passed": False,
+    }
+    if len(sub) < 200:
+        out["cause"] = "too_few_sub_ambient_rows"
+        return out
+
+    lg = np.sort(np.log2(sub))
+    lo, hi = float(np.quantile(lg, 0.01)), float(np.quantile(lg, 0.99))
+    out["octaves_spanned"] = hi - lo
+    # KS distance of log2(r1) from Uniform(lo, hi): flat in log <=> scale-free.
+    core = lg[(lg >= lo) & (lg <= hi)]
+    if hi - lo > 1e-9 and len(core) > 1:
+        ecdf = (np.arange(len(core)) + 0.5) / len(core)
+        out["ks_uniform"] = float(np.max(np.abs(ecdf - (core - lo) / (hi - lo))))
+
+    mu = r2[ok] / np.maximum(r1[ok], 1e-12)
+    lmu = np.log2(mu[mu > 1.0])
+    if len(lmu) >= 100:
+        out["logmu_spread"] = float(lmu.std())
+
+    out["passed"] = bool(
+        out["octaves_spanned"] >= min_octaves
+        and out["ks_uniform"] <= max_ks
+        and out["logmu_spread"] >= min_logmu_spread
+    )
+    return out
+
+
 def id_local(d: np.ndarray, k: int) -> np.ndarray:
     """Levina-Bickel per-point local ID at scale k."""
     tk = d[:, k - 1 : k]
