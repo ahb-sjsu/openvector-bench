@@ -114,18 +114,30 @@ def quietness(rows: list[dict], name: str, control: str, field: str) -> dict:
     m = S._mean_by_nk(rows, name, field)
     c = S._mean_by_nk(rows, control, field)
     noise = draw_noise(rows, control, field)
+    # POOLED noise, not per-cell. With 2-5 draws a cell whose control draws
+    # happen to land on top of each other gets a near-zero sigma, and dividing
+    # by it reports an astronomical z from what is actually a quiet cell (the
+    # screening run produced 495 this way). Draw noise is not expected to vary
+    # sharply cell to cell, so the median across cells is the better estimate of
+    # the scale, and the per-cell values stay in the output to be inspected.
+    vals = [v for v in noise.values() if v > 0]
+    pooled = float(np.median(vals)) if vals else 0.0
+    scale = max(pooled, 1e-3)
     cells, worst, worst_cell = {}, 0.0, None
     for key in sorted(set(m) & set(c)):
         n, k = key
         ratio = m[key] / max(abs(c[key]), 1e-12)
-        nz = max(noise.get(f"n{n}_k{k}", 0.0), 1e-4)
-        # how many control-noise units the shift is
-        z = abs(ratio - 1.0) / nz
-        cells[f"n{n}_k{k}"] = {"ratio": round(ratio, 3), "z_vs_draw_noise": round(z, 2)}
+        z = abs(ratio - 1.0) / scale
+        cells[f"n{n}_k{k}"] = {
+            "ratio": round(ratio, 3),
+            "z_vs_draw_noise": round(z, 2),
+            "cell_sigma": noise.get(f"n{n}_k{k}"),
+        }
         if z > worst:
             worst, worst_cell = z, f"n{n}_k{k}"
     return {
         "field": field,
+        "pooled_sigma": round(pooled, 5),
         "worst_z": round(worst, 2),
         "worst_cell": worst_cell,
         "quiet": bool(worst <= 2.0),
