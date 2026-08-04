@@ -36,6 +36,7 @@ Env: R12_OUT2B (output), R12_SMINS (JSON list), R12_FRACS (JSON list for phase
 
 from __future__ import annotations
 
+import gc
 import json
 import os
 import sys
@@ -91,13 +92,29 @@ ALPHA = 1.0
 N_FULL_ARMS = int(os.environ.get("R12_N_FULL_ARMS", "2"))
 
 
-def instance(over: dict):
-    """One pool instance under the registered operator, split base / queries."""
+def instance(over: dict, base_only: bool = False):
+    """One pool instance under the registered operator, split base / queries.
+
+    ``base_only`` skips materialising the held-out query block. Phase 1 reads
+    only the presence gate, which is a base-to-base statistic, so carrying the
+    query copy through seven iterations is pure waste — and holding it in a
+    discarded ``_`` binding keeps it alive until the next loop iteration
+    rebinds, which is what pushed this over 8Gi and got the job OOMKilled.
+
+    Boolean-mask indexing copies, so peak inside this function is the full
+    instance plus the base copy. The instance is freed on return; the caller
+    should free the base as soon as it is done with it.
+    """
     params = json.load(open(S.PARAMS_PATH, encoding="utf-8"))["params"]
     x = hier_r12_corpus(params | S.ARCH_OFF | over, S.M_ROWS, S.DIM, S.SEED)
     base_blk = x[: S.M_ROWS - int(round(S.M_ROWS * QUERY_FRAC))]
     hmask = S.uniform_holdout_mask(len(base_blk), S.HOLD, seed=70)
-    return base_blk[~hmask], base_blk[hmask]
+    base = base_blk[~hmask]
+    if base_only:
+        del x, base_blk
+        gc.collect()
+        return base, None
+    return base, base_blk[hmask]
 
 
 def main() -> None:
@@ -132,18 +149,19 @@ def main() -> None:
 
     # ---- phase 1: presence gate across smin, at ladder scale -----------------
     S.log("PHASE 1 — presence gate vs cascade_smin at n=%d" % n_max)
-    pool_base, _ = instance(DIAL)
+    pool_base, _ = instance(DIAL, base_only=True)
     _, ref_r1 = S2.gate_at_ladder(pool_base, n_max, 0, None)
     g_ctrl, _ = S2.gate_at_ladder(pool_base, n_max, 0, ref_r1)
     out["phase1_gates"].append({"tag": "ctrl", "smin": None, "gate": g_ctrl})
     S.log(f"ctrl gate {g_ctrl}")
     del pool_base
+    gc.collect()
     flush()
 
     for pt in PHASE1:
         over = DIAL | dict(pt) | {"cascade_alpha": ALPHA}
         frac, smin = pt["cascade_frac"], pt["cascade_smin"]
-        pb, _ = instance(over)
+        pb, _ = instance(over, base_only=True)
         g, _ = S2.gate_at_ladder(pb, n_max, 0, ref_r1)
         out["phase1_gates"].append(
             {
@@ -159,6 +177,7 @@ def main() -> None:
             f"passed={g.get('passed')}"
         )
         del pb
+        gc.collect()
         flush()
 
     # Does lowering frac raise realized octaves? This is the sibling-crowding
@@ -265,6 +284,7 @@ def main() -> None:
             "gates": out["phase2"].get("gates", {}) | {tag: g},
         }
         del pb, pq
+        gc.collect()
         flush()
 
     ctrl = names["ctrl"]
