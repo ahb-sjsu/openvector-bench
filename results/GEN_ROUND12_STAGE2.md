@@ -125,3 +125,46 @@ presence-passing run would settle.
 Naming note: arms and thresholds here are the author's from PREREG_ROUND12 v2
 and R12_PREFREEZE_AUDIT; the α = 1 comparison arm and the pooled draw-noise
 scoring are mine.
+
+---
+
+# Addendum — stage 2b: smin does not buy the octaves
+
+Run 2026-08-04. Partial: three of six grid points completed before the run was
+killed by a thermal guard on Atlas. The three that completed are the ones that
+answer stage 2's question, so they are recorded here rather than held.
+
+Phase 1 reads only the presence gate, at ladder scale (n = 200,000, dim = 1024),
+under the rule that nothing is read for drift or level at a setting whose
+mechanism is absent.
+
+| frac | smin | nominal octaves | realized | KS | passed |
+|---|---|---|---|---|---|
+| — (control) | — | — | 0.32 | 0.316 | no |
+| 0.85 | 0.05 | 4.3 | 1.90 | 0.206 | no |
+| 0.85 | 0.01 | 6.6 | 1.94 | 0.349 | no |
+| 0.85 | 0.001 | 10.0 | 1.94 | 0.455 | no |
+
+**The octaves are not buyable with `smin`.** Going from 0.05 to 0.001 adds 5.7
+nominal octaves and moves the realized count by 0.04, from 1.90 to 1.94. The
+realized spectrum is pinned near 2 octaves. Flatness gets *worse* as smin falls,
+KS 0.206 to 0.455, so the finer offsets are not merely invisible, they skew the
+distribution.
+
+This closes the option stage 2 left open. The recommendation there was that
+`smin` reaches 0.001 in the declared range and the missing octaves should
+therefore be purchasable. Measured, they are not. The cascade's failure to be
+present at ladder scale is not a mistuning.
+
+**Still untested:** the frac arm (0.60, 0.35, 0.15 at smin 0.01), which is where
+the sibling-crowding reading would be confirmed or refuted — that r1 is the
+distance to the nearest *sibling* rather than to the parent, so the offset law
+never reaches the statistic the gate reads, and lowering frac should raise
+realized octaves. That prediction is registered in the driver and unmeasured.
+
+Ops note, recorded because it cost four attempts: this job cannot run on NRP.
+Its memory sawtooths between 830 Mi and 9,528 Mi per phase-1 iteration, an 11.5x
+swing, against a utilization policy that allows 20-150% of request, a 7.5x
+window. Sizing for the peak puts the troughs at 4-14% and the sweep kills it;
+sizing for the troughs OOMs. On Atlas it ran until the box reached 92 C under
+concurrent load and the guard stopped it.
