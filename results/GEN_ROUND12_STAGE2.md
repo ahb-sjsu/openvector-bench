@@ -168,3 +168,44 @@ swing, against a utilization policy that allows 20-150% of request, a 7.5x
 window. Sizing for the peak puts the troughs at 4-14% and the sweep kills it;
 sizing for the troughs OOMs. On Atlas it ran until the box reached 92 C under
 concurrent load and the guard stopped it.
+
+---
+
+## Addendum 2026-08-04: the frac arm — sibling crowding refuted, round 12 closed
+
+The registered frac arm ran to completion (`r12_stage2b.json`, full phase-1
+grid at n = 200,000, dim 1024, pool 420,000, alpha 1). The sibling-crowding
+prediction — that r1 is the distance to the nearest *sibling* rather than the
+parent, so lowering the attachment fraction should raise realized octaves —
+is **refuted by its own registered test**:
+
+| frac (smin 0.01) | realized octaves |
+|---|---|
+| 0.85 | 1.935 |
+| 0.60 | 1.923 |
+| 0.35 | 1.884 |
+| 0.15 | 1.847 |
+
+Octaves *fall* monotonically as frac falls, the opposite of the prediction
+(`sibling_crowding_test.holds = false`). Combined with the smin column
+(1.90 → 1.94 over a 50x smin sweep), the realized spectrum is pinned near
+1.9 octaves against every knob the family declares: no setting in the grid
+passed its presence gate (all six cascade cells fail on octaves >= 3; KS
+worsens toward low frac, 0.221 → 0.604). Phase 2 correctly did not run —
+reading drift or level with the mechanism absent would repeat stage 2's error.
+
+**Round 12 is closed on both axes.** The cascade's absence at ladder scale is
+structural: not a mistuning of `smin` (this file, above) and not sibling
+crowding (this addendum). Whatever caps the realized offset spectrum at ~2
+octaves is a property of the attachment construction itself, which is
+consistent with the round-13 direction (a multiplicative cascade is
+subsample-covariant by construction rather than by tuning).
+
+Ops addendum: the run DID complete on NRP after all — cpu=2 / 12Gi / eph 20Gi
+via `burst.submit`, numpy extracted from the staged deps tarball so startup is
+never idle, submitted by a 10-minute retry loop that rode out a transient
+window in which the namespace job-deletes any >2Gi request ~60 s after start
+regardless of usage. Seven attempts were killed by that clamp; the eighth ran
+326 s to completion. The sawtooth ops note above stands for *sizing* — no
+request fits the utilization bands — but exemption windows plus retries are a
+workable path for a ~25-minute job.
