@@ -89,7 +89,7 @@ class PoolRunner:
         ns: str = DEFAULT_NS,
         maxpar: int = 8,
         maxtries: int = 1000,
-        wedge_s: int = 18_000,
+        wedge_s: int = 28_800,  # 5h recycled healthy slow-node runs; measured 2026-08-05
         pend_s: int = 2_700,
         stuckvol_after: int = 3,
         poll_s: int = 60,
