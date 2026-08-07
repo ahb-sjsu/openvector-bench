@@ -115,6 +115,45 @@ than to discover the problem inside a result.
 
 Thresholds in §4 are unchanged. Bands untouched.
 
+## 3b. Amendment v1.1 → v2 (2026-08-07): new predictions after P-13A failed
+
+**P-13A's failure stands as reported** ([`R13_STAGE0_RESULT.md`](R13_STAGE0_RESULT.md),
+`fdfd920`) and is not reopened. Nothing below re-tests it. The measured
+result — MI ratio ≤ 0.49 inside the registered ceiling, ARI collapsing past
+K ≈ 6, `query_mass` dominating every corpus-geometry feature — is the
+finding of record for the claim "retrieval phenotype is a small alphabet of
+states in unsupervised latent space".
+
+That run left one question genuinely open and one instrument confound. The
+confound: k-means minimizes latent variance rather than relevance, so it
+spends its state budget isotropically. The open question is **not** whether
+a better quantizer can rescue the original claim — that framing would be
+the circularity this round exists to avoid. It is the prior question the
+original test could not separate: **does retrieval response depend on the
+latent code jointly at all, beyond the one dominant axis?** If it does not,
+no quantizer of any kind can help and the codebook programme is closed on
+the merits. If it does, whether that joint dependence *concentrates into few
+states* is a second and distinct question.
+
+P-13D and P-13E below split those two. Both are registered here **before
+the run**, both are scored on held-out rows, and both use a quantizer that
+is allowed to see training response — a deliberate, disclosed weakening of
+the §2 anti-circularity rule, admissible only under the following
+restriction.
+
+**Restricted circularity rule (binds P-13D and P-13E).** A quantizer may
+be fitted against response on **training rows only**; every reported number
+is measured on **held-out rows the quantizer never saw**. This is honest
+generalization measurement, not calibration: the failure mode §2 forbids is
+assigning a codeword from a point's own observed N_k and then reporting
+that codewords predict N_k. What is forfeited by this weakening is stated
+plainly: a supervised codebook is no longer evidence that phenotype is
+low-dimensional *in latent space as such*. It would be evidence that a
+low-dimensional **relevance-weighted** summary of the latent code predicts
+response, which is a weaker claim and must be reported as one. For the
+generator use case that weaker claim is still usable, since the weights are
+fitted once on real data and thereafter form part of the control surface.
+
 ## 4. Registered predictions
 
 - **P-13A (quantization gate — runs first, on real data only).** Estimate
@@ -146,6 +185,24 @@ Thresholds in §4 are unchanged. Bands untouched.
   every ladder cell, on ≥ 3 fresh seeds. Prediction is registered as
   *orthogonality*: hub and anti-hub control are separate mechanisms.
 
+- **P-13D (is there joint structure at all?).** Fit a K-leaf axis-aligned
+  partition of the latent code by greedy maximization of mutual information
+  with response, on **training rows only**, and score on held-out rows.
+  Compare against the same procedure restricted to the single dominant
+  feature (`query_mass`, as measured in stage 0). Prediction: at K = 12 the
+  all-feature partition carries **≥ 1.25×** the held-out MI of the
+  query-mass-only partition, on ≥ 3 seeds, for at least three of the four
+  response variables. Claim under test: retrieval response depends on the
+  latent code **jointly**, not only through query exposure.
+- **P-13E (does the joint dependence concentrate?).** Within the
+  all-feature partition, prediction: **K ≤ 12 leaves reach ≥ 0.90 of the
+  held-out MI achieved at K = 64**, and leaf assignment is stable across
+  seeds at ARI ≥ 0.7. Claim under test: whatever joint structure exists
+  saturates at a small number of states — the surviving, weaker form of the
+  quantization premise. Registered as a **saturation** test, not a
+  beat-the-baseline test, because saturation is what "quantizes" actually
+  means and no baseline is required to state it.
+
 ## 5. Failure clauses
 
 - **P-13A fails** (phenotype does not quantize, or states are seed-unstable)
@@ -159,6 +216,18 @@ Thresholds in §4 are unchanged. Bands untouched.
   track the categories) → the battery is not blind after all, which is good
   news for the battery and removes the independent instrument contribution;
   record it and do not claim the gap.
+- **P-13D fails** (all-feature partition does not materially beat
+  query-mass alone) → retrieval response depends on the latent code
+  essentially through **one axis**, query exposure. The codebook programme
+  closes on the merits: there is no joint structure for a codebook to
+  carry, whatever the quantizer. Report as the finding and do not attempt a
+  third quantizer. This would also sharpen round 7 into a stronger claim
+  than it currently makes.
+- **P-13E fails after P-13D passes** → joint structure exists but does not
+  concentrate: the phenotype is genuinely continuous in the relevant
+  directions. Report the measured MI-versus-K curve as the dimensionality
+  result; a continuous control surface may still be usable for generation,
+  but the state abstraction is dead and no state-based codebook is built.
 - **P-13C fails** → hub and anti-hub control are still driven by one
   geometric mechanism. That is the round-5 G6×G3 frontier recurring one
   layer deeper, and it is primary evidence for the capacity conjecture.
