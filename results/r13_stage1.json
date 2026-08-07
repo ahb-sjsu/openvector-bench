@@ -1,0 +1,267 @@
+{
+ "meta": {
+  "prereg": "results/PREREG_ROUND13.md P-13B",
+  "sizes": [
+   3000,
+   8000,
+   20000
+  ],
+  "primary_n": 7995,
+  "primary_rationale": "harness convention: 8000 base + 1000 queries"
+ },
+ "runs": [
+  {
+   "meta": {
+    "prereg": "results/PREREG_ROUND13.md P-13B",
+    "n_base": 2993,
+    "n_query": 1000,
+    "k": 10,
+    "categories": [
+     "never_asked",
+     "low_density",
+     "boundary",
+     "metric_misfit",
+     "legit_antihub"
+    ],
+    "rule": "categories assigned by LATENT rule; separability tested without those rules, on held-out points"
+   },
+   "n_never_retrieved": 793,
+   "category_counts": {
+    "never_asked": 396,
+    "low_density": 23,
+    "boundary": 72,
+    "metric_misfit": 57,
+    "legit_antihub": 245
+   },
+   "category_proportions": {
+    "never_asked": 0.49936948297604034,
+    "low_density": 0.029003783102143757,
+    "boundary": 0.09079445145018916,
+    "metric_misfit": 0.07187894073139975,
+    "legit_antihub": 0.308953341740227
+   },
+   "separability": {
+    "balanced_accuracy": 0.6107459207459207,
+    "per_category": {
+     "never_asked": 0.4461538461538462,
+     "low_density": 0.5555555555555556,
+     "boundary": 0.7777777777777778,
+     "metric_misfit": 0.6,
+     "legit_antihub": 0.6742424242424242
+    }
+   },
+   "g6_blindness": {
+    "g6": [
+     4.742619822529033,
+     4.598309793003946
+    ],
+    "bb_skew": [
+     1.2362228855182,
+     1.311461821212986
+    ],
+    "proportions": [
+     {
+      "never_asked": 0.49373433583959897,
+      "low_density": 0.022556390977443608,
+      "boundary": 0.10776942355889724,
+      "metric_misfit": 0.08020050125313283,
+      "legit_antihub": 0.2957393483709273
+     },
+     {
+      "never_asked": 0.48743718592964824,
+      "low_density": 0.017587939698492462,
+      "boundary": 0.10301507537688442,
+      "metric_misfit": 0.07788944723618091,
+      "legit_antihub": 0.314070351758794
+     }
+    ],
+    "max_ratio_per_category": {
+     "never_asked": 1.0129188951760846,
+     "low_density": 1.2824919441460794,
+     "boundary": 1.0461519652790512,
+     "metric_misfit": 1.0296709515724796,
+     "legit_antihub": 1.0619836470488035
+    }
+   },
+   "verdict": {
+    "P13B_half1_separable": true,
+    "balanced_accuracy": 0.6107459207459207,
+    "P13B_half2_g6_blind": false,
+    "max_category_ratio_at_matched_G6": 1.2824919441460794,
+    "reading": "see failure clauses in PREREG_ROUND13 \u00a75"
+   },
+   "retrieval_slots_per_point": 3.341129301703976
+  },
+  {
+   "meta": {
+    "prereg": "results/PREREG_ROUND13.md P-13B",
+    "n_base": 7995,
+    "n_query": 1000,
+    "k": 10,
+    "categories": [
+     "never_asked",
+     "low_density",
+     "boundary",
+     "metric_misfit",
+     "legit_antihub"
+    ],
+    "rule": "categories assigned by LATENT rule; separability tested without those rules, on held-out points"
+   },
+   "n_never_retrieved": 4412,
+   "category_counts": {
+    "never_asked": 1444,
+    "low_density": 292,
+    "boundary": 553,
+    "metric_misfit": 317,
+    "legit_antihub": 1806
+   },
+   "category_proportions": {
+    "never_asked": 0.3272892112420671,
+    "low_density": 0.06618313689936536,
+    "boundary": 0.12533998186763373,
+    "metric_misfit": 0.07184950135992747,
+    "legit_antihub": 0.40933816863100636
+   },
+   "separability": {
+    "balanced_accuracy": 0.7175757801489513,
+    "per_category": {
+     "never_asked": 0.572987721691678,
+     "low_density": 0.816,
+     "boundary": 0.7664233576642335,
+     "metric_misfit": 0.7828571428571428,
+     "legit_antihub": 0.6496106785317018
+    }
+   },
+   "g6_blindness": {
+    "g6": [
+     8.402747501592724,
+     8.210748542706783
+    ],
+    "bb_skew": [
+     1.4492985182864249,
+     1.4434659374320316
+    ],
+    "proportions": [
+     {
+      "never_asked": 0.324032403240324,
+      "low_density": 0.07605760576057606,
+      "boundary": 0.12556255625562557,
+      "metric_misfit": 0.06975697569756975,
+      "legit_antihub": 0.40459045904590457
+     },
+     {
+      "never_asked": 0.31649530621367905,
+      "low_density": 0.07018328118015199,
+      "boundary": 0.12337952615109522,
+      "metric_misfit": 0.07063030844881538,
+      "legit_antihub": 0.4193115780062584
+     }
+    ],
+    "max_ratio_per_category": {
+     "never_asked": 1.0238142458313626,
+     "low_density": 1.0836997712510106,
+     "boundary": 1.0176936171878057,
+     "metric_misfit": 1.0125196475694695,
+     "legit_antihub": 1.0363852350721983
+    }
+   },
+   "verdict": {
+    "P13B_half1_separable": true,
+    "balanced_accuracy": 0.7175757801489513,
+    "P13B_half2_g6_blind": false,
+    "max_category_ratio_at_matched_G6": 1.0836997712510106,
+    "reading": "see failure clauses in PREREG_ROUND13 \u00a75"
+   },
+   "retrieval_slots_per_point": 1.2507817385866167
+  },
+  {
+   "meta": {
+    "prereg": "results/PREREG_ROUND13.md P-13B",
+    "n_base": 19967,
+    "n_query": 1000,
+    "k": 10,
+    "categories": [
+     "never_asked",
+     "low_density",
+     "boundary",
+     "metric_misfit",
+     "legit_antihub"
+    ],
+    "rule": "categories assigned by LATENT rule; separability tested without those rules, on held-out points"
+   },
+   "n_never_retrieved": 15148,
+   "category_counts": {
+    "never_asked": 3895,
+    "low_density": 1372,
+    "boundary": 2016,
+    "metric_misfit": 1287,
+    "legit_antihub": 6578
+   },
+   "category_proportions": {
+    "never_asked": 0.25712965407974653,
+    "low_density": 0.09057301293900184,
+    "boundary": 0.133086876155268,
+    "metric_misfit": 0.08496171111697914,
+    "legit_antihub": 0.4342487457090045
+   },
+   "separability": {
+    "balanced_accuracy": 0.6841225450492411,
+    "per_category": {
+     "never_asked": 0.5803480040941658,
+     "low_density": 0.8065433854907539,
+     "boundary": 0.7738446411012783,
+     "metric_misfit": 0.6737012987012987,
+     "legit_antihub": 0.5861753958587089
+    }
+   },
+   "g6_blindness": {
+    "g6": [
+     11.470760643234403,
+     11.414700711482878
+    ],
+    "bb_skew": [
+     1.6309063251240847,
+     1.620976114417977
+    ],
+    "proportions": [
+     {
+      "never_asked": 0.26243863606209367,
+      "low_density": 0.09300782804829508,
+      "boundary": 0.13347485737030648,
+      "metric_misfit": 0.08809871301578878,
+      "legit_antihub": 0.42297996550351596
+     },
+     {
+      "never_asked": 0.25647805393971446,
+      "low_density": 0.09135378106821787,
+      "boundary": 0.13313061872025383,
+      "metric_misfit": 0.08355367530407191,
+      "legit_antihub": 0.43548387096774194
+     }
+    ],
+    "max_ratio_per_category": {
+     "never_asked": 1.0232401253472558,
+     "low_density": 1.0181059498658525,
+     "boundary": 1.0025857211012892,
+     "metric_misfit": 1.0543966222332697,
+     "legit_antihub": 1.0295614603148906
+    }
+   },
+   "verdict": {
+    "P13B_half1_separable": true,
+    "balanced_accuracy": 0.6841225450492411,
+    "P13B_half2_g6_blind": false,
+    "max_category_ratio_at_matched_G6": 1.0543966222332697,
+    "reading": "see failure clauses in PREREG_ROUND13 \u00a75"
+   },
+   "retrieval_slots_per_point": 0.5008263634997746
+  }
+ ],
+ "verdict": {
+  "P13B_half1_separable": true,
+  "balanced_accuracy": 0.7175757801489513,
+  "P13B_half2_g6_blind": false,
+  "max_category_ratio_at_matched_G6": 1.0836997712510106,
+  "reading": "see failure clauses in PREREG_ROUND13 \u00a75"
+ }
+}
