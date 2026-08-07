@@ -1,0 +1,78 @@
+{
+ "meta": {
+  "what": "Round-8 winning point, frozen as the round-14 corpus baseline",
+  "source": "results/gen_round8_anatomy.json (fullbatt, the 3-seed verified point)",
+  "prereg": "results/PREREG_ROUND14.md step 1 \u2014 P-14C reference values",
+  "family": "hier_query_corpus (hier_q)",
+  "frozen": "corpus parameters only; query_tail and equalize are the query model's and are NOT frozen \u2014 they are round 14's search space"
+ },
+ "params": {
+  "local_dim": 93.69715965226524,
+  "log2_clusters": 6.281211232664926,
+  "n_levels": 2.9624839351579957,
+  "level_decay": 0.3583120511459201,
+  "branch_tail": 1.0814563547833536,
+  "within_scale": 0.5496126709750907,
+  "size_tail": 0.15691675381713233,
+  "noise": 0.04023716392232566,
+  "spectrum_decay": 0.54,
+  "reshape_mix": 0.9563312073493949,
+  "query_tail": 2.3517230297419927,
+  "equalize": 0.217048309017571
+ },
+ "real_battery": {
+  "g1_id_twonn": 57.66417694091797,
+  "g2_id_ballgrowth": 15.06563897667806,
+  "g3_eff_rank": 187.94131469726562,
+  "g4_dims90": 355.0,
+  "g5_relative_contrast": 1.182984721886647,
+  "g6_hubness_skew": 6.828916625891315,
+  "g7_local_id_iqr": 20.84038734436035,
+  "g8_pca_retention": 0.6206202571937866
+ },
+ "score": 0.2450015809123532,
+ "seeds": {
+  "0": {
+   "gates": {
+    "g1_id_twonn": 60.69080832252384,
+    "g2_id_ballgrowth": 15.969200062315787,
+    "g3_eff_rank": 344.75923258215454,
+    "g4_dims90": 812.0,
+    "g5_relative_contrast": 1.1930940924813185,
+    "g6_hubness_skew": 9.29075115911493,
+    "g7_local_id_iqr": 16.467941284179688,
+    "g8_pca_retention": 0.5229697263520793
+   },
+   "bb_skew": 1.7615127871998597,
+   "bb_max_count": 102.0
+  },
+  "1": {
+   "gates": {
+    "g1_id_twonn": 57.68856095490342,
+    "g2_id_ballgrowth": 16.92626209189623,
+    "g3_eff_rank": 357.3715698935352,
+    "g4_dims90": 811.0,
+    "g5_relative_contrast": 1.1873721403162514,
+    "g6_hubness_skew": 9.73438015134336,
+    "g7_local_id_iqr": 15.918461322784424,
+    "g8_pca_retention": 0.5060572581013757
+   },
+   "bb_skew": 1.381034565527374,
+   "bb_max_count": 52.0
+  },
+  "2": {
+   "gates": {
+    "g1_id_twonn": 60.789802405108695,
+    "g2_id_ballgrowth": 17.672039619182087,
+    "g3_eff_rank": 360.0124409199911,
+    "g4_dims90": 811.0,
+    "g5_relative_contrast": 1.1895016728681238,
+    "g6_hubness_skew": 8.75948909179552,
+    "g7_local_id_iqr": 17.433175086975098,
+    "g8_pca_retention": 0.5258529346470523
+   },
+   "bb_skew": 1.9070211654745952,
+   "bb_max_count": 104.0
+  }
+ }
+}

@@ -136,6 +136,35 @@ If a gate is ever removed, the count in (2) is reduced by one and the
 requirement stays "all but two" — defined now, so removal cannot loosen
 admission (v1 left this undefined).
 
+**Amendment, 2026-08-07 (author's decision).** All twelve `(n, k)` cells
+remain gate-carrying; none is demoted to a diagnostic. That decision makes
+the statistical form of G6 load-bearing rather than a matter of taste.
+
+Measured (`spec/QUERY_BUDGET.md` §3b, from the committed round-11 real
+reference): a Poisson(`rho`) count vector has skewness exactly
+`1/sqrt(rho)`, so G6's null term rises as occupancy falls. Real's G6 excess
+over that null runs 3.19x at n = 25,000 down to **1.27x** at n = 200,000 for
+k = 10 — the top cell is 79% null. Since the gate is a ratio and the null
+term depends only on `rho`, which candidate and reference share, raw `s_k`
+drives `R` toward 1 at those cells **regardless of hub structure**. Keeping
+the cells while reading raw `s_k` would therefore keep three cells that
+cannot fail.
+
+Accordingly, and with the equivalence bands untouched:
+
+- **G6 is evaluated as `attractiveness_skew`**, the Poisson-deconvolved
+  skewness of per-point attractiveness (`openvector_bench.hubness`). It is
+  invariant to query budget — verified 10.02 vs 9.84 across an 8x range of
+  `rho` where raw `s_k` moves 2.46 to 5.59 — so every cell discriminates.
+- **`rho` is reported on every cell** and any cell whose excess over null
+  falls below 2.0 is flagged low-signal in the report. Flagged cells still
+  carry their gate; the flag is disclosure, not exemption.
+- Gates G1, G2, G3, G4, G7, G8 are corpus-side and unaffected by the query
+  budget. Their treatment is unchanged.
+
+This is a change of estimator, not of threshold: no band moves, no cell is
+removed, and the admission arithmetic in (1)-(3) above stands verbatim.
+
 ---
 
 ## 6. Sealed predictive validation (RC-2) — registered now, run after RC-1
