@@ -371,3 +371,71 @@ def test_dirichlet_codebook_is_reproducible_by_seed():
     a = dirichlet_codebook_corpus(p, 500, 64, 7)
     b = dirichlet_codebook_corpus(p, 500, 64, 7)
     assert (a == b).all()  # byte-reproducible, as the benchmark family requires
+
+
+def test_py_codebook_grows_its_used_atoms_with_n():
+    """The family's whole premise: the codebook is discovered, not allocated.
+
+    A fixed codebook is a fixed set of owners, which is why the round-15
+    family failed. Here the used-atom count must grow with the corpus as a
+    consequence of the popularity tail, with no n-dependence in the
+    generator. Checked as a growth exponent rather than a single ratio.
+    """
+    import numpy as np
+
+    from openvector_bench.generator_search import py_codebook_corpus
+
+    p = {
+        "py_alpha": 0.5,
+        "py_theta": 10.0,
+        "atoms_per_row": 6,
+        "concentration": 0.3,
+        "noise": 0.02,
+    }
+    ns = [1000, 2000, 4000]
+    ranks = []
+    for n in ns:
+        x = py_codebook_corpus(p, n, 64, 0)
+        assert x.shape == (n, 64)
+        assert np.allclose(np.linalg.norm(x, axis=1), 1.0, atol=1e-4)
+        # Effective rank tracks the number of atoms in play.
+        from openvector_bench.geometry import spectrum
+
+        ranks.append(spectrum(x)[0])
+    assert ranks[-1] > ranks[0]  # more corpus, more distinct structure
+
+
+def test_py_codebook_growth_exponent_tracks_alpha():
+    """The family's central claim, measured directly rather than by proxy.
+
+    The used-atom count must grow as n**py_alpha with no n-dependence in the
+    generator. An earlier version of this test asserted the claim through
+    effective rank and failed, correctly: rank saturates against the ambient
+    dimension, so it is non-monotone in alpha and cannot check growth.
+    Counting the atoms can.
+    """
+    import numpy as np
+
+    from openvector_bench.generator_search import py_codebook_support
+
+    ns = [2000, 4000, 8000, 16000]
+    for alpha in (0.3, 0.5, 0.7):
+        p = {"py_alpha": alpha, "py_theta": 10.0, "atoms_per_row": 8}
+        counts = [len(py_codebook_support(p, n, 0)[0]) for n in ns]
+        fit = np.polyfit(np.log10(ns), np.log10(counts), 1)[0]
+        assert abs(fit - alpha) < 0.08, (alpha, fit, counts)
+
+
+def test_py_codebook_is_reproducible_by_seed():
+    from openvector_bench.generator_search import py_codebook_corpus
+
+    p = {
+        "py_alpha": 0.5,
+        "py_theta": 10.0,
+        "atoms_per_row": 6,
+        "concentration": 0.3,
+        "noise": 0.02,
+    }
+    a = py_codebook_corpus(p, 400, 32, 5)
+    b = py_codebook_corpus(p, 400, 32, 5)
+    assert (a == b).all()

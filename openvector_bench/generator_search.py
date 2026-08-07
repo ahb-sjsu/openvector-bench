@@ -1316,6 +1316,103 @@ def dirichlet_codebook_corpus(
     return normalize(out)
 
 
+def py_codebook_support(p: dict[str, float], n: int, seed: int):
+    """Which atoms a corpus of ``n`` rows touches, and each row's support.
+
+    Factored out so the family's central claim is directly observable. The
+    claim is that the used-atom count grows as ``n**py_alpha`` without the
+    generator being told ``n``, and a spectral proxy cannot check that
+    because effective rank saturates against the ambient dimension. Counting
+    the atoms can.
+
+    Returns ``(used_atom_ids, per_row_support)`` with the support already
+    compacted to index into ``used_atom_ids``.
+    """
+    rng = np.random.default_rng(seed)
+    alpha = float(np.clip(p.get("py_alpha", 0.5), 1e-3, 0.999))
+    theta = float(max(p.get("py_theta", 10.0), -alpha + 1e-6))
+    s = max(1, int(round(p.get("atoms_per_row", 8))))
+
+    # Stick-breaking for PY(alpha, theta). Truncated where the remaining mass
+    # can no longer be reached by n*s draws, so the truncation follows the
+    # budget rather than being an arbitrary cap.
+    k_max = int(min(200_000, max(1_000, 40 * (n * s) ** alpha)))
+    idx = np.arange(k_max)
+    v = rng.beta(1.0 - alpha, theta + (idx + 1) * alpha)
+    log1mv = np.log1p(-np.clip(v, 0.0, 1 - 1e-12))
+    w = v * np.exp(np.concatenate([[0.0], np.cumsum(log1mv[:-1])]))
+    w = np.maximum(w, 0.0)
+    w /= w.sum()
+
+    pick = rng.choice(k_max, size=(n, s), p=w)
+    used, compact = np.unique(pick, return_inverse=True)
+    return used, compact.reshape(n, s)
+
+
+def py_codebook_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """Codebook whose size grows with the corpus, without being told to.
+
+    The round-15 fixed codebook failed because a fixed set of atoms is a
+    fixed set of owners. Every row added crowds the same attractors, so hub
+    concentration grew about six times faster than the real corpus does
+    (`results/R15_CODEBOOK_GATE.md`).
+
+    The repair is not to make the codebook a function of ``n``, which would
+    be a generator that knows its own scale and would break byte-reproducible
+    subsampling. It is to give atom popularity a **power-law tail**, drawn
+    once, and let the corpus discover as many atoms as it has rows to spend.
+    Under Pitman-Yor stick-breaking with discount ``py_alpha``, the sorted
+    weights decay as ``k**(-1/alpha)``, and the number of atoms a corpus of
+    ``n`` rows actually touches grows as ``n**alpha`` as a consequence rather
+    than as an instruction. A subsample of the rows uses correspondingly
+    fewer atoms, which is exactly how a smaller real corpus behaves.
+
+    Knobs, with the round-15 three retained:
+
+    ``py_alpha``       discount in (0, 1). Sets how fast the used-atom count
+                       grows, hence how fast hub concentration is diluted as
+                       the corpus grows. This is the one the campaign has
+                       never had a controller for.
+    ``py_theta``       concentration. Shifts the number of atoms at a given
+                       ``n`` without changing the growth exponent, so it
+                       moves effective rank at fixed scaling behaviour.
+    ``atoms_per_row``  admixture size s.
+    ``concentration``  Dirichlet spread within a row, so ``s*mu`` sets local
+                       intrinsic dimension.
+    ``noise``          isotropic off-codebook mass.
+
+    ``py_alpha`` and the popularity tail are not independent, since one
+    discount sets both. Whether a single exponent can match real's growth and
+    real's hubness at once is the open question the registered gate asks, and
+    it is a property of the process rather than of this implementation.
+    """
+    rng = np.random.default_rng(seed)
+    mu = max(1e-3, float(p.get("concentration", 0.3)))
+    noise = float(p.get("noise", 0.05))
+
+    # py_alpha and py_theta are consumed by the support draw, which is where
+    # the growth property lives and where it can be checked.
+    used, compact = py_codebook_support(p, n, seed)
+    s = compact.shape[1]
+
+    # Directions only for atoms this corpus actually touched.
+    a_rng = np.random.default_rng(seed + 991)
+    basis = a_rng.standard_normal((len(used), dim))
+    basis /= np.maximum(np.linalg.norm(basis, axis=1, keepdims=True), 1e-12)
+
+    out = np.empty((n, dim), dtype=np.float32)
+    block = max(1, min(n, 4096))
+    for a in range(0, n, block):
+        k = min(a + block, n) - a
+        g = rng.gamma(shape=mu, scale=1.0, size=(k, s))
+        c = g / np.maximum(g.sum(axis=1, keepdims=True), 1e-300)
+        x = np.einsum("bs,bsd->bd", c, basis[compact[a : a + k]])
+        if noise > 0:
+            x += noise * rng.standard_normal((k, dim))
+        out[a : a + k] = x.astype(np.float32)
+    return normalize(out)
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
