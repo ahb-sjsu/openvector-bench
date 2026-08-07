@@ -1,4 +1,8 @@
-# The ladder's n-axis is confounded: falling count maxima are a query-budget artefact
+# Raw count targets are convention-bound; the hub-share law survives
+
+*(Filed under the question "is the ladder's n-axis confounded?" — it is, but
+not in the way the first reading of this data claimed. See "Finding,
+corrected".)*
 
 Measured 2026-08-07 on the real Cohere Embed-V3 corpus (sampled across the
 42 parts, sealed rows excluded by the same `blake2b(i) % 4 == 3` rule the
@@ -45,59 +49,77 @@ Per-n detail at k = 10:
 | 50,000 | 9.0 | 0.69 | 5.0 | 0.83 |
 | 100,000 | 6.3 | 0.83 | 6.3 | 0.83 |
 
-## Finding
+## Finding, corrected
 
-**The direction reverses.** Under the current protocol real's count maxima
-*fall* with n; under a constant query budget they *rise*, consistently at
-both k. The falling maxima that round 11 attributed to real's hub mass
-re-expressing under subsampling are, in the measured part of the ladder,
-a consequence of spending a fixed number of queries over a growing corpus.
-The zero-fraction column makes the mechanism plain: under FIXED it climbs
-from 0.28 to 0.83 purely because slots per point fall, while under SCALED it
-is pinned at 0.83 throughout.
+An earlier reading of this table stated that the falling count maxima *are*
+a query-budget artefact. That overstated the case, and the correction
+matters more than the original claim.
 
-**The skew claim splits by k.** At k = 30 the S_k drift is essentially
-protocol-independent (+0.087 versus +0.080), so round 11's level-stability
-observation survives there. At k = 10 most of the apparent growth is
-protocol (+0.242 versus +0.039).
+**The raw statistic is protocol-dependent; the underlying corpus property is
+not.** `count_max` mixes two terms: the share of retrieval mass the top hub
+captures, and the size of the query budget being shared out. Re-expressing
+the same measurement in the budget-invariant form — hub **share**,
+`count_max / (nq·k)` — separates them:
 
-## What this does and does not overturn
+| | k = 10 | k = 30 |
+|---|---|---|
+| hub-share slope/decade, FIXED | −0.489 | −0.532 |
+| hub-share slope/decade, SCALED | −0.773 | −0.760 |
 
-**Does not overturn:** the *structural* argument that a generator planting a
-fixed set of hub rows behaves differently under subsampling than a
-population law does. That is an argument about mechanisms, independent of
-this measurement, and it stands.
+**Both protocols agree in sign.** Real's top hub captures a steadily smaller
+share of retrieval mass as the corpus grows, under either convention. That
+is a corpus property, and it is exactly what round 11 asserted: hub mass
+re-expresses as a population law rather than sitting with fixed owners.
+**Round 11's diagnosis is confirmed, not overturned.**
 
-**Does overturn:** the *empirical* claim that real exhibits falling count
-maxima as a corpus property, and any calibration target derived from it. A
-candidate penalised for failing to reproduce a −0.49/decade fall was
-penalised for failing to reproduce the measurement protocol. Round 11's
-17-point infeasibility result and the trade-off curve it reported were
-measured against targets carrying this component.
+What *is* artefactual is the raw number and the raw statistic's direction.
+Under the current protocol raw maxima fall at −0.489/decade; under a
+constant budget they rise at +0.227, because a growing query budget
+(+1.0/decade) more than offsets a shrinking share. A generator calibrated to
+reproduce "−0.49/decade in raw count_max" is being calibrated to a quantity
+that has no meaning without its budget convention attached, and the two
+protocols disagree on the share slope by a factor of 1.5 (−0.49 versus
+−0.77), so the magnitude of any such target is convention-bound too.
 
-**Neither protocol is wrong, but they answer different questions.** FIXED
-models a realistic deployment — a fixed query workload against a growing
-corpus — and is a legitimate thing to benchmark. SCALED isolates corpus
-structure from workload size. The error was reading a FIXED-protocol
-measurement as a statement about corpus structure.
+The zero-fraction column shows the budget term directly: 0.28 → 0.83 under
+FIXED purely because slots per point fall, pinned at 0.83 under SCALED.
+
+**The rule this licenses.** Define ρ = nq·k/n, retrieval slots per point.
+Any statistic compared across a varying n must either hold ρ constant or be
+expressed in a ρ-invariant form. Raw counts and raw maxima are neither.
+Hub *share* is ρ-invariant by construction and is the form targets should
+take.
 
 ## Limitation, stated
 
 The SCALED arm at the low-n end runs at 250–500 queries, so its count maxima
-(3.7, 5.3) sit near the counting floor and its drift estimate is
-correspondingly weak. The sign reversal is large and consistent across both
-k, which is hard to attribute to that noise, but a confirmation run at
-higher query budget throughout would settle it. This run used `nq` ≤ 2,000
-against the registered `N_QUERY = 10,000`, on a ladder topping out at
-100,000 rather than 200,000, to stay inside the thermal budget of a shared
-box.
+(3.7, 5.3) sit near the counting floor. That is precisely where the two
+protocols disagree most on the share slope (−0.49 versus −0.77), so the
+1.5× magnitude gap is the number least to be trusted here; the agreement in
+*sign*, which is what carries the finding, does not depend on those cells.
+A confirmation run at a uniformly higher query budget would settle the
+magnitude. This run used `nq` ≤ 2,000 against the registered
+`N_QUERY = 10,000`, on a ladder topping out at 100,000 rather than 200,000,
+to stay inside the thermal budget of a shared box.
 
 ## Consequence for round 14
 
 [`PREREG_ROUND14.md`](PREREG_ROUND14.md) §3 made this check a **precondition**
-on any further fitting. The precondition is not satisfied: the count targets
-carry a protocol component. Before round-14 search begins, the count targets
-should be re-derived under an explicitly chosen and documented protocol, and
-the choice recorded in the spec rather than inherited from the harness. Any
-claim about n-dependence of hub mass — in either direction — must state its
-query-budget convention alongside it.
+on any further fitting. It is **partly** satisfied: the corpus law round 11
+identified is real, so round 14's premise survives, but the targets are
+stated in a convention-bound form and must be restated.
+
+Concretely, before round-14 search begins:
+
+1. Re-express count targets as hub **share**, `count_max / (nq·k)`, which is
+   ρ-invariant.
+2. Record ρ and the query-budget convention in the spec, rather than letting
+   it be an emergent property of `min(N_QUERY, len(q_pool))`.
+3. Re-read round 11's 17-point infeasibility result in share terms before
+   any of its numbers are quoted again. Its qualitative conclusion is
+   expected to survive; its magnitudes are convention-bound.
+
+P-14B's threshold (|Δ S_k slope| ≤ 0.05/decade) is unaffected in form — S_k
+is already a normalized statistic — but the k = 10 measurement shows S_k
+carries a protocol component too (+0.242 versus +0.039), so its target
+requires the same treatment.
