@@ -1,0 +1,777 @@
+{
+ "meta": {
+  "plan": "results/CAMPAIGN_PLAN_ROUNDS_17_19.md stage 0",
+  "family": "hier_query_corpus at the frozen round-8 point",
+  "frozen_source": "results/r14_frozen_corpus.json",
+  "target": 0.51,
+  "tolerance": 0.15,
+  "codebook_reference": 2.9,
+  "ns": [
+   6250,
+   12500,
+   25000,
+   50000
+  ],
+  "dim": 1024,
+  "rho": 4.0,
+  "k": 10,
+  "seeds": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11
+  ],
+  "note": "nothing fitted; the point is frozen and unchanged"
+ },
+ "cells": [
+  {
+   "seed": 0,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 2.6367806891037286,
+   "tail_excess_1pct": 1.8289996280809457,
+   "zero_frac": 0.07904,
+   "tail_shape": {
+    "n_tail": 758,
+    "hill_exponent": 5.228098638916428,
+    "loglik_ratio": 1120.4587944631612,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 0,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.0839558446829187,
+   "tail_excess_1pct": 1.9048819907515409,
+   "zero_frac": 0.09008,
+   "tail_shape": {
+    "n_tail": 1185,
+    "hill_exponent": 5.374453471006456,
+    "loglik_ratio": 1787.2296035838472,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 0,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.0672311343353726,
+   "tail_excess_1pct": 2.0527352540994017,
+   "zero_frac": 0.10392,
+   "tail_shape": {
+    "n_tail": 2634,
+    "hill_exponent": 4.865550456440484,
+    "loglik_ratio": 3658.213795666652,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 0,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.6843244356018485,
+   "tail_excess_1pct": 2.3140209152538223,
+   "zero_frac": 0.11958,
+   "tail_shape": {
+    "n_tail": 5423,
+    "hill_exponent": 4.372088629167676,
+    "loglik_ratio": 6849.60551506159,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 1,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.8985592150755886,
+   "tail_excess_1pct": 1.6584598851717727,
+   "zero_frac": 0.06544,
+   "tail_shape": {
+    "n_tail": 755,
+    "hill_exponent": 6.049798752352462,
+    "loglik_ratio": 1244.5645636248273,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 1,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.7178539717611003,
+   "tail_excess_1pct": 1.7406005870316954,
+   "zero_frac": 0.08192,
+   "tail_shape": {
+    "n_tail": 1171,
+    "hill_exponent": 5.901082856255207,
+    "loglik_ratio": 1891.1808489653044,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 1,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.011569622147112,
+   "tail_excess_1pct": 1.958469020060157,
+   "zero_frac": 0.0942,
+   "tail_shape": {
+    "n_tail": 2447,
+    "hill_exponent": 5.039335047612157,
+    "loglik_ratio": 3499.662427147274,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 1,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.3035477844509544,
+   "tail_excess_1pct": 2.094979043627362,
+   "zero_frac": 0.10654,
+   "tail_shape": {
+    "n_tail": 5316,
+    "hill_exponent": 4.7836870865381975,
+    "loglik_ratio": 7280.28321374437,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 2,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.5505979733730026,
+   "tail_excess_1pct": 1.5395514405745512,
+   "zero_frac": 0.0688,
+   "tail_shape": {
+    "n_tail": 762,
+    "hill_exponent": 5.9749704607745775,
+    "loglik_ratio": 1240.6353116239725,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 2,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.7633577602091217,
+   "tail_excess_1pct": 1.7366891250383658,
+   "zero_frac": 0.08288,
+   "tail_shape": {
+    "n_tail": 1157,
+    "hill_exponent": 5.8078169837094595,
+    "loglik_ratio": 1846.3907783244763,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 2,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.0483376060879404,
+   "tail_excess_1pct": 1.936564832897511,
+   "zero_frac": 0.0964,
+   "tail_shape": {
+    "n_tail": 2447,
+    "hill_exponent": 5.061512351441411,
+    "loglik_ratio": 3510.156646978659,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 2,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.3286603100205228,
+   "tail_excess_1pct": 2.1333113711619927,
+   "zero_frac": 0.106,
+   "tail_shape": {
+    "n_tail": 5329,
+    "hill_exponent": 4.698708865617562,
+    "loglik_ratio": 7181.688232501498,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 3,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.5297411024918908,
+   "tail_excess_1pct": 1.5708431365211886,
+   "zero_frac": 0.06384,
+   "tail_shape": {
+    "n_tail": 748,
+    "hill_exponent": 5.880637507353662,
+    "loglik_ratio": 1204.8196447691475,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 3,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.190355657785005,
+   "tail_excess_1pct": 1.8438631836555983,
+   "zero_frac": 0.07872,
+   "tail_shape": {
+    "n_tail": 1156,
+    "hill_exponent": 5.660130438622049,
+    "loglik_ratio": 1815.129493758231,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 3,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.0891698061060984,
+   "tail_excess_1pct": 1.914660645734865,
+   "zero_frac": 0.09032,
+   "tail_shape": {
+    "n_tail": 2355,
+    "hill_exponent": 5.140532035586058,
+    "loglik_ratio": 3423.9813425415027,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 3,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.3118953717090482,
+   "tail_excess_1pct": 2.1008462366173566,
+   "zero_frac": 0.10322,
+   "tail_shape": {
+    "n_tail": 5196,
+    "hill_exponent": 4.757594421885807,
+    "loglik_ratio": 7081.3013590409055,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 4,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 3.131889276618122,
+   "tail_excess_1pct": 1.8070954409182993,
+   "zero_frac": 0.06944,
+   "tail_shape": {
+    "n_tail": 745,
+    "hill_exponent": 5.390362230816,
+    "loglik_ratio": 1129.949749044395,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 4,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.2574277840012438,
+   "tail_excess_1pct": 1.924439300718189,
+   "zero_frac": 0.08912,
+   "tail_shape": {
+    "n_tail": 1178,
+    "hill_exponent": 5.084195104335765,
+    "loglik_ratio": 1697.5063454635595,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 4,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.464875146544102,
+   "tail_excess_1pct": 2.081680072850041,
+   "zero_frac": 0.09976,
+   "tail_shape": {
+    "n_tail": 2561,
+    "hill_exponent": 4.92215271861345,
+    "loglik_ratio": 3598.5533278623047,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 4,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.5806539543857974,
+   "tail_excess_1pct": 2.2897698508951785,
+   "zero_frac": 0.117,
+   "tail_shape": {
+    "n_tail": 5493,
+    "hill_exponent": 4.5020687468857155,
+    "loglik_ratio": 7139.3721783779365,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 5,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 3.0293685092503986,
+   "tail_excess_1pct": 1.800837101728972,
+   "zero_frac": 0.07088,
+   "tail_shape": {
+    "n_tail": 786,
+    "hill_exponent": 5.653447496491631,
+    "loglik_ratio": 1235.8657134049606,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 5,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.775225395152654,
+   "tail_excess_1pct": 1.7836266689583216,
+   "zero_frac": 0.0872,
+   "tail_shape": {
+    "n_tail": 1187,
+    "hill_exponent": 5.550037116260877,
+    "loglik_ratio": 1831.0247505984007,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 5,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.0789053017247094,
+   "tail_excess_1pct": 1.9960190551961217,
+   "zero_frac": 0.10128,
+   "tail_shape": {
+    "n_tail": 2530,
+    "hill_exponent": 4.9452013999991715,
+    "loglik_ratio": 3562.722494113047,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 5,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.532496055698772,
+   "tail_excess_1pct": 2.2600427397458733,
+   "zero_frac": 0.11574,
+   "tail_shape": {
+    "n_tail": 5335,
+    "hill_exponent": 4.533824775032329,
+    "loglik_ratio": 6980.274397952594,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 6,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.9484784347674848,
+   "tail_excess_1pct": 1.655330715577109,
+   "zero_frac": 0.07152,
+   "tail_shape": {
+    "n_tail": 744,
+    "hill_exponent": 5.7873285483242976,
+    "loglik_ratio": 1186.513033662657,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 6,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.9187588055423024,
+   "tail_excess_1pct": 1.722607861862379,
+   "zero_frac": 0.08256,
+   "tail_shape": {
+    "n_tail": 1633,
+    "hill_exponent": 5.431108690648386,
+    "loglik_ratio": 2479.6637337448224,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 6,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.880343397069524,
+   "tail_excess_1pct": 1.8614647626255816,
+   "zero_frac": 0.09056,
+   "tail_shape": {
+    "n_tail": 2460,
+    "hill_exponent": 5.208984744992559,
+    "loglik_ratio": 3609.7292286133147,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 6,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.2725598379074508,
+   "tail_excess_1pct": 2.0891118506373676,
+   "zero_frac": 0.1034,
+   "tail_shape": {
+    "n_tail": 5127,
+    "hill_exponent": 4.780149983614336,
+    "loglik_ratio": 7016.7158304394425,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 7,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.7269704128113765,
+   "tail_excess_1pct": 1.7273016162543744,
+   "zero_frac": 0.08304,
+   "tail_shape": {
+    "n_tail": 792,
+    "hill_exponent": 5.398822953467139,
+    "loglik_ratio": 1197.6099898908183,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 7,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.918392957680987,
+   "tail_excess_1pct": 1.934609101900846,
+   "zero_frac": 0.10592,
+   "tail_shape": {
+    "n_tail": 1265,
+    "hill_exponent": 5.027013466391093,
+    "loglik_ratio": 1804.443583351982,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 7,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.2480923842804565,
+   "tail_excess_1pct": 2.1880718390686074,
+   "zero_frac": 0.122,
+   "tail_shape": {
+    "n_tail": 2789,
+    "hill_exponent": 4.633444962149951,
+    "loglik_ratio": 3715.829506358518,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 7,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.7338124500033354,
+   "tail_excess_1pct": 2.499424213737648,
+   "zero_frac": 0.13564,
+   "tail_shape": {
+    "n_tail": 4579,
+    "hill_exponent": 4.3735881980413405,
+    "loglik_ratio": 5789.057699879794,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 8,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.8083447013159721,
+   "tail_excess_1pct": 1.6256036044278037,
+   "zero_frac": 0.06752,
+   "tail_shape": {
+    "n_tail": 763,
+    "hill_exponent": 5.58951645070471,
+    "loglik_ratio": 1183.1700169615865,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 8,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.86547337821397,
+   "tail_excess_1pct": 1.801619394127638,
+   "zero_frac": 0.0848,
+   "tail_shape": {
+    "n_tail": 1156,
+    "hill_exponent": 5.535279315349446,
+    "loglik_ratio": 1781.0713072423976,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 8,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.319670984670747,
+   "tail_excess_1pct": 1.9674653826448152,
+   "zero_frac": 0.09552,
+   "tail_shape": {
+    "n_tail": 2498,
+    "hill_exponent": 5.062371266323784,
+    "loglik_ratio": 3588.6930136361707,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 8,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.3374803314763195,
+   "tail_excess_1pct": 2.1599093127166342,
+   "zero_frac": 0.11034,
+   "tail_shape": {
+    "n_tail": 5342,
+    "hill_exponent": 4.662511455892297,
+    "loglik_ratio": 7155.203776037027,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 9,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 4.169201203247583,
+   "tail_excess_1pct": 1.7992725169316401,
+   "zero_frac": 0.07888,
+   "tail_shape": {
+    "n_tail": 800,
+    "hill_exponent": 5.577171788987809,
+    "loglik_ratio": 1244.5377089045842,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 9,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.6574194352839338,
+   "tail_excess_1pct": 1.8180475344996225,
+   "zero_frac": 0.09936,
+   "tail_shape": {
+    "n_tail": 1236,
+    "hill_exponent": 5.408422314591151,
+    "loglik_ratio": 1868.340152081302,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 9,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.238070800122348,
+   "tail_excess_1pct": 2.0887207044380345,
+   "zero_frac": 0.10924,
+   "tail_shape": {
+    "n_tail": 2701,
+    "hill_exponent": 4.766060848486819,
+    "loglik_ratio": 3684.4295952229104,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 9,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.5398723281193787,
+   "tail_excess_1pct": 2.3472683421971245,
+   "zero_frac": 0.12532,
+   "tail_shape": {
+    "n_tail": 5635,
+    "hill_exponent": 4.352611622951922,
+    "loglik_ratio": 7088.586850382892,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 10,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.8625719098849316,
+   "tail_excess_1pct": 1.577101475710516,
+   "zero_frac": 0.0624,
+   "tail_shape": {
+    "n_tail": 741,
+    "hill_exponent": 6.1401726130005185,
+    "loglik_ratio": 1232.1690231813682,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 10,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.5326583406298409,
+   "tail_excess_1pct": 1.6678473939557639,
+   "zero_frac": 0.07856,
+   "tail_shape": {
+    "n_tail": 1567,
+    "hill_exponent": 5.405879528484277,
+    "loglik_ratio": 2368.0561616611003,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 10,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.954981251795659,
+   "tail_excess_1pct": 1.847383499449595,
+   "zero_frac": 0.08908,
+   "tail_shape": {
+    "n_tail": 2413,
+    "hill_exponent": 5.415978975735585,
+    "loglik_ratio": 3656.6245381577123,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 10,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.1691377336984603,
+   "tail_excess_1pct": 2.0232037160497627,
+   "zero_frac": 0.10086,
+   "tail_shape": {
+    "n_tail": 5062,
+    "hill_exponent": 4.855585982653335,
+    "loglik_ratio": 7016.045245345401,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 11,
+   "n": 6250,
+   "nq": 2500,
+   "rho": 4.0,
+   "attractiveness_skew": 1.5096309485827062,
+   "tail_excess_1pct": 1.589618154089171,
+   "zero_frac": 0.07296,
+   "tail_shape": {
+    "n_tail": 780,
+    "hill_exponent": 6.045622497175565,
+    "loglik_ratio": 1282.4087685743439,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 11,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 1.7692947648365236,
+   "tail_excess_1pct": 1.7468589262210228,
+   "zero_frac": 0.08504,
+   "tail_shape": {
+    "n_tail": 1150,
+    "hill_exponent": 5.5118612758865915,
+    "loglik_ratio": 1762.8495188059667,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 11,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.1819446611075515,
+   "tail_excess_1pct": 2.0085357335747767,
+   "zero_frac": 0.10048,
+   "tail_shape": {
+    "n_tail": 2539,
+    "hill_exponent": 5.038055634090433,
+    "loglik_ratio": 3635.4800903241057,
+    "favours": "power_law"
+   }
+  },
+  {
+   "seed": 11,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 2.64409658986808,
+   "tail_excess_1pct": 2.2508508040615487,
+   "zero_frac": 0.11014,
+   "tail_shape": {
+    "n_tail": 5318,
+    "hill_exponent": 4.547557675044537,
+    "loglik_ratio": 6973.886539204318,
+    "favours": "power_law"
+   }
+  }
+ ],
+ "slope": 0.3056790181076954,
+ "per_seed": [
+  0.041825243650254265,
+  0.5011730991074201,
+  0.8700683963550833,
+  0.7458648600848441,
+  -0.4804367089612138,
+  -0.39429208755918077,
+  0.31021121296812093,
+  1.1129208339473804,
+  0.6782063337026116,
+  -1.43086580161074,
+  0.4458095212891698,
+  1.2676633143185945
+ ],
+ "spread": 2.6985291159293343,
+ "sem": 0.2215501162049189,
+ "conclusive": false,
+ "within_target": false,
+ "near_codebook_reference": false,
+ "verdict": "Inconclusive. Standard error of the mean is 0.222, above the 0.15 tolerance, so the mean cannot be placed against either registered outcome. More seeds or a wider ladder are needed before this decides anything."
+}

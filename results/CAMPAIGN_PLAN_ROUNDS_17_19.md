@@ -59,6 +59,26 @@ below are being built to obtain.
 
 Cost is one run. Nothing below is built until this returns.
 
+**Result, 2026-08-07** ([`R17_STAGE0_RESULT.md`](R17_STAGE0_RESULT.md)).
+The slope is **+0.904 ± 0.111** over 20 seeds, which is the third case. It
+sits 18 standard errors from the codebook reference and 3.6 from real, so the
+family is categorically not in the codebook regime and is nevertheless
+significantly wrong. The tail-shape diagnostic favours a **power law in all
+sixty cells**, which is the same scale-invariant shape round 16 isolated.
+
+**The plan is amended accordingly, under its own instruction to decide with
+data.** Round 17 no longer builds a family from scratch. The round-8 family
+already holds six gates with real anatomy and scales in the right regime, and
+its only measured defect on this axis is that its cluster-choice law is Zipf,
+which is scale-invariant by construction. Round 17 replaces **that one law**
+with sublinear preferential attachment and freezes everything else, so the
+geometry gates and the anatomy guard are inherited rather than re-earned and
+P-14C's baseline already records what they must not move by.
+
+Rounds 18 and 19 are **held**, not cancelled. They construct attractiveness
+from scratch, which is worth doing only if modifying the best existing family
+fails.
+
 ---
 
 ## 3. The shared instrument
@@ -104,10 +124,16 @@ skew alone cannot.
 Each is stated as a mechanism, a knob with a declared range, a mechanism
 check and an outcome prediction. All three face §3's instrument.
 
-### Round 17 — sublinear preferential attachment (first pick)
+### Round 17 — sublinear preferential attachment, applied to the round-8 family
 
-**Mechanism.** An atom's probability of being used next is proportional to
-`m**beta`, with `m` its current usage and `beta < 1`. At beta = 1 this is
+**Amended after stage 0.** This was written as a fresh codebook family. It is
+now a one-parameter modification of the frozen round-8 point, because that
+family measured 18 SEM away from the codebook regime and only 3.6 from real.
+Replacing its cluster-choice law is a smaller change with more inherited
+evidence behind it than building a fourth codebook.
+
+**Mechanism.** A cluster's probability of being chosen next is proportional to
+`m**beta`, with `m` its current membership and `beta < 1`. At beta = 1 this is
 classical preferential attachment and yields a power law that keeps
 concentrating, which is the measured failure mode. Below 1 the stationary
 tail is stretched-exponential rather than power-law, so concentration grows
@@ -122,7 +148,15 @@ proportionally. `beta` is how strongly it stops.
   with the likelihood ratio favouring stretched exponential, and the effect
   strengthens monotonically as `pa_beta` falls.
 - **P-17O (outcome).** Some `pa_beta` in the declared range brings the slope
-  within ±0.15 of +0.51 on ≥ 5 seeds, with per-seed spread ≤ 0.3.
+  within ±0.15 of +0.51, measured on **≥ 20 seeds with SEM ≤ 0.15**. Seeds
+  and SEM replace the earlier five-seed spread criterion, because stage 0
+  needed twenty seeds to become conclusive at all and range is the wrong
+  statistic for the question.
+- **P-17G (nothing is paid for elsewhere).** At the fitted `pa_beta`, the
+  five geometry gates and `bb_skew` stay within 0.05x of the P-14C freeze
+  baseline in [`r14_freeze_baseline.json`](r14_freeze_baseline.json). This
+  clause exists only because round 17 now modifies a frozen point rather than
+  building a new one, and it is what makes the inherited evidence legitimate.
 - **Cost note.** Sequential attachment is O(n) and does not vectorise
   naively. Implement with a Chinese-restaurant style weighted draw over a
   running count vector, blocked, or the family will be too slow to gate.
