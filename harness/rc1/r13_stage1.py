@@ -36,7 +36,18 @@ half the points, predict held-out labels from latent features, and report
 balanced accuracy. A category that cannot be recovered from the latent code
 without its defining rule is not a real category.
 
-Env: R13S1_OUT, R13_REAL_DIR, R13_QUERIES, R13_N, R13_NQ, R13_KS.
+**Corpus size is swept, and that is part of the measurement.** With a fixed
+real query set of 1,000 and k = 10 there are at most 10,000 retrieval slots,
+so at n = 50,000 at least 80% of points are unretrieved by pigeonhole alone
+and the taxonomy would be measuring query budget rather than anti-hubness.
+Sweeping n makes the budget an explicit axis: the registered n = 8,000 is the
+harness convention (8,000 base + 1,000 queries, QUERY_FRAC = 1/9) and the
+smaller and larger points show how the category mix moves as the query
+measure covers more or less of the corpus. That dependence is itself the
+round-7 claim in the lower tail.
+
+Env: R13S1_OUT, R13_REAL_DIR, R13_QUERIES, R13S1_NS (JSON list of corpus
+sizes), R13_NQ, R13_KS.
 """
 
 from __future__ import annotations
@@ -51,7 +62,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from r13_stage0 import (  # noqa: E402
     KS,
-    N_BASE,
     N_QUERY,
     QUERIES,
     latent_features,
@@ -62,6 +72,9 @@ from r13_stage0 import (  # noqa: E402
 from openvector_bench.geometry import knn, normalize  # noqa: E402
 
 OUT = os.environ.get("R13S1_OUT", "results/r13_stage1.json")
+# 8000 is the registered harness convention (8000 base + 1000 queries); the
+# flanking sizes expose the query-budget dependence of the lower tail.
+NS = json.loads(os.environ.get("R13S1_NS", "[3000, 8000, 20000]"))
 CATS = [
     "never_asked",
     "low_density",
@@ -140,10 +153,9 @@ def nearest_centroid(xtr, ytr, xte, k):
     return ((xte[:, None, :] - C[None, :, :]) ** 2).sum(2).argmin(1)
 
 
-def main() -> None:
-    log("R13 STAGE 1 — anti-hub taxonomy (P-13B)")
+def run_one(n_base: int) -> dict:
     rng = np.random.default_rng(12345)
-    base = normalize(load_real(N_BASE, rng))
+    base = normalize(load_real(n_base, rng))
     q_all = np.load(QUERIES, mmap_mode="r") if os.path.exists(QUERIES) else None
     if q_all is not None:
         qsel = rng.choice(len(q_all), size=min(N_QUERY, len(q_all)), replace=False)
@@ -258,7 +270,7 @@ def main() -> None:
             else "see failure clauses in PREREG_ROUND13 §5"
         ),
     }
-    out = {
+    return {
         "meta": {
             "prereg": "results/PREREG_ROUND13.md P-13B",
             "n_base": int(len(base)),
@@ -274,11 +286,38 @@ def main() -> None:
         "separability": {"balanced_accuracy": bacc, "per_category": per_cat},
         "g6_blindness": matched,
         "verdict": verdict,
+        "retrieval_slots_per_point": float(len(queries) * KS[0] / max(len(base), 1)),
+    }
+
+
+def main() -> None:
+    log("R13 STAGE 1 — anti-hub taxonomy (P-13B), swept over corpus size")
+    runs = []
+    for n in NS:
+        log(f"--- n_base = {n} ---")
+        runs.append(run_one(n))
+    primary = next(
+        (
+            r
+            for r in runs
+            if r["meta"]["n_base"] <= 8100 and r["meta"]["n_base"] >= 7000
+        ),
+        runs[0],
+    )
+    out = {
+        "meta": {
+            "prereg": "results/PREREG_ROUND13.md P-13B",
+            "sizes": NS,
+            "primary_n": primary["meta"]["n_base"],
+            "primary_rationale": "harness convention: 8000 base + 1000 queries",
+        },
+        "runs": runs,
+        "verdict": primary["verdict"],
     }
     os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=1)
-    log(json.dumps(verdict, indent=1))
+    log(json.dumps(primary["verdict"], indent=1))
     log("R13_STAGE1_DONE")
 
 
