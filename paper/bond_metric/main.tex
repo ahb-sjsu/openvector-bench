@@ -842,10 +842,16 @@ as occupancy falls. The two null terms therefore move in opposite directions
 up the same ladder, which is enough on its own to make raw readings of the
 two statistics disagree about the corpus while both are behaving correctly.
 
-Table~\ref{tab:nulldecomp} decomposes the measured ladder slope of a real
-embedding corpus into these two parts. Roughly half of the apparent thinning
-at $k = 10$, and most of it at $k = 100$, is the ceiling rather than the
-corpus.
+It is tempting to subtract the ceiling from a measured slope and call the
+residual the corpus contribution. Table~\ref{tab:nulldecomp} performs that
+subtraction on a real embedding corpus, and by that arithmetic roughly half
+of the apparent thinning at $k = 10$ and most of it at $k = 100$ is ceiling
+rather than corpus. We report the table because the arithmetic is correct and
+because the conclusion drawn from it is not. Dividing or subtracting a null
+removes the location of the null and not its shape, and the shape of an
+extreme value distribution changes with occupancy. The residual therefore
+still carries budget. Section~\ref{sec:invariance} measures this directly and
+gives the form that does survive.
 
 \begin{table}[t]
 \centering
@@ -859,10 +865,12 @@ $k$ & raw slope per decade & null ceiling & hub structure \\
 100 & $-0.746$ & $-0.635$ & $\mathbf{-0.112}$ \\
 \bottomrule
 \end{tabular}
-\caption{Ladder slope of the real corpus decomposed. The raw count maximum
-falls at a rate that is largely the Poisson ceiling falling with it. A
-generator fitted to the raw slope is fitted in part to the arithmetic of the
-measurement.}
+\caption{Ladder slope of the real corpus, decomposed by subtracting the
+Poisson ceiling. The raw count maximum falls at a rate that is largely the
+ceiling falling with it, so a generator fitted to the raw slope is fitted in
+part to the arithmetic of the measurement. The residual column is
+\emph{not} the corpus contribution, for the reason given in
+\S\ref{sec:invariance}.}
 \label{tab:nulldecomp}
 \end{table}
 
@@ -932,8 +940,51 @@ tailed popularity law the third moment is carried by few points and the
 estimator inherits their draw noise. Measured on a codebook family with a
 Zipf popularity law, per-seed slope estimates spanned $-1.26$ to $+7.18$
 while a tail-mass statistic on the same cells agreed across seeds to within
-five percent. The invariance is unaffected. The variance is the problem, and
-a tail mass is the more robust primary readout.
+five percent. The deconvolution is the high variance choice and it is
+nonetheless the required one, for the reason the next subsection measures.
+
+\subsection{Only the deconvolution is invariant}\label{sec:invariance}
+
+Removing a null by division is not the same as removing the budget. We
+measured a real corpus under two budget protocols on identical rows, code and
+seeds, one holding occupancy fixed across the ladder and one holding the
+query count fixed. A statistic that is invariant must return the same ladder
+slope under both.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+statistic, $k=10$ & constant $\rho$ & fixed $n_q$ & gap \\
+\midrule
+attractiveness skew & $+0.543$ & $+0.474$ & $\mathbf{0.07}$ \\
+tail excess & $+0.399$ & $-0.513$ & $0.91$ \\
+hub excess & $+1.101$ & $-1.034$ & $2.14$ \\
+\bottomrule
+\end{tabular}
+\caption{Same rows, same code, same seeds, two budget protocols. Only the
+deconvolution returns the same answer. The other two reverse sign, so a claim
+about corpus scaling stated in them is a claim about the protocol.}
+\label{tab:invariance}
+\end{table}
+
+The reason is that dividing by a null removes the location of the null and
+not its shape. The distribution of an extreme value, and of a tail mass,
+changes form with occupancy, so a ratio to its own expectation still moves
+with the budget. The moment deconvolution removes it because it models the
+sampling explicitly and inverts it.
+
+Two consequences follow and both are uncomfortable. First, the residual of
+Table~\ref{tab:nulldecomp} is not the corpus contribution, and no
+subtraction of that kind can be. Second, and larger, the direction of the
+real corpus's hub scaling is the reverse of what the fixed-budget reading
+suggests. Measured in the invariant form the attractiveness skew of the real
+corpus \emph{rises} with $n$, at $+0.47$ to $+0.54$ per decade at $k = 10$
+and $+0.37$ to $+0.45$ at $k = 30$, consistently under both protocols. Read
+through the raw statistics the same corpus appears to thin. A generator
+calibrated against the thinning reading is being asked to reproduce the
+opposite of the corpus's behaviour.
 
 \subsection{Fixed owners fail at every level of abstraction}
 

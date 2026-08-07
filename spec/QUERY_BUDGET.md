@@ -26,11 +26,32 @@ a target.
 
 ## 2. Three forms, and which claim each supports
 
-| form | definition | invariant to budget | isolates structure | use for |
-|---|---|---|---|---|
-| `count_max` | busiest point's count | no | no | continuity with prior results only |
-| `hub_share` | `count_max / (n_query * k)` | yes | no | comparing across budgets |
-| `hub_excess` | `count_max / null_max` | yes | **yes** | any claim about the corpus |
+| form | definition | invariant to budget | use for |
+|---|---|---|---|
+| `count_max` | busiest point's count | no | continuity with prior results only |
+| `hub_share` | `count_max / (n_query * k)` | **no** (see below) | nothing on its own |
+| `hub_excess` | `count_max / null_max` | **no** (see below) | within-cell, matched `rho` |
+| `tail_excess` | top-1% mass over its null | **no** (see below) | within-cell, matched `rho` |
+| `attractiveness_skew` | Poisson-deconvolved skew of `w` | **yes** | any claim across `n` |
+
+**Corrected 2026-08-07 by direct measurement.** An earlier version of this
+table claimed `hub_share`, `hub_excess` and `tail_excess` were
+budget-invariant on the argument that dividing by a null removes the budget.
+That argument is wrong, and the error was found by measuring real under both
+protocols on identical rows, code and seeds:
+
+| statistic, k = 10 | constant `rho` | fixed `n_query` | gap |
+|---|---|---|---|
+| `attractiveness_skew` | +0.543 | +0.474 | **0.07** |
+| `tail_excess` | +0.399 | −0.513 | 0.91 |
+| `hub_excess` | +1.101 | −1.034 | 2.14 |
+
+Dividing by a null removes the null's *location* and not its *shape*. The
+distribution of an extreme value, or of a tail mass, changes form with
+occupancy, so a ratio to its own expectation still moves with the budget.
+Only the moment deconvolution removes it, because it models the sampling
+explicitly and inverts it. `attractiveness_skew` agrees across an eightfold
+change of protocol to within 0.07 per decade at k = 10 and 0.08 at k = 30.
 
 `null_max` is the largest count reachable with **no hub structure at all**:
 the largest `c` such that at least one of `n_base` independent
@@ -139,8 +160,9 @@ rather than shipped.
 
 1. **Report `rho` on every cell.** A count statistic without its budget is
    not interpretable.
-2. **State corpus claims in `hub_excess`.** Claims about how hub mass
-   behaves with corpus size are corpus claims.
+2. **State claims that cross `n` in `attractiveness_skew`.** It is the only
+   form measured to survive a change of budget protocol. Claims about how hub
+   mass behaves with corpus size are of this kind.
 3. **State workload claims in `hub_share` or raw counts,** and say so. "How
    concentrated does retrieval get when a fixed query load meets a growing
    corpus" is a legitimate and different question.
@@ -148,13 +170,17 @@ rather than shipped.
    `rho`-invariant.
 5. **Flag cells whose excess is below 2.0** as low-signal. They are
    dominated by the null ceiling and should not carry a gate on their own.
-6. **Prefer `tail_excess` to `hub_excess` for gates.** Same null discipline,
-   roughly 10x the signal-to-noise.
+6. **Prefer `tail_excess` to `hub_excess` WITHIN a cell,** where its ~10x
+   signal-to-noise advantage applies and `rho` is matched by construction.
+   Neither may carry a claim that crosses `n`.
 6a. **State G6 as `attractiveness_skew`.** Raw `s_k` mixes structure with
    occupancy and its null term rises as the budget falls, which makes the
    per-cell gate approach a free pass at the top of the ladder.
 6b. **Report `attractiveness_skew` with a seed spread on heavy-tailed
-   corpora, and prefer `tail_excess` as the primary readout.** Its
+   corpora.** It remains the required form for cross-`n` claims despite the
+   variance, because the alternatives are not invariant at all.
+   Earlier text here preferred `tail_excess` as the primary readout, which
+   was written before the invariance measurement above and is withdrawn. Its
    deconvolution divides by `Var(w)^1.5`, so under a Zipf popularity law the
    third moment is carried by a few atoms and the estimator inherits their
    draw noise. Measured on the round-15 codebook family: per-seed slopes
