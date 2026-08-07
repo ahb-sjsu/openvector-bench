@@ -7,3 +7,8 @@ build/
 *.npy
 *.npz
 ui_dashboard.html
+
+# latex build artifacts
+paper/**/*.aux
+paper/**/*.log
+paper/**/*.out

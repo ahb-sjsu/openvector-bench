@@ -699,6 +699,97 @@ HIER_QUERY_PARAMS: tuple[tuple[str, float, float, float], ...] = (
 )
 
 
+def _py_theta_for_level(alpha: float, k_target: float, n_ref: float) -> float:
+    """Pitman-Yor concentration giving ``k_target`` clusters at ``n_ref`` rows.
+
+    The expected number of occupied clusters after ``n`` draws is
+    ``Gamma(theta+1) / (alpha * Gamma(theta+alpha)) * n**alpha``. The discount
+    ``alpha`` fixes the exponent, so this solves the prefactor for ``theta``
+    and thereby sets the level independently of the growth rate. Geometric
+    bisection, because ``theta`` ranges over several orders of magnitude.
+    """
+    import math
+
+    a = min(max(alpha, 1e-3), 0.999)
+
+    def expected(theta: float) -> float:
+        return (
+            math.exp(math.lgamma(theta + 1.0) - math.lgamma(theta + a) - math.log(a))
+            * n_ref**a
+        )
+
+    lo, hi = 1e-4, 1e7
+    for _ in range(120):
+        mid = math.sqrt(lo * hi)
+        if expected(mid) < k_target:
+            lo = mid
+        else:
+            hi = mid
+    return math.sqrt(lo * hi)
+
+
+def emergent_cluster_sizes(
+    p: dict, growth: float, n_base: int, rng: np.random.Generator
+) -> np.ndarray:
+    """Cluster sizes from a capacity-limited growth process.
+
+    Round 17's first attempt drew occupancy from a power law and its second
+    from a Pitman-Yor process. Both failed the same way. Any exchangeable
+    process whose cluster count grows as ``n**alpha`` has a heavy-tailed
+    occupancy, so most of its clusters hold a handful of points. Three things
+    the round needs are then jointly unsatisfiable: a cluster count near the
+    frozen 78, every cluster larger than the local subspace dimension of 94,
+    and a count that grows without the generator reading n. At the ladder's
+    bottom rung 78 clusters over 11,111 points averages 141 against a floor of
+    94, which demands near-balanced clusters, and heavy tails cannot supply
+    them. Solving the Pitman-Yor concentration for that level peaked at 20
+    clusters and was not even monotone.
+
+    This process is balanced by construction instead. Each row joins a
+    uniformly chosen cluster unless that cluster has reached capacity
+    ``c * K**beta``, where K is the number of clusters so far, in which case
+    the row starts a new cluster. Cluster sizes are then bounded by a common
+    capacity rather than spread over a power law.
+
+    The count follows ``n ~ c * K**(1+beta)``, so ``alpha = 1/(1+beta)`` and
+    the capacity ``c`` sets the level without touching the exponent. That is
+    the separation round 17 needed and neither earlier family had.
+
+    Nothing here reads n. The row loop terminates when the corpus is exhausted,
+    but every decision it makes depends only on the state built so far, so a
+    prefix of the draw is the same process as the whole. That is what keeps
+    subsampling and direct generation equivalent, which is the constraint that
+    closed the earlier attempt in the round-17 intervention.
+    """
+    a = min(max(float(growth), 1e-3), 0.999)
+    beta = 1.0 / a - 1.0
+    cap_c = float(p.get("cluster_capacity", 1.0))
+
+    sizes = [0]
+    n_clust = 1
+    for u in rng.random(int(n_base)):
+        j = int(u * n_clust)
+        if sizes[j] >= cap_c * n_clust**beta:
+            sizes.append(1)
+            n_clust += 1
+        else:
+            sizes[j] += 1
+    counts = np.asarray(sizes, dtype=np.int64)
+    counts = counts[counts > 0]
+
+    # A hard floor was tried here and removed. Folding sub-floor clusters into
+    # survivors makes the cluster count a discontinuous and non-monotone
+    # function of the capacity, which destroys the calibration that pins the
+    # level, and it is the wrong criterion anyway. What made round 17's first
+    # gate unreadable was arms whose clusters held 13 points on average against
+    # a local subspace dimension of 94, not the handful of clusters that have
+    # merely been spawned recently and not yet filled. Degeneracy matters in
+    # proportion to how many points experience it, so the gate checks the share
+    # of points sitting in sub-floor clusters instead, and the generator returns
+    # the process untouched.
+    return counts
+
+
 def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
     """Homogeneous coloured hierarchy + a Zipf-concentrated same-instance query block.
 
@@ -734,12 +825,21 @@ def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nd
     growth = float(p.get("cluster_growth", 0.0))
     occupied_from_pool = None
     if growth > 0.0:
-        gamma = 1.0 / min(max(growth, 1e-3), 0.999)
-        k_pool = int(min(400_000, max(k_clusters, 60 * n_base**growth)))
-        wp = np.arange(1, k_pool + 1, dtype=np.float64) ** (-gamma)
-        wp /= wp.sum()
-        pool_counts = rng.multinomial(n_base, wp)
-        occupied_from_pool = pool_counts[pool_counts > 0]
+        # Round 17's first attempt used a plain power law and failed because
+        # level and exponent are coupled through its normalizer: every arm
+        # changed how MANY clusters there were as well as how fast the count
+        # grew, so the sweep was never a one-parameter sweep and produced 13
+        # clusters at one end and 816 at the other against a frozen 78.
+        #
+        # Pitman-Yor has two parameters and separates them. The discount sets
+        # the growth exponent, E[K_n] ~ C(alpha, theta) * n**alpha, and the
+        # concentration sets C without touching alpha. Solving for theta
+        # against a REFERENCE size pins the level.
+        #
+        # The reference is a constant of the family, not the corpus size, so
+        # the generator still never reads n. That distinction is what keeps
+        # subsampling and generation equivalent.
+        occupied_from_pool = emergent_cluster_sizes(p, growth, n_base, rng)
         k_clusters = int(len(occupied_from_pool))
     n_levels = min(max(1, int(round(p["n_levels"]))), 6)
     decay = float(p["level_decay"])

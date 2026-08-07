@@ -1,0 +1,69 @@
+{
+ "d_local": 94,
+ "level_target": 78,
+ "reference_n": 12500,
+ "ns": [
+  12500,
+  25000,
+  50000
+ ],
+ "arms": [
+  {
+   "growth": 0.22,
+   "capacity": 3.972871820684576e-05,
+   "levels": [
+    79,
+    90,
+    105
+   ],
+   "measured_exponent": 0.205,
+   "sub_floor_share": 0.0591
+  },
+  {
+   "growth": 0.3,
+   "capacity": 0.008074279281650266,
+   "levels": [
+    78,
+    96,
+    119
+   ],
+   "measured_exponent": 0.305,
+   "sub_floor_share": 0.0753
+  },
+  {
+   "growth": 0.38,
+   "capacity": 0.19257134877961807,
+   "levels": [
+    78,
+    101,
+    132
+   ],
+   "measured_exponent": 0.379,
+   "sub_floor_share": 0.1019
+  },
+  {
+   "growth": 0.46,
+   "capacity": 1.562495640786281,
+   "levels": [
+    78,
+    108,
+    149
+   ],
+   "measured_exponent": 0.467,
+   "sub_floor_share": 0.1046
+  },
+  {
+   "growth": 0.55,
+   "capacity": 8.547662364490622,
+   "levels": [
+    78,
+    115,
+    168
+   ],
+   "measured_exponent": 0.553,
+   "sub_floor_share": 0.1292
+  }
+ ],
+ "reference_level_spread": 0.01278772378516624,
+ "note": "capacity is a family constant calibrated before the run; arms are matched at the reference rung and diverge above it by design, so the level precondition is checked there"
+}

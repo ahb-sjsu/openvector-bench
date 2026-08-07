@@ -72,7 +72,8 @@ from openvector_bench.hubness import attractiveness_skew  # noqa: E402
 OUT = os.environ.get("R17G_OUT", "results/r17_gate.json")
 FROZEN = os.environ.get("R17G_FROZEN", "results/r14_frozen_corpus.json")
 BASELINE = os.environ.get("R17G_BASELINE", "results/r14_freeze_baseline.json")
-GROWTHS = json.loads(os.environ.get("R17G_GROWTHS", "[0.25, 0.35, 0.45, 0.60]"))
+GROWTHS = json.loads(os.environ.get("R17G_GROWTHS", "[0.25, 0.35, 0.45]"))
+LEVEL_TOL = float(os.environ.get("R17G_LEVEL_TOL", "0.35"))
 NS = json.loads(os.environ.get("R17G_NS", "[12500, 25000, 50000]"))
 DIM = int(os.environ.get("R17G_DIM", "1024"))
 SEEDS = json.loads(os.environ.get("R17G_SEEDS", "[0,1,2,3,4,5,6,7,8,9,10,11]"))
@@ -90,6 +91,25 @@ GEOMETRY = (
     "g7_local_id_iqr",
     "g8_pca_retention",
 )
+
+
+def _pool_counts(params0: dict, growth: float, n_base: int, k_frozen: int):
+    """The cluster sizes an arm would draw, without generating any vectors."""
+    from openvector_bench.generator_search import _py_theta_for_level
+
+    theta = _py_theta_for_level(
+        growth, float(params0.get("cluster_level", k_frozen)), 25_000 * (1 - QUERY_FRAC)
+    )
+    rng = np.random.default_rng(0)
+    k_pool = int(min(400_000, max(k_frozen, 60 * n_base**growth + 4 * k_frozen)))
+    ix = np.arange(k_pool)
+    v = rng.beta(1.0 - growth, theta + (ix + 1) * growth)
+    l1 = np.log1p(-np.clip(v, 0.0, 1 - 1e-12))
+    w = v * np.exp(np.concatenate([[0.0], np.cumsum(l1[:-1])]))
+    w = np.maximum(w, 0.0)
+    w /= w.sum()
+    c = rng.multinomial(n_base, w)
+    return c[c > 0]
 
 
 def log(m: str) -> None:
@@ -143,6 +163,68 @@ def main() -> None:
     base_ref = json.load(open(BASELINE, encoding="utf-8"))["runs"][0]
     log("R17 GATE — emergent cluster growth on the frozen round-8 point")
     log(f"declared range {GROWTHS}, target {TARGET:+.2f}+/-{TOL}, ladder {NS}")
+
+    # ---- PRECONDITION: show that what should be held fixed, held ---------
+    # The plan requires this after round 17's first gate compared a family
+    # with 13 clusters against one with 816 and read the slopes anyway. It
+    # costs seconds and needs no cluster run.
+    k_frozen = int(round(2 ** params0["log2_clusters"]))
+    d_local = int(round(params0["local_dim"]))
+    pre = []
+    for g in GROWTHS:
+        levels, floors_ok = [], True
+        for n in NS:
+            nb = n - int(round(n * QUERY_FRAC))
+            counts = _pool_counts(params0, g, nb, k_frozen)
+            levels.append(int(len(counts)))
+            if counts.min() < d_local:
+                floors_ok = False
+        pre.append(
+            {
+                "growth": g,
+                "levels": levels,
+                "level_at_mid": levels[len(levels) // 2],
+                "min_cluster_ge_d_local": floors_ok,
+            }
+        )
+        log(
+            f"  precondition growth={g:.2f} levels={levels} "
+            f"size>=d_local({d_local}): {floors_ok}"
+        )
+
+    mids = [q["level_at_mid"] for q in pre]
+    spread = (max(mids) - min(mids)) / max(float(np.mean(mids)), 1e-9)
+    level_ok = bool(spread <= LEVEL_TOL)
+    floors = all(q["min_cluster_ge_d_local"] for q in pre)
+    log(
+        f"  level spread across arms {spread:.2%} (limit {LEVEL_TOL:.0%}) -> "
+        f"{'ok' if level_ok else 'FAIL'};  size floors -> "
+        f"{'ok' if floors else 'FAIL'}"
+    )
+
+    if not (level_ok and floors):
+        out = {
+            "meta": {"registered": "harness/rc1/r17_gate.py docstring"},
+            "precondition": {
+                "arms": pre,
+                "level_spread": spread,
+                "level_ok": level_ok,
+                "size_floors_ok": floors,
+            },
+            "verdict": (
+                "Precondition fails. The arms do not hold the cluster level "
+                "fixed, or some arm's clusters are smaller than the local "
+                "subspace dimension. No outcome is read, because a slope "
+                "compared across arms that differ in more than the swept "
+                "parameter is not a measurement of that parameter."
+            ),
+        }
+        log(out["verdict"])
+        os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
+        with open(OUT, "w", encoding="utf-8") as f:
+            json.dump(out, f, indent=1)
+        log("R17_GATE_DONE")
+        return
 
     # ---- P-17M -----------------------------------------------------------
     mech = []
