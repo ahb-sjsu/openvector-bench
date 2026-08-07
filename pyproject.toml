@@ -29,7 +29,12 @@ dependencies = ["numpy>=1.24", "scipy>=1.10"]
 [project.optional-dependencies]
 gpu = ["torch>=2.0"]
 sources = ["huggingface-hub>=0.23", "pyarrow>=14"]
-dev = ["pytest>=7", "ruff~=0.15.0", "black~=26.5"]
+# black is pinned EXACTLY, not with ~=. Its output changed on a patch
+# release twice: ebdb3c4 loosened the pin to ~=26.5 to fix drift, and on
+# 2026-08-07 a 26.5.x bump reformatted geometry.py and left CI red for four
+# days. A formatter that can change output on a patch bump must not float.
+# Bump this line deliberately, and reformat in the same commit.
+dev = ["pytest>=7", "ruff~=0.15.0", "black==26.5.1"]
 
 [project.urls]
 Homepage = "https://github.com/ahb-sjsu/openvector-bench"
