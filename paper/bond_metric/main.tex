@@ -1002,20 +1002,41 @@ law that re-expresses at every sampling scale. A construction that carries
 hub mass in a fixed set of owners cannot imitate that, because its owners
 either keep their counts under thinning or vanish with it.
 
-The same failure has now been met at three levels. It was first met with
-planted owner rows. It was met again with planted counts, which survive
-subsampling while the reference thins. It was met a third time with a fixed
-codebook, where hub mass lives in atom popularity rather than in rows. The
-third case was predicted to be safe, on the argument that a popularity law
-over a codebook is a population law and therefore scale free. Measured, its
-hub concentration \emph{rises} with corpus size where the real corpus
-declines, because adding rows to a codebook of fixed size crowds the same
-attractors. A fixed codebook is a fixed set of owners one level up.
+The same failure has now been met at four levels, and the fourth corrects
+our reading of the first three. It was first met with planted owner rows. It
+was met again with planted counts, which survive subsampling while the
+reference thins. It was met a third time with a fixed codebook, where hub
+mass lives in atom popularity rather than in rows, and whose concentration
+grows with corpus size about six times faster than the real corpus does.
 
-We state this as the operative lesson rather than as a conjecture. Any
-construction in which the number of attractors does not grow with the corpus
-will fail subsample covariance, and the direction of the failure is
-predictable from whether the attractors are enumerable.
+At that point we stated an operative lesson, that any construction whose
+number of attractors does not grow with the corpus will fail, and that the
+direction of failure is predictable from whether the attractors are
+enumerable. We then registered and ran the test that lesson implies. A
+codebook was given a Pitman-Yor popularity law, so that the number of atoms a
+corpus touches grows as $n^{lpha}$ with the growth emergent rather than
+instructed. The growth works, with nominal $lpha$ of $0.3$, $0.5$ and $0.7$
+producing measured growth exponents of $0.329$, $0.509$ and $0.730$. The hub
+scaling does not move. Every $lpha$ in the declared range gives a slope
+between $+2.5$ and $+3.8$ per decade against a real $+0.51$, and the fixed
+codebook sits inside that same range at $+2.9$.
+
+The lesson was therefore wrong, and its replacement is narrower. The
+operative variable is not the number of attractors but the \emph{shape} of
+the popularity law. Pitman-Yor stick-breaking gives a power-law tail whose
+exponent does not depend on corpus size, and sampling a fixed heavy tail more
+deeply reveals more of its extreme, so observed skewness rises at a rate set
+by the tail exponent and not by how many atoms have been discovered.
+Discovering atoms faster adds atoms in the same proportions. It changes the
+count and leaves the shape alone.
+
+What survives is a statement about scale invariance rather than about
+enumerability. A corpus whose attractiveness distribution has a
+scale-invariant shape will show hub concentration rising at the rate that
+shape dictates. The real corpus rises far more slowly than any such
+construction we have measured, so its attractiveness law is not
+scale-invariant in shape, and something flattens it as the corpus grows. We
+do not know what.
 
 \section{Implications}\label{sec:implications}
 

@@ -1,0 +1,93 @@
+{
+ "meta": {
+  "registered": "harness/rc1/r16_py_gate.py docstring",
+  "family": "py_codebook_corpus",
+  "target_slope": 0.51,
+  "tolerance": 0.15,
+  "target_source": "results/r14_real_targets_wide.json (k=10, 3 measurements, spread 0.07)",
+  "declared_alpha_range": [
+   0.2,
+   0.8
+  ],
+  "base_params": {
+   "py_theta": 10.0,
+   "atoms_per_row": 8,
+   "concentration": 0.3,
+   "noise": 0.05
+  },
+  "ns": [
+   12500,
+   25000,
+   50000
+  ],
+  "rho": 4.0,
+  "k": 10,
+  "seeds": [
+   0,
+   1,
+   2
+  ]
+ },
+ "arms": [
+  {
+   "py_alpha": 0.2,
+   "slope": 2.939702421110327,
+   "per_seed": [
+    2.946153160430953,
+    3.617997538355802,
+    2.2549565645442256
+   ],
+   "spread": 1.3630409738115765,
+   "within_tolerance": false
+  },
+  {
+   "py_alpha": 0.35,
+   "slope": 2.5342765592743173,
+   "per_seed": [
+    2.7440391875426333,
+    2.2912254325900827,
+    2.5675650576902354
+   ],
+   "spread": 0.4528137549525506,
+   "within_tolerance": false
+  },
+  {
+   "py_alpha": 0.5,
+   "slope": 2.859695014743973,
+   "per_seed": [
+    2.680307072835714,
+    2.840164901489931,
+    3.058613069906274
+   ],
+   "spread": 0.37830599707056,
+   "within_tolerance": false
+  },
+  {
+   "py_alpha": 0.65,
+   "slope": 3.8249675207723257,
+   "per_seed": [
+    4.75937212259997,
+    3.1928009918477094,
+    3.522729447869298
+   ],
+   "spread": 1.5665711307522607,
+   "within_tolerance": false
+  },
+  {
+   "py_alpha": 0.8,
+   "slope": 3.187940182392825,
+   "per_seed": [
+    2.59534440823613,
+    5.425811349340443,
+    1.542664789601902
+   ],
+   "spread": 3.8831465597385413,
+   "within_tolerance": false
+  }
+ ],
+ "P16A": {
+  "monotone": false,
+  "passes": false
+ },
+ "verdict": "P-16A fails. Either the slope is not monotone in py_alpha, in which case the family has no controller, or no value in the declared range reaches the target. Closed as registered."
+}
