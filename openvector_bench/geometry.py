@@ -182,7 +182,9 @@ def cascade_spectrum_gate(
     r1 = d[:, 0].astype(np.float64)
     r2 = d[:, 1].astype(np.float64)
     ok = r1 > 0
-    cut = float(ref_r1_median) if ref_r1_median is not None else float(np.median(r1[ok]))
+    cut = (
+        float(ref_r1_median) if ref_r1_median is not None else float(np.median(r1[ok]))
+    )
     sub = r1[ok & (r1 < cut)]
     out: dict[str, float | bool | int | str] = {
         "n_sub_ambient": int(len(sub)),
