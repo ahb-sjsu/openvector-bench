@@ -1397,7 +1397,7 @@ def py_codebook_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.n
 
     # Directions only for atoms this corpus actually touched.
     a_rng = np.random.default_rng(seed + 991)
-    basis = a_rng.standard_normal((len(used), dim))
+    basis = a_rng.standard_normal((len(used), dim)).astype(np.float32)
     basis /= np.maximum(np.linalg.norm(basis, axis=1, keepdims=True), 1e-12)
 
     out = np.empty((n, dim), dtype=np.float32)
@@ -1405,11 +1405,18 @@ def py_codebook_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.n
     for a in range(0, n, block):
         k = min(a + block, n) - a
         g = rng.gamma(shape=mu, scale=1.0, size=(k, s))
-        c = g / np.maximum(g.sum(axis=1, keepdims=True), 1e-300)
-        x = np.einsum("bs,bsd->bd", c, basis[compact[a : a + k]])
+        c = (g / np.maximum(g.sum(axis=1, keepdims=True), 1e-300)).astype(np.float32)
+        # Accumulate one atom slot at a time. The natural expression gathers
+        # (block, s, dim) at once, which at s = 8 and dim = 1024 is eight
+        # times this working set and OOMed a 2Gi worker. Per-slot accumulation
+        # holds (block, dim) and costs nothing but a short Python loop.
+        x = np.zeros((k, dim), dtype=np.float32)
+        sup = compact[a : a + k]
+        for j in range(s):
+            x += c[:, j : j + 1] * basis[sup[:, j]]
         if noise > 0:
-            x += noise * rng.standard_normal((k, dim))
-        out[a : a + k] = x.astype(np.float32)
+            x += (noise * rng.standard_normal((k, dim))).astype(np.float32)
+        out[a : a + k] = x
     return normalize(out)
 
 
