@@ -1,0 +1,47 @@
+{
+ "meta": {
+  "status": "OUTSIDE THE REGISTRATION - licenses no claim; the registered verdict in r17c_gate.json stands regardless",
+  "why": "outcome B was registered as a range on point estimates, max-min <= 0.15, which five arms with SE near 0.2 would fail most of the time even under a truly flat family",
+  "gate_source": "results/r17c_gate.json",
+  "permutations": 20000,
+  "flat_band": 0.15
+ },
+ "growths": [
+  0.22,
+  0.3,
+  0.38,
+  0.46,
+  0.55
+ ],
+ "arm_medians": [
+  0.6672286461025727,
+  0.43251384461837483,
+  0.7504353242621455,
+  0.3054580112201433,
+  0.517566709671424
+ ],
+ "bootstrap_ses": [
+  0.1439007338414007,
+  0.2270205198283981,
+  0.22300793854296758,
+  0.13785383856890546,
+  0.10386195474280582
+ ],
+ "observed_range": 0.4449773130420022,
+ "permutation": {
+  "p_value": 0.2535373231338433,
+  "null_mean_range": 0.3675549597882411,
+  "flat_band_pass_rate_under_null": 0.01725
+ },
+ "cochran": {
+  "Q": 4.676377124026856,
+  "df": 4,
+  "p_value": 0.3221428337070027,
+  "I2": 0.14463699271636662,
+  "pooled_slope": 0.5136981307724782,
+  "pooled_se": 0.06549455559748107
+ },
+ "arms_distinguishable": false,
+ "tests_agree": true,
+ "reading": "The arms are not distinguishable on either test. Their spread is what a family with no dependence on the growth exponent produces at this seed count, so the registered verdict rests on a criterion a true positive would also have failed, and says nothing about whether the growth exponent is the lever."
+}
