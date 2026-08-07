@@ -1,0 +1,150 @@
+{
+ "meta": {
+  "question": "was attractiveness_skew in its stable regime in the cells round 17b's gate read?",
+  "ns": [
+   12500,
+   25000,
+   50000
+  ],
+  "dim": 1024,
+  "rho": 4.0,
+  "k": 10,
+  "seeds": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "var_w_floor": 0.05,
+  "note": "reported, not gated; decides which of the gate's arms carry an interpretable slope"
+ },
+ "arms": [
+  {
+   "growth": 0.22,
+   "cells": [
+    {
+     "n": 12500,
+     "dispersion_index": 2.80278,
+     "var_w": 0.45069500000000007,
+     "readable": true
+    },
+    {
+     "n": 25000,
+     "dispersion_index": 2.8304549999999997,
+     "var_w": 0.45761375000000004,
+     "readable": true
+    },
+    {
+     "n": 50000,
+     "dispersion_index": 3.115305,
+     "var_w": 0.5288262499999999,
+     "readable": true
+    }
+   ],
+   "all_readable": true
+  },
+  {
+   "growth": 0.3,
+   "cells": [
+    {
+     "n": 12500,
+     "dispersion_index": 2.7593700000000005,
+     "var_w": 0.43984249999999997,
+     "readable": true
+    },
+    {
+     "n": 25000,
+     "dispersion_index": 2.78941,
+     "var_w": 0.44735250000000004,
+     "readable": true
+    },
+    {
+     "n": 50000,
+     "dispersion_index": 3.0996699999999997,
+     "var_w": 0.5249174999999999,
+     "readable": true
+    }
+   ],
+   "all_readable": true
+  },
+  {
+   "growth": 0.38,
+   "cells": [
+    {
+     "n": 12500,
+     "dispersion_index": 2.6617699999999997,
+     "var_w": 0.4154425,
+     "readable": true
+    },
+    {
+     "n": 25000,
+     "dispersion_index": 2.8230250000000003,
+     "var_w": 0.45575625,
+     "readable": true
+    },
+    {
+     "n": 50000,
+     "dispersion_index": 3.110225,
+     "var_w": 0.52755625,
+     "readable": true
+    }
+   ],
+   "all_readable": true
+  },
+  {
+   "growth": 0.46,
+   "cells": [
+    {
+     "n": 12500,
+     "dispersion_index": 2.89736,
+     "var_w": 0.47434,
+     "readable": true
+    },
+    {
+     "n": 25000,
+     "dispersion_index": 2.7931,
+     "var_w": 0.448275,
+     "readable": true
+    },
+    {
+     "n": 50000,
+     "dispersion_index": 3.29558,
+     "var_w": 0.573895,
+     "readable": true
+    }
+   ],
+   "all_readable": true
+  },
+  {
+   "growth": 0.55,
+   "cells": [
+    {
+     "n": 12500,
+     "dispersion_index": 2.7340099999999996,
+     "var_w": 0.43350249999999996,
+     "readable": true
+    },
+    {
+     "n": 25000,
+     "dispersion_index": 2.85499,
+     "var_w": 0.4637475,
+     "readable": true
+    },
+    {
+     "n": 50000,
+     "dispersion_index": 3.2936775,
+     "var_w": 0.573419375,
+     "readable": true
+    }
+   ],
+   "all_readable": true
+  }
+ ],
+ "readable_arms": [
+  0.22,
+  0.3,
+  0.38,
+  0.46,
+  0.55
+ ]
+}
