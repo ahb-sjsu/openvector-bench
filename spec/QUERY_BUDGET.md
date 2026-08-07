@@ -96,6 +96,45 @@ proportionally fat when occupancy is low. The registered ladder's top cell
 at k = 10 runs at `rho` = 0.5. It needs more queries, not a cleverer
 reduction.
 
+## 3b. G6 needs the same treatment, and the correction runs the other way
+
+G6 is the skewness of the count vector, and it must pass in **every** cell
+under the admission rule. A Poisson(`rho`) count vector has skewness exactly
+`1/sqrt(rho)`, so G6's null term **rises** as occupancy falls — the opposite
+direction to `count_max`'s ceiling. On the round-11 real reference:
+
+| k | n=25,000 | 50,000 | 100,000 | 200,000 |
+|---|---|---|---|---|
+| 10 | 3.19× | 2.14× | 1.58× | **1.27×** |
+| 30 | 6.05× | 4.01× | 2.66× | 1.85× |
+| 100 | 11.07× | 7.95× | 5.34× | 3.54× |
+
+At k = 10, n = 200,000, real's hubness is **1.27×** the structureless
+expectation: the measured `s_k` of 1.79 sits against a null of 1.41, so
+that cell is 79% null. Because the gate is a ratio and the null term depends
+only on `rho` — identical for candidate and reference — both sides are
+pinned near the same floor and **R → 1 regardless of hub structure.** The
+gate does not merely lose power there; it approaches a free pass.
+
+**This unifies both of round 11's observations.** Raw `s_k` looked
+n-stable (+0.056/decade at k = 10) while raw `count_max` fell sharply. In
+null-corrected terms they are one fact: hub structure declines with n, at
+−0.443/decade by the skew route and −0.329/decade by the maximum route. The
+apparent difference between the two statistics was two null terms moving in
+opposite directions.
+
+**The invariant form.** Model a point's count as Poisson(`rho`·w) with w its
+attractiveness under the query measure. Then `Var(c) = rho + rho² Var(w)`
+and `mu3(c) = rho + 3 rho² Var(w) + rho³ mu3(w)`, so skew(w) is recoverable
+and is a property of the corpus and query measure alone.
+`attractiveness_skew` does this deconvolution. Verified on a fixed corpus
+measured at `rho` ∈ {0.5, 1, 2, 4}: raw `s_k` moves 2.46 → 5.59 while the
+estimator holds 10.02 → 9.84 against a true 9.85.
+
+An intermediate attempt, `s_k * sqrt(rho)`, is **not** invariant — it
+over-corrects, moving 1.74 → 11.19 on that same data — and was removed
+rather than shipped.
+
 ## 4. Rules
 
 1. **Report `rho` on every cell.** A count statistic without its budget is
@@ -111,6 +150,9 @@ reduction.
    dominated by the null ceiling and should not carry a gate on their own.
 6. **Prefer `tail_excess` to `hub_excess` for gates.** Same null discipline,
    roughly 10x the signal-to-noise.
+6a. **State G6 as `attractiveness_skew`.** Raw `s_k` mixes structure with
+   occupancy and its null term rises as the budget falls, which makes the
+   per-cell gate approach a free pass at the top of the ladder.
 7. **Keep `rho` >= 2 on any cell that carries a gate.** Below that no count
    statistic has usable power, whatever its form. For the registered ladder
    at k = 10 this means `n_query` >= 0.2 * `n_base` — the current fixed

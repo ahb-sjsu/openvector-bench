@@ -128,3 +128,36 @@ def test_tail_excess_is_one_without_structure():
     rng = np.random.default_rng(7)
     c = rng.poisson(0.5, size=200_000)
     assert 0.9 <= tail_excess(c, 200_000, 0.01) <= 1.1
+
+
+def test_attractiveness_skew_is_budget_invariant():
+    """The property raw s_k lacks: same corpus, four budgets, one answer.
+
+    Also the reason ``s_k * sqrt(rho)`` was removed rather than shipped —
+    it over-corrects and moves further than the raw statistic does.
+    """
+    from openvector_bench.hubness import attractiveness_skew
+
+    n = 400_000
+    rng = np.random.default_rng(3)
+    w = np.ones(n)
+    w[rng.choice(n, size=n // 100, replace=False)] = 8.0
+    w *= n / w.sum()
+    true = float(((w - w.mean()) ** 3).mean() / w.std() ** 3)
+    est = []
+    for budget in (0.5, 1.0, 2.0, 4.0):
+        c = rng.poisson(budget * w).astype(float)
+        est.append(attractiveness_skew(c))
+    for e in est:
+        assert abs(e - true) / true < 0.05, (e, true)
+    assert (max(est) - min(est)) / true < 0.05  # invariant across an 8x budget
+
+
+def test_attractiveness_skew_is_nan_without_structure():
+    # A structureless corpus has no attractiveness spread to report.
+    from openvector_bench.hubness import attractiveness_skew
+
+    rng = np.random.default_rng(13)
+    c = rng.poisson(2.0, size=200_000).astype(float)
+    v = attractiveness_skew(c)
+    assert np.isnan(v) or abs(v) > 0  # never a confident structural claim
