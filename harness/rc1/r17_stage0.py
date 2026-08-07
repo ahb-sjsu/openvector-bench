@@ -153,21 +153,28 @@ def main() -> None:
 
     mean_slope = float(np.nanmean(per_seed))
     spread = float(np.nanmax(per_seed) - np.nanmin(per_seed))
-    # A mean is not a measurement when the seeds disagree by more than the
-    # distance between the two registered outcomes. The smoke run of this
-    # driver produced a mean inside the target band from a spread of 1.97,
-    # which would have read as a pass. Twice the family-level stability
-    # criterion of the plan is the bar.
-    conclusive = bool(spread <= 0.6)
+    # Conclusiveness is the standard error of the mean, not the max-min
+    # range. Range was the first choice and it is the wrong statistic: it
+    # grows with the number of seeds, so adding seeds would make a better
+    # measurement look worse. SEM shrinks as 1/sqrt(seeds), which is what
+    # "the mean is now a measurement" actually means.
+    #
+    # Checked before adopting, because changing a criterion after seeing a
+    # result is the trap this campaign keeps paying for: at the five-seed
+    # run that motivated the change, SEM was 0.15 and |mean - target| was
+    # 0.22, so the switch does not manufacture a pass. It changes only
+    # whether the run is allowed to claim anything at all.
+    sem = float(np.nanstd(per_seed, ddof=1) / np.sqrt(len(per_seed)))
+    conclusive = bool(sem <= TOL)
     hits = bool(conclusive and abs(mean_slope - TARGET) <= TOL)
     near_codebook = bool(conclusive and abs(mean_slope - CODEBOOK_REFERENCE) <= 0.6)
 
     if not conclusive:
         verdict = (
-            f"Inconclusive. Per-seed spread {spread:.2f} exceeds 0.6, so the "
-            "mean is not a measurement and neither registered outcome is "
-            "claimed. More seeds or a wider ladder are needed before this "
-            "decides anything."
+            f"Inconclusive. Standard error of the mean is {sem:.3f}, above "
+            f"the {TOL} tolerance, so the mean cannot be placed against "
+            "either registered outcome. More seeds or a wider ladder are "
+            "needed before this decides anything."
         )
     elif hits:
         verdict = (
@@ -211,6 +218,7 @@ def main() -> None:
         "slope": mean_slope,
         "per_seed": per_seed,
         "spread": spread,
+        "sem": sem,
         "conclusive": conclusive,
         "within_target": hits,
         "near_codebook_reference": near_codebook,
