@@ -224,6 +224,29 @@ time-indexed relative of round 17.
 
 ---
 
+## 4a. Preconditions, added after round 17 (2026-08-07)
+
+Round 17's gate failed with a mechanism check that passed cleanly, for the
+third time in this campaign ([`R17_GATE.md`](R17_GATE.md)). Its arms varied
+the cluster count's **level** as well as its growth rate, so the sweep was
+never a one-parameter sweep, and a family with a sixth of the frozen
+family's clusters was compared against one with ten times as many.
+
+**Therefore, before any outcome is read, every quantity the family is
+supposed to hold fixed must be shown to have held.** For a family modifying
+a frozen point this means reporting, for every arm, the value of each
+structural quantity the modification was not meant to touch. Round 17's
+would have been one table of cluster counts, computable in seconds without a
+cluster run, and it would have caught the defect before submission.
+
+**A second precondition, specific to this family.** No arm may be scored
+whose clusters hold fewer points than the local subspace dimension. With
+`d_local` ≈ 94, an arm averaging 13 points per cluster has degenerate local
+geometry and its slope is noise rather than signal.
+
+Verifying a knob does what it claims is necessary and nowhere near
+sufficient. A family can vary something that was never parameterised at all.
+
 ## 5. Multiple-comparison discipline
 
 Three families against one target, each with a knob swept over roughly five
