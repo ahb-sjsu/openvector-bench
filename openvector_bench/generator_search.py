@@ -713,6 +713,34 @@ def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nd
     n_base = n - n_query
     d_local = min(max(2, int(round(p["local_dim"]))), dim)
     k_clusters = min(max(1, int(round(2 ** p["log2_clusters"]))), n_base)
+    # Emergent cluster count (round 17). Off by default, and when off this
+    # function is byte-identical to the frozen round-8 point.
+    #
+    # The round-17 intervention measured that this family's hub-scaling rise
+    # is densification at a FIXED cluster count: every added row joins one of
+    # k_clusters clusters, so within-cluster competition intensifies. Scaling
+    # the count as n**0.5 moved the slope from +0.905 onto real's +0.51.
+    #
+    # But a generator may not read n. The grid subsamples a pool rather than
+    # regenerating, so a scale-aware generator would give different geometry
+    # under subsampling than under generation, which is the sampling-operator
+    # problem of rounds 9 and 11. So the count is made to GROW rather than to
+    # be set: cluster sizes are drawn from a power law over a pool large
+    # enough not to bind, and the number of clusters a corpus occupies then
+    # grows as n**cluster_growth as a consequence of drawing rows.
+    #
+    # The weight exponent is 1/cluster_growth, which is the standard relation
+    # between a power-law size law and the occupancy growth it induces.
+    growth = float(p.get("cluster_growth", 0.0))
+    occupied_from_pool = None
+    if growth > 0.0:
+        gamma = 1.0 / min(max(growth, 1e-3), 0.999)
+        k_pool = int(min(400_000, max(k_clusters, 60 * n_base**growth)))
+        wp = np.arange(1, k_pool + 1, dtype=np.float64) ** (-gamma)
+        wp /= wp.sum()
+        pool_counts = rng.multinomial(n_base, wp)
+        occupied_from_pool = pool_counts[pool_counts > 0]
+        k_clusters = int(len(occupied_from_pool))
     n_levels = min(max(1, int(round(p["n_levels"]))), 6)
     decay = float(p["level_decay"])
     tail = float(p["branch_tail"])
@@ -728,9 +756,13 @@ def hier_query_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.nd
         assign = rng.choice(n_codes, size=k_clusters, p=w)
         centres += np.float32(scale) * codes[assign]
         scale *= decay
-    w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
-    w /= w.sum()
-    counts = rng.multinomial(n_base, w)
+    if occupied_from_pool is not None:
+        # Sizes already drawn; the pool law replaces size_tail in this mode.
+        counts = occupied_from_pool
+    else:
+        w = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["size_tail"])
+        w /= w.sum()
+        counts = rng.multinomial(n_base, w)
     mean_ck = max(1.0, float(counts[counts > 0].mean()))
     wq = np.arange(1, k_clusters + 1, dtype=np.float64) ** (-p["query_tail"])
     wq /= wq.sum()

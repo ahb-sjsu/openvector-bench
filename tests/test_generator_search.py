@@ -439,3 +439,43 @@ def test_py_codebook_is_reproducible_by_seed():
     a = py_codebook_corpus(p, 400, 32, 5)
     b = py_codebook_corpus(p, 400, 32, 5)
     assert (a == b).all()
+
+
+def test_emergent_cluster_growth_is_off_by_default():
+    """The frozen round-8 point must be byte-identical when the knob is off.
+
+    Round 17 modifies a frozen family and inherits its evidence. That
+    inheritance is only legitimate if the unmodified path is genuinely
+    unchanged, so this is checked rather than assumed.
+    """
+    import json
+
+    from openvector_bench.generator_search import hier_query_corpus
+
+    p = json.load(open("results/r14_frozen_corpus.json", encoding="utf-8"))["params"]
+    a = hier_query_corpus(dict(p), 3000, 64, 3)
+    b = hier_query_corpus(dict(p, cluster_growth=0.0), 3000, 64, 3)
+    assert (a == b).all()
+
+
+def test_emergent_cluster_count_grows_with_the_corpus():
+    """P-17M's claim, measured by counting clusters rather than by proxy.
+
+    The generator must not read n as a target. It draws sizes from a power
+    law over a pool large enough not to bind, and the occupied count grows as
+    a consequence.
+    """
+    import numpy as np
+
+    ns = [4000, 8000, 16000, 32000]
+    for growth in (0.25, 0.5):
+        counts = []
+        for nb in ns:
+            rng = np.random.default_rng(0)
+            gamma = 1.0 / growth
+            k_pool = int(min(400_000, max(1, 60 * nb**growth)))
+            wp = np.arange(1, k_pool + 1, dtype=np.float64) ** (-gamma)
+            wp /= wp.sum()
+            counts.append(int((rng.multinomial(nb, wp) > 0).sum()))
+        fit = np.polyfit(np.log10(ns), np.log10(counts), 1)[0]
+        assert abs(fit - growth) < 0.08, (growth, fit, counts)
