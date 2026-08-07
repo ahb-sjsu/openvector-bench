@@ -89,14 +89,37 @@ that this round exists to test.
   G7, G8 stay within the band they held at freeze, and `bb_skew` stays in
   its anatomy band. Claim under test: the corpus/query split is sufficient
   to reach admission on the retrieval gates without further corpus surgery.
-- **P-14B (query-model subsample covariance).** The fitted query model's
-  count statistics hold their **level** under the grid's own sampling
-  operator: |Δ S_k slope| ≤ 0.05/decade at every k across the full ladder,
-  with the level in band at every cell. Claim under test: the query model
-  carries hub mass as a population law rather than as fixed interrogation
-  targets. **This is the prediction most likely to fail**, because it is the
-  same property that defeated every corpus-side mechanism, and it is
+- **P-14B (query-model scaling matches real).** The fitted query model's
+  hub scaling matches the real corpus under the grid's own sampling
+  operator, measured as `attractiveness_skew` and compared against real's
+  own measured slope, within ±0.15/decade at every k across the full ladder.
+  Claim under test: the query model reproduces how real hub structure
+  changes with corpus size, rather than merely its level at one scale.
+  **This remains the prediction most likely to fail**, because it is the
+  property that defeated every corpus-side mechanism, and it stays
   registered separately so that a P-14A pass cannot disguise a P-14B fail.
+
+  **Amended 2026-08-07, and the reason matters more than the number.** This
+  clause previously required |Δ S_k slope| ≤ 0.05/decade, a *flatness*
+  criterion. Flatness was never a free parameter chosen for difficulty. It
+  was "match real", written when real was believed to hold its level, which
+  came from round 11 read through raw count statistics. Real does not hold
+  its level. Measured in the only form shown to survive a change of budget
+  protocol, real's attractiveness skew **rises** at +0.47 to +0.54 per decade
+  at k = 10 and +0.37 to +0.45 at k = 30
+  ([`R13_PROTOCOL_CHECK.md`](R13_PROTOCOL_CHECK.md),
+  [`r14_real_invariant_targets.json`](r14_real_invariant_targets.json), both
+  protocols agreeing to within 0.07). As written, the clause would have
+  **rejected a generator that correctly matched real**.
+
+  The intent of the criterion is unchanged and the target is now measured
+  rather than assumed. The tolerance of ±0.15/decade is set to roughly three
+  times the between-protocol disagreement, not to any candidate's
+  performance, and no candidate has been measured against it. Recording this
+  explicitly because amending a threshold after seeing data is the
+  circularity this campaign keeps paying for, and the distinction being
+  claimed here is that the *target* was mis-measured, not that the *bar* was
+  inconvenient.
 - **P-14C (geometry is not silently paid for).** Freezing the corpus and
   searching only the query model leaves the geometry gates unmoved beyond
   draw noise: each of G1, G3, G4, G7, G8 changes by ≤ 0.05× from its frozen
@@ -110,11 +133,13 @@ that this round exists to test.
   model alone at this corpus point. Report which gate resists and at which
   k; that localizes whether the residue is ball growth or hubness, which are
   different mechanisms. Do not unfreeze the corpus inside the round.
-- **P-14B fails** → the sampling-operator problem is a property of the
-  *object*, not of any one layer: it defeated corpus mechanisms in rounds 9
-  and 11 and defeats query mechanisms here. That is the strongest available
-  evidence for the capacity conjecture and it is the finding, not a setback.
-  Report and stop; no third layer is invented to carry hub mass.
+- **P-14B fails** → the scaling problem is a property of the *object*, not
+  of any one layer: it defeated corpus mechanisms in rounds 9 and 11 and
+  defeats query mechanisms here. That is the strongest available evidence for
+  the capacity conjecture and it is the finding, not a setback. Report and
+  stop; no third layer is invented to carry hub mass. Report the measured
+  slope alongside real's, since the *direction* of the miss now carries
+  information it did not when the target was believed flat.
 - **P-14C fails** → the layers interact in the generator despite being
   nearly independent in real data. The interaction surface is then the
   object; measure and report it rather than tuning through it.

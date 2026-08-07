@@ -80,6 +80,32 @@ which is exactly the calibration circularity the campaign keeps paying for.
 If it is built, α is registered in advance and the family faces the same gate
 first.
 
+## Addendum 2026-08-07: the verdict stands, the reason changes
+
+This gate tested |slope| ≤ 0.05, a flatness criterion, against a target then
+believed flat. Real is not flat. Measured in the invariant form it rises at
++0.47 to +0.54 per decade at k = 10, so the correct comparison for this
+family is against a rising target rather than against zero.
+
+The verdict is unchanged. The family's slope is +2.93/decade against a real
++0.5, roughly six times too steep, with a per-seed spread from −1.26 to
++7.18 that is itself disqualifying. **What changes is the diagnosis.** The
+family was reported above as failing in the wrong *direction*. It does not.
+It moves the same way real moves and by far too much, which is a different
+statement about the mechanism and a more useful one.
+
+The reading that "a fixed codebook is a fixed set of owners one level up"
+survives, but its consequence is not that concentration should fall. It is
+that concentration should grow *slowly*, and a fixed codebook grows it fast
+because every added row crowds the same attractors. A codebook whose atom
+count grows with the corpus would slow that growth, and the growth exponent
+is now a fitted quantity with a measured target rather than a matter of
+taste.
+
+The gate is not reopened and the family is not retried under this
+registration. This addendum records that a successor family has a
+quantitative target where none existed before.
+
 ## Status
 
 - P-15A — **failed** (+2.93/decade mean against ≤ 0.05).
