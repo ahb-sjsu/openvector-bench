@@ -1,0 +1,120 @@
+{
+ "meta": {
+  "registered": "harness/rc1/r15_codebook_gate.py docstring",
+  "family": "dirichlet_codebook_corpus",
+  "base_params": {
+   "log2_atoms": 7.55,
+   "concentration": 0.28,
+   "atom_tail": 0.8,
+   "noise": 0.05
+  },
+  "ns": [
+   12500,
+   25000,
+   50000
+  ],
+  "dim": 1024,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "rho_held_constant": 4.0,
+  "k": 10,
+  "readouts": "invariant forms only (spec/QUERY_BUDGET.md)"
+ },
+ "cells": [
+  {
+   "seed": 0,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 7.757600448042992,
+   "tail_excess": 5.120103749268515,
+   "zero_frac": 0.142
+  },
+  {
+   "seed": 0,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 8.934610839843172,
+   "tail_excess": 6.041253048697649,
+   "zero_frac": 0.186
+  },
+  {
+   "seed": 0,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 9.494160920342766,
+   "tail_excess": 6.664935663534061,
+   "zero_frac": 0.21694
+  },
+  {
+   "seed": 1,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 7.056269934756089,
+   "tail_excess": 4.815009713788802,
+   "zero_frac": 0.1368
+  },
+  {
+   "seed": 1,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 8.216928539527487,
+   "tail_excess": 5.775664779350565,
+   "zero_frac": 0.17992
+  },
+  {
+   "seed": 1,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 11.376838370176994,
+   "tail_excess": 6.752747985284312,
+   "zero_frac": 0.2207
+  },
+  {
+   "seed": 2,
+   "n": 12500,
+   "nq": 5000,
+   "rho": 4.0,
+   "attractiveness_skew": 8.562637465918431,
+   "tail_excess": 5.1506131528164865,
+   "zero_frac": 0.13856
+  },
+  {
+   "seed": 2,
+   "n": 25000,
+   "nq": 10000,
+   "rho": 4.0,
+   "attractiveness_skew": 7.752004554408515,
+   "tail_excess": 5.766668416765907,
+   "zero_frac": 0.17812
+  },
+  {
+   "seed": 2,
+   "n": 50000,
+   "nq": 20000,
+   "rho": 4.0,
+   "attractiveness_skew": 7.803052062797719,
+   "tail_excess": 6.64440048806908,
+   "zero_frac": 0.22396
+  }
+ ],
+ "P15A": {
+  "slope_per_decade": 2.933009766969775,
+  "per_seed": [
+   2.8843645107017393,
+   7.176308835754108,
+   -1.2616440455465219
+  ],
+  "threshold": 0.05,
+  "passes": false
+ },
+ "verdict": "P-15A fails: hub mass does not re-express under the sampling operator. The family is closed here, as registered \u2014 no tuning, no second parameterization."
+}

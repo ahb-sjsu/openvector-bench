@@ -153,6 +153,14 @@ rather than shipped.
 6a. **State G6 as `attractiveness_skew`.** Raw `s_k` mixes structure with
    occupancy and its null term rises as the budget falls, which makes the
    per-cell gate approach a free pass at the top of the ladder.
+6b. **Report `attractiveness_skew` with a seed spread on heavy-tailed
+   corpora, and prefer `tail_excess` as the primary readout.** Its
+   deconvolution divides by `Var(w)^1.5`, so under a Zipf popularity law the
+   third moment is carried by a few atoms and the estimator inherits their
+   draw noise. Measured on the round-15 codebook family: per-seed slopes
+   spanned -1.26 to +7.18 while `tail_excess` agreed across seeds to within
+   5% on every cell. Its rho-invariance is unaffected; its variance is the
+   problem.
 7. **Keep `rho` >= 2 on any cell that carries a gate.** Below that no count
    statistic has usable power, whatever its form. For the registered ladder
    at k = 10 this means `n_query` >= 0.2 * `n_base` — the current fixed
