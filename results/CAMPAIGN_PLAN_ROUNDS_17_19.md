@@ -247,6 +247,57 @@ geometry and its slope is noise rather than signal.
 Verifying a knob does what it claims is necessary and nowhere near
 sufficient. A family can vary something that was never parameterised at all.
 
+## 4b. Round 17b, and a constraint on a whole class of families
+
+Registered in [`PREREG_ROUND17B.md`](PREREG_ROUND17B.md) on 2026-08-07.
+
+Building the corrected family produced a result that outlives this round, so
+it is recorded here rather than only in the registration. Two candidate
+parameterisations were killed at design time, and the second killed a class.
+
+**Heavy tails and a floor are incompatible at a fixed level.** Any
+exchangeable process whose cluster count grows as `n**alpha` has an occupancy
+distribution with a power-law tail, so most of its clusters hold a handful of
+points. That puts three of this round's requirements in direct conflict: a
+cluster count near the frozen 78, clusters larger than the local subspace
+dimension of 94, and a count that grows without the generator reading n. At
+the reference rung, 78 clusters over 11,111 points averages 141 against a
+floor of 94, which demands near-balanced clusters, and a heavy tail cannot
+supply them. Solving the Pitman-Yor concentration for that level peaked at
+about 20 clusters and was not monotone in the concentration.
+
+This rules out the Chinese-restaurant and Pitman-Yor processes that
+`R17_INTERVENTION.md` proposed, and by the same argument any other
+exchangeable partition process, whenever a round needs a level and a floor at
+the same time. It does not rule them out where only the growth rate matters,
+which is how round 16 used them legitimately.
+
+Folding the sub-floor tail into the survivors was tried as a repair. It makes
+the cluster count a discontinuous, non-monotone function of the family's
+parameters and so destroys the calibration that pins the level. A floor has
+to be a property of the process, not a correction applied after it.
+
+**What the floor should be.** A minimum cannot be met by any growing process,
+because the youngest clusters have always just been spawned. The criterion is
+therefore the share of points sitting in sub-floor clusters, since degeneracy
+matters in proportion to how many points experience it. What made round 17
+unreadable was arms whose clusters held 13 points on average, not a handful
+of recently spawned ones.
+
+**The family that satisfies all three.** Capacity-limited growth: each row
+joins a uniformly chosen cluster unless that cluster has reached capacity
+`c * K**beta`, in which case it starts a new one. Sizes are bounded by a
+common capacity rather than spread over a power law, so the process is
+balanced by construction. Then `n ~ c * K**(1+beta)`, giving
+`alpha = 1/(1+beta)` for the exponent and `c` for the level, independently.
+Nothing reads n, so a prefix of the draw is the same process as the whole,
+which is the admissibility constraint that closed the intervention's own fix.
+
+The general lesson is that a family's admissible region can be empty for
+reasons visible before any run, and that checking this costs minutes. Rounds
+15, 16 and 17 each spent a cluster run to learn something a page of algebra
+would have said.
+
 ## 5. Multiple-comparison discipline
 
 Three families against one target, each with a knob swept over roughly five
