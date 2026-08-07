@@ -89,6 +89,32 @@ construction so far has lacked.
 Corollary for the two-ended sweep: vary the **field** over the high- and
 low-intensity tails, not the identity of the decile members.
 
+## 3a. Amendment v1 → v1.1 (2026-08-06, before any real-data run)
+
+Two instrument facts surfaced while building the stage-0 driver, both on
+synthetic smoke data with no real corpus touched. Recorded here because
+the campaign's amendment discipline is to fix a draft in the open rather
+than to discover the problem inside a result.
+
+- **The baseline must match the state budget.** Mutual information is
+  bounded by log(cells), so scoring a K-state codebook against a fixed
+  8-bin single feature would cap the ratio near 0.33 at K = 2 for a
+  mechanical reason and make the registered 2× threshold unmeetable at
+  small K. The single-feature baseline is therefore cut into **the same
+  number of cells as the codebook it is compared against**, recomputed per K.
+- **A failed ratio has two possible causes, and the gate must distinguish
+  them.** k-means minimizes latent variance, not mutual information with
+  response, so a low ratio could mean the phenotype does not quantize *or*
+  that this particular partition is poor for MI. The driver therefore also
+  reports a **K = 64 reference partition**, far above the registered
+  ceiling and gating nothing. If K = 64 predicts response well while
+  K ≤ 12 does not, the phenotype is real but not low-dimensional, which is
+  P-13A failing as written. If even K = 64 fails, the latent feature set
+  does not predict response at all — a different and more serious finding,
+  indicting the features rather than the quantization premise.
+
+Thresholds in §4 are unchanged. Bands untouched.
+
 ## 4. Registered predictions
 
 - **P-13A (quantization gate — runs first, on real data only).** Estimate
