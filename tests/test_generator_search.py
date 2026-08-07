@@ -328,3 +328,46 @@ def test_make_evaluate_fn_accepts_the_manifold_family():
     )
     near, err = ev(p_star)
     assert isinstance(near, float) and err and near < 1e-6  # candidate == target
+
+
+def test_dirichlet_codebook_knobs_move_what_they_claim():
+    """The family's whole claim is three near-separable knobs.
+
+    Asserted at smoke scale only — this is a wiring check that each knob
+    moves its own target in the right direction, not the registered
+    separation measurement (harness/rc1/r15_codebook_gate.py, P-15B/C).
+    """
+    import numpy as np
+
+    from openvector_bench.generator_search import dirichlet_codebook_corpus
+    from openvector_bench.geometry import spectrum
+
+    base = {"log2_atoms": 6.0, "concentration": 0.3, "atom_tail": 0.0, "noise": 0.02}
+    x0 = dirichlet_codebook_corpus(base, 3000, 128, 0)
+    assert x0.shape == (3000, 128)
+    assert np.isfinite(x0).all()
+    # rows are unit norm
+    assert np.allclose(np.linalg.norm(x0, axis=1), 1.0, atol=1e-4)
+
+    # More atoms -> higher effective rank.
+    eff0, _ = spectrum(x0)
+    eff1, _ = spectrum(
+        dirichlet_codebook_corpus(dict(base, log2_atoms=7.0), 3000, 128, 0)
+    )
+    assert eff1 > eff0
+
+    # An asymmetric popularity law must actually concentrate mass on atoms:
+    # with a strong tail the corpus should be less spread than without.
+    eff_tail, _ = spectrum(
+        dirichlet_codebook_corpus(dict(base, atom_tail=1.5), 3000, 128, 0)
+    )
+    assert eff_tail < eff0
+
+
+def test_dirichlet_codebook_is_reproducible_by_seed():
+    from openvector_bench.generator_search import dirichlet_codebook_corpus
+
+    p = {"log2_atoms": 6.0, "concentration": 0.3, "atom_tail": 0.5, "noise": 0.02}
+    a = dirichlet_codebook_corpus(p, 500, 64, 7)
+    b = dirichlet_codebook_corpus(p, 500, 64, 7)
+    assert (a == b).all()  # byte-reproducible, as the benchmark family requires

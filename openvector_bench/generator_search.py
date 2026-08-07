@@ -1243,6 +1243,79 @@ def hier_r12_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndar
     )
 
 
+def dirichlet_codebook_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int
+) -> np.ndarray:
+    """Codebook family: every row is a Dirichlet admixture of ``r`` atoms.
+
+    The continuous analogue of the topic model in Blum, Hopcroft and Kannan
+    ch. 9 (``A = BC + N``): B is a codebook of ``r`` atom directions, each row
+    draws mixing weights from a Dirichlet, and the row is ``B c`` normalized.
+    Written for one property the campaign's corpus-side mechanisms have never
+    had, and three the search has never been able to separate.
+
+    **Subsample covariance, by construction.** Hub mass lives in *atom
+    popularity* — a law over the codebook — not in owner rows. Thinning the
+    corpus leaves the codebook and the popularity law untouched, so the hub
+    structure re-expresses at every sampling scale. Rounds 9, 11 and 12 each
+    failed on the converse: planted owners keep their absolute counts while
+    the reference thins.
+
+    **Three near-independent knobs**, which is the point:
+
+    ``log2_atoms``     r, the codebook size. Sets global effective rank (G3):
+                       rows span r directions however concentrated each is.
+    ``concentration``  mu of a symmetric Dirichlet. The effective number of
+                       active atoms per row is ~ r*mu, which sets LOCAL
+                       intrinsic dimension (G1) without touching r. This is
+                       the decoupling rounds 1-2 concluded the manifold family
+                       did not have ("no knob breaks G1").
+    ``atom_tail``      Zipf exponent on atom popularity, via an asymmetric
+                       Dirichlet (the book flags the asymmetric case at the
+                       end of its §9.6). Popular atoms make dense regions and
+                       hence hubs, as a population law rather than planted
+                       rows. Touches neither r nor r*mu.
+
+    ``noise`` adds isotropic off-codebook mass so rows are not confined to the
+    exact simplex; the simplex is flat and real embedding geometry is not, so
+    this is a knob the family will probably need rather than a formality.
+
+    Not yet measured against any gate. The registered first question is
+    whether the subsample-covariance claim above survives contact with the
+    grid's own sampling operator; nothing else about this family matters if
+    it does not.
+    """
+    rng = np.random.default_rng(seed)
+    r = max(2, int(round(2.0 ** float(p.get("log2_atoms", 7.5)))))
+    mu = max(1e-3, float(p.get("concentration", 0.3)))
+    tail = float(p.get("atom_tail", 0.0))
+    noise = float(p.get("noise", 0.05))
+
+    # Codebook: random directions. Random atoms in high dimension are nearly
+    # orthogonal, so effective rank tracks r rather than collapsing.
+    basis = rng.standard_normal((r, dim))
+    basis /= np.maximum(np.linalg.norm(basis, axis=1, keepdims=True), 1e-12)
+
+    # Asymmetric concentration: atom l gets mu * l^-tail, so popularity is a
+    # Zipf law over the codebook. tail = 0 recovers the symmetric case.
+    alpha = mu * (np.arange(1, r + 1, dtype=np.float64) ** (-tail))
+    alpha = np.maximum(alpha, 1e-6)
+
+    out = np.empty((n, dim), dtype=np.float32)
+    block = max(1, min(n, 4096))
+    for a in range(0, n, block):
+        k = min(a + block, n) - a
+        # Dirichlet via normalized independent Gammas — the standard
+        # construction, and it costs one draw per (row, atom).
+        g = rng.gamma(shape=np.broadcast_to(alpha, (k, r)), scale=1.0)
+        c = g / np.maximum(g.sum(axis=1, keepdims=True), 1e-300)
+        x = c @ basis
+        if noise > 0:
+            x += noise * rng.standard_normal((k, dim))
+        out[a : a + k] = x.astype(np.float32)
+    return normalize(out)
+
+
 def geometry_vector(base, q, k: int, kmax: int | None = None) -> dict[str, float]:
     """The eight gates for one ``k`` — the same functions the RC-1 battery uses."""
     base = normalize(np.asarray(base, dtype=np.float32))
