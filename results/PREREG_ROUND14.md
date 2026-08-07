@@ -65,6 +65,22 @@ disagree materially, the count targets themselves are partly a protocol
 artefact, and re-registering targets comes before any search. This is a
 precondition, not a prediction.
 
+**Result (2026-08-07): the precondition is NOT satisfied.** See
+[`R13_PROTOCOL_CHECK.md`](R13_PROTOCOL_CHECK.md). The count-maximum drift
+*reverses sign* between protocols — −0.49/decade under the current fixed
+query count, +0.23/decade at constant slots per point, consistently at
+k = 10 and k = 30. Round 11's falling count maxima are, over the measured
+ladder, a consequence of spending a fixed query budget over a growing
+corpus. The S_k level claim survives at k = 30 (+0.087 versus +0.080) but
+not at k = 10 (+0.242 versus +0.039).
+
+Therefore round 14 acquires a stage 0 before anything else: **re-derive the
+count targets under an explicitly chosen, documented query-budget
+convention, and record that convention in the spec rather than inheriting it
+from the harness.** Until that is done, P-14B's subsample-covariance
+threshold has no trustworthy target to be measured against, and it is P-14B
+that this round exists to test.
+
 ## 4. Registered predictions
 
 - **P-14A (query-model sufficiency).** With the corpus family frozen at

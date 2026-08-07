@@ -1,0 +1,725 @@
+{
+ "meta": {
+  "question": "does the fixed-query-count protocol confound the ladder's n-axis, on which round 11's diagnosis was read?",
+  "protocols": {
+   "FIXED": "nq = N_QUERY at every n (current RC-1 protocol)",
+   "SCALED": "nq proportional to n (constant slots per point)"
+  },
+  "ns": [
+   12500,
+   25000,
+   50000,
+   100000
+  ],
+  "nq_at_max": 2000,
+  "subs": 3,
+  "ks": [
+   10,
+   30
+  ],
+  "sealed_rows": "excluded (blake2b(i) % 4 == 3)",
+  "scored": "nothing \u2014 no gate, no band, no candidate"
+ },
+ "rows": [
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 1.6,
+   "s_k": 1.6036205772387289,
+   "count_max": 19.0,
+   "count_mean": 1.6,
+   "zero_frac": 0.27264
+  },
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 4.8,
+   "s_k": 1.6148606835395596,
+   "count_max": 41.0,
+   "count_mean": 4.8,
+   "zero_frac": 0.03968
+  },
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 1.6,
+   "s_k": 1.7087758114060092,
+   "count_max": 18.0,
+   "count_mean": 1.6,
+   "zero_frac": 0.28024
+  },
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 4.8,
+   "s_k": 1.6408057647034118,
+   "count_max": 37.0,
+   "count_mean": 4.8,
+   "zero_frac": 0.04488
+  },
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 1.6,
+   "s_k": 1.5055067990545739,
+   "count_max": 15.0,
+   "count_mean": 1.6,
+   "zero_frac": 0.27264
+  },
+  {
+   "protocol": "FIXED",
+   "n": 12500,
+   "nq": 2000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 4.8,
+   "s_k": 1.4190345613855235,
+   "count_max": 33.0,
+   "count_mean": 4.8,
+   "zero_frac": 0.0452
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.8,
+   "s_k": 1.7686088783165572,
+   "count_max": 12.0,
+   "count_mean": 0.8,
+   "zero_frac": 0.49536
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 2.4,
+   "s_k": 1.6112959484839926,
+   "count_max": 31.0,
+   "count_mean": 2.4,
+   "zero_frac": 0.1604
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.8,
+   "s_k": 1.8745462478278816,
+   "count_max": 15.0,
+   "count_mean": 0.8,
+   "zero_frac": 0.49888
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 2.4,
+   "s_k": 1.6065642673652598,
+   "count_max": 32.0,
+   "count_mean": 2.4,
+   "zero_frac": 0.16204
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.8,
+   "s_k": 1.6722084459734832,
+   "count_max": 12.0,
+   "count_mean": 0.8,
+   "zero_frac": 0.49728
+  },
+  {
+   "protocol": "FIXED",
+   "n": 25000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 2.4,
+   "s_k": 1.429725070191862,
+   "count_max": 27.0,
+   "count_mean": 2.4,
+   "zero_frac": 0.1582
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.4,
+   "s_k": 2.1053996730693854,
+   "count_max": 9.0,
+   "count_mean": 0.4,
+   "zero_frac": 0.69066
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 1.2,
+   "s_k": 1.6284791145183506,
+   "count_max": 19.0,
+   "count_mean": 1.2,
+   "zero_frac": 0.3655
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.4,
+   "s_k": 2.0715220315406895,
+   "count_max": 8.0,
+   "count_mean": 0.4,
+   "zero_frac": 0.69202
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 1.2,
+   "s_k": 1.5634577947603503,
+   "count_max": 13.0,
+   "count_mean": 1.2,
+   "zero_frac": 0.36332
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.4,
+   "s_k": 2.1432091184882407,
+   "count_max": 10.0,
+   "count_mean": 0.4,
+   "zero_frac": 0.6941
+  },
+  {
+   "protocol": "FIXED",
+   "n": 50000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 1.2,
+   "s_k": 1.6411613523245763,
+   "count_max": 16.0,
+   "count_mean": 1.2,
+   "zero_frac": 0.3663
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6384960507445965,
+   "count_max": 6.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82774
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.9067174389458565,
+   "count_max": 14.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5851
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6385746609338745,
+   "count_max": 6.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82679
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.8585527106810626,
+   "count_max": 13.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5831
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.684618913099458,
+   "count_max": 7.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82693
+  },
+  {
+   "protocol": "FIXED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.8777989644916462,
+   "count_max": 13.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5847
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.405990482528375,
+   "count_max": 4.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82128
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.5750548825888915,
+   "count_max": 8.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.56816
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.507283932766479,
+   "count_max": 4.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82368
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.5715000733495113,
+   "count_max": 7.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.57288
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.3800320622338744,
+   "count_max": 3.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82408
+  },
+  {
+   "protocol": "SCALED",
+   "n": 12500,
+   "nq": 250,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.5919305165186022,
+   "count_max": 8.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.57376
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6046697384360673,
+   "count_max": 7.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.8248
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.7245923583696452,
+   "count_max": 11.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.57348
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.5925449676446055,
+   "count_max": 5.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.8266
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.797289391196066,
+   "count_max": 9.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.58016
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.474897102310438,
+   "count_max": 4.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.8238
+  },
+  {
+   "protocol": "SCALED",
+   "n": 25000,
+   "nq": 500,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.6293819635757,
+   "count_max": 7.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5714
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.527867015399152,
+   "count_max": 5.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82446
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.743688630748271,
+   "count_max": 10.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.57962
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.562363467727915,
+   "count_max": 5.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82574
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.7487434910685795,
+   "count_max": 9.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.57926
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6591241480171433,
+   "count_max": 5.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.8279
+  },
+  {
+   "protocol": "SCALED",
+   "n": 50000,
+   "nq": 1000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.8307501256127585,
+   "count_max": 8.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.58274
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6384960507445965,
+   "count_max": 6.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82774
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 0,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.9067174389458565,
+   "count_max": 14.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5851
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.6385746609338745,
+   "count_max": 6.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82679
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 1,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.8585527106810626,
+   "count_max": 13.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5831
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 10,
+   "slots_per_point": 0.2,
+   "s_k": 2.684618913099458,
+   "count_max": 7.0,
+   "count_mean": 0.2,
+   "zero_frac": 0.82693
+  },
+  {
+   "protocol": "SCALED",
+   "n": 100000,
+   "nq": 2000,
+   "sub": 2,
+   "k": 30,
+   "slots_per_point": 0.6,
+   "s_k": 1.8777989644916462,
+   "count_max": 13.0,
+   "count_mean": 0.6,
+   "zero_frac": 0.5847
+  }
+ ],
+ "summary": {
+  "FIXED_k10": {
+   "by_n": {
+    "12500": {
+     "s_k": 1.605967729233104,
+     "count_max": 17.333333333333332,
+     "zero_frac": 0.2751733333333333
+    },
+    "25000": {
+     "s_k": 1.7717878573726409,
+     "count_max": 13.0,
+     "zero_frac": 0.4971733333333333
+    },
+    "50000": {
+     "s_k": 2.106710274366105,
+     "count_max": 9.0,
+     "zero_frac": 0.6922600000000001
+    },
+    "100000": {
+     "s_k": 2.6538965415926428,
+     "count_max": 6.333333333333333,
+     "zero_frac": 0.8271533333333334
+    }
+   },
+   "drift_s_k": 0.2423793727311796,
+   "drift_count_max": -0.4888051330791299
+  },
+  "FIXED_k30": {
+   "by_n": {
+    "12500": {
+     "s_k": 1.558233669876165,
+     "count_max": 37.0,
+     "zero_frac": 0.04325333333333333
+    },
+    "25000": {
+     "s_k": 1.549195095347038,
+     "count_max": 30.0,
+     "zero_frac": 0.16021333333333332
+    },
+    "50000": {
+     "s_k": 1.6110327538677591,
+     "count_max": 16.0,
+     "zero_frac": 0.36504000000000003
+    },
+    "100000": {
+     "s_k": 1.8810230380395216,
+     "count_max": 13.333333333333334,
+     "zero_frac": 0.5842999999999999
+    }
+   },
+   "drift_s_k": 0.08712847617379249,
+   "drift_count_max": -0.5324353909996749
+  },
+  "SCALED_k10": {
+   "by_n": {
+    "12500": {
+     "s_k": 2.431102159176243,
+     "count_max": 3.6666666666666665,
+     "zero_frac": 0.8230133333333334
+    },
+    "25000": {
+     "s_k": 2.557370602797037,
+     "count_max": 5.333333333333333,
+     "zero_frac": 0.8250666666666667
+    },
+    "50000": {
+     "s_k": 2.5831182103814037,
+     "count_max": 5.0,
+     "zero_frac": 0.8260333333333333
+    },
+    "100000": {
+     "s_k": 2.6538965415926428,
+     "count_max": 6.333333333333333,
+     "zero_frac": 0.8271533333333334
+    }
+   },
+   "drift_s_k": 0.03939572553297429,
+   "drift_count_max": 0.22723782800273823
+  },
+  "SCALED_k30": {
+   "by_n": {
+    "12500": {
+     "s_k": 1.5794951574856684,
+     "count_max": 7.666666666666667,
+     "zero_frac": 0.5716
+    },
+    "25000": {
+     "s_k": 1.7170879043804703,
+     "count_max": 9.0,
+     "zero_frac": 0.5750133333333333
+    },
+    "50000": {
+     "s_k": 1.7743940824765365,
+     "count_max": 9.0,
+     "zero_frac": 0.58054
+    },
+    "100000": {
+     "s_k": 1.8810230380395216,
+     "count_max": 13.333333333333334,
+     "zero_frac": 0.5842999999999999
+    }
+   },
+   "drift_s_k": 0.08035245745711639,
+   "drift_count_max": 0.23950984164910485
+  }
+ },
+ "verdict": {
+  "k10": {
+   "count_max_drift_fixed": -0.4888051330791299,
+   "count_max_drift_scaled": 0.22723782800273823,
+   "count_max_drift_gap": -0.7160429610818682,
+   "s_k_drift_fixed": 0.2423793727311796,
+   "s_k_drift_scaled": 0.03939572553297429,
+   "s_k_drift_gap": 0.2029836471982053
+  },
+  "k30": {
+   "count_max_drift_fixed": -0.5324353909996749,
+   "count_max_drift_scaled": 0.23950984164910485,
+   "count_max_drift_gap": -0.7719452326487797,
+   "s_k_drift_fixed": 0.08712847617379249,
+   "s_k_drift_scaled": 0.08035245745711639,
+   "s_k_drift_gap": 0.006776018716676102
+  }
+ }
+}
