@@ -77,6 +77,21 @@ Jacobian-informed correction then closed the campaign: all six registered
 gates within $[0.5,2.0]\times$ \emph{and} anatomy in band
 (skew $1.4$--$1.9$, max count $52$--$104$ vs.\ real $1.5$/$78$) on three
 fresh seeds --- real's numbers by real's mechanism.
+Finally we show that one-number hubness fails in a second and stronger way
+that is not about mechanism at all. Retrieval counts are properties of a
+corpus measured under a query budget, and at low occupancy the structureless
+expectation dominates the reading. On the real corpus the hubness of the
+largest grid cell is $1.27$ times its own Poisson null, so a ratio gate whose
+null term is shared by candidate and reference is driven toward unity
+independently of hub structure. Three of twelve cells in the admission rule
+could not fail. We decompose the measured scaling slope into a null-ceiling
+term and a hub-structure term, finding roughly half the apparent thinning to
+be the ceiling, and give budget-invariant replacements including a Poisson
+deconvolution that recovers the attractiveness skew of the corpus itself.
+The same analysis yields a structural prediction that we then confirm and
+report as a negative: any construction whose number of attractors does not
+grow with the corpus fails subsample covariance, which we observe at three
+levels of abstraction including a fixed codebook that was expected to be safe.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -780,6 +795,168 @@ by the former, a fact invisible in the scalar and decisive at scale
 \emph{shape} versus its participation-ratio summary. In each case the scalar
 is the trace of a mechanism, and optimizing the trace without registering
 the mechanism invites exactly the Goodharting round 7 exhibited.
+
+\section{Occupancy, the null ceiling, and when a hubness gate cannot fail}
+\label{sec:occupancy}
+
+The preceding sections establish that a hubness scalar underdetermines the
+mechanism producing it. This section establishes a second and stronger sense
+in which the scalar fails, and it is not about mechanism at all. At low
+retrieval occupancy the scalar cannot discriminate between a structured
+corpus and an unstructured one, so a gate reading it approaches a free pass.
+We give the measurement, the decomposition that explains it, and the
+invariant forms that repair it.
+
+\subsection{Retrieval statistics are budget-relative}
+
+A cell of a scaling grid is measured with $n_q$ queries at depth $k$ over
+$n$ points. Define the occupancy
+\[
+\rho \;=\; \frac{n_q k}{n},
+\]
+which is exactly the mean retrieval count per point. Any statistic compared
+across a varying $n$ must either hold $\rho$ fixed or be expressed in a form
+invariant to it. Raw counts and raw count maxima are neither, and a target
+quoted without its budget is not a target.
+
+This is not a hypothetical. A grid that holds $n_q$ fixed while subsampling
+the corpus to each $n$, which is the natural implementation, moves $\rho$ by
+the full range of the ladder. Over a grid spanning $n$ from $25{,}000$ to
+$200{,}000$ at $n_q = 10{,}000$ and $k = 10$, occupancy falls from $4.0$ to
+$0.5$. Most points at the top of that ladder are never retrieved at all.
+
+\subsection{The null ceiling moves, and it moves both statistics}
+
+Let the counts carry no structure whatever, so that each point receives a
+Poisson($\rho$) count. Two facts follow immediately and neither is small.
+
+The busiest point still reaches a nonzero count. Writing
+$\mathrm{null}_{\max}$ for the largest $c$ such that at least one of $n$
+independent Poisson($\rho$) points is expected to reach $c$, this ceiling
+falls up a fixed-budget ladder, because occupancy falls faster than $n$
+grows. A raw count maximum inherits that fall whatever the corpus does.
+
+The count vector is also skewed. A Poisson($\rho$) vector has skewness
+exactly $\rho^{-1/2}$, so the null term of a skewness statistic \emph{rises}
+as occupancy falls. The two null terms therefore move in opposite directions
+up the same ladder, which is enough on its own to make raw readings of the
+two statistics disagree about the corpus while both are behaving correctly.
+
+Table~\ref{tab:nulldecomp} decomposes the measured ladder slope of a real
+embedding corpus into these two parts. Roughly half of the apparent thinning
+at $k = 10$, and most of it at $k = 100$, is the ceiling rather than the
+corpus.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lccc}
+\toprule
+$k$ & raw slope per decade & null ceiling & hub structure \\
+\midrule
+10 & $-0.728$ & $-0.399$ & $\mathbf{-0.329}$ \\
+30 & $-0.729$ & $-0.538$ & $\mathbf{-0.191}$ \\
+100 & $-0.746$ & $-0.635$ & $\mathbf{-0.112}$ \\
+\bottomrule
+\end{tabular}
+\caption{Ladder slope of the real corpus decomposed. The raw count maximum
+falls at a rate that is largely the Poisson ceiling falling with it. A
+generator fitted to the raw slope is fitted in part to the arithmetic of the
+measurement.}
+\label{tab:nulldecomp}
+\end{table}
+
+\subsection{A gate that cannot fail}
+
+The consequence for the admission rule is sharper than a bias.
+Table~\ref{tab:excess} reports the real corpus hubness as a multiple of its
+own null, cell by cell.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+$k$ & $n{=}25{,}000$ & $50{,}000$ & $100{,}000$ & $200{,}000$ \\
+\midrule
+10 & $3.19\times$ & $2.14\times$ & $1.58\times$ & $\mathbf{1.27\times}$ \\
+30 & $6.05\times$ & $4.01\times$ & $2.66\times$ & $1.85\times$ \\
+100 & $11.07\times$ & $7.95\times$ & $5.34\times$ & $3.54\times$ \\
+\bottomrule
+\end{tabular}
+\caption{Real hubness divided by the structureless expectation at the same
+occupancy. At the top of the ladder at $k = 10$ the real corpus is
+$1.27\times$ chance, so the measured value is $79$ percent null.}
+\label{tab:excess}
+\end{table}
+
+A gate compares candidate to reference as a ratio. The null term depends only
+on $\rho$, which candidate and reference share by construction, so where the
+null dominates both readings the ratio is driven toward unity independently
+of hub structure. At $k = 10$ and $n = 200{,}000$ the gate is not merely
+weak. It is close to unable to fail. In a rule that requires hubness to pass
+in every cell, three of twelve cells were free passes, and this was invisible
+for the entire campaign because the scalar reports a plausible number.
+
+\subsection{Invariant forms}
+
+Three reductions repair this and they are cheap. Write $c$ for the count
+vector and $\bar c = \rho$ for its mean.
+
+The \emph{hub share} $\max_i c_i / (n_q k)$ removes the budget but keeps the
+ceiling. It is the right form for comparing across budgets and the wrong form
+for a claim about a corpus.
+
+The \emph{hub excess} $\max_i c_i / \mathrm{null}_{\max}$ removes the ceiling
+as well. A value of one means the busiest point is no busier than chance
+makes it.
+
+For the skewness route the repair is a deconvolution. Model a count as
+Poisson($\rho w$) with $w$ the attractiveness of the point under the query
+measure, normalised so that $\mathbb{E}[w] = 1$. Then
+\[
+\operatorname{Var}(c) = \rho + \rho^2 \operatorname{Var}(w), \qquad
+\mu_3(c) = \rho + 3\rho^2 \operatorname{Var}(w) + \rho^3 \mu_3(w),
+\]
+so both moments of $w$ are recoverable and the skewness of $w$ is a property
+of the corpus and the query measure alone. On a fixed corpus measured at
+$\rho \in \{0.5, 1, 2, 4\}$ the raw skewness moves from $2.46$ to $5.59$
+while this estimator holds between $9.84$ and $10.02$ against a true value of
+$9.85$. An intermediate repair of the form $s_k \sqrt{\rho}$ is not
+invariant. It overcorrects, moving from $1.74$ to $11.19$ on that same data,
+which is further than the raw statistic moves.
+
+One caution belongs next to the estimator rather than in a later section. The
+deconvolution divides by $\operatorname{Var}(w)^{3/2}$, so under a heavy
+tailed popularity law the third moment is carried by few points and the
+estimator inherits their draw noise. Measured on a codebook family with a
+Zipf popularity law, per-seed slope estimates spanned $-1.26$ to $+7.18$
+while a tail-mass statistic on the same cells agreed across seeds to within
+five percent. The invariance is unaffected. The variance is the problem, and
+a tail mass is the more robust primary readout.
+
+\subsection{Fixed owners fail at every level of abstraction}
+
+The most persistent negative result of the campaign acquires a cleaner
+statement in this language. Hub mass in a real corpus behaves as a population
+law that re-expresses at every sampling scale. A construction that carries
+hub mass in a fixed set of owners cannot imitate that, because its owners
+either keep their counts under thinning or vanish with it.
+
+The same failure has now been met at three levels. It was first met with
+planted owner rows. It was met again with planted counts, which survive
+subsampling while the reference thins. It was met a third time with a fixed
+codebook, where hub mass lives in atom popularity rather than in rows. The
+third case was predicted to be safe, on the argument that a popularity law
+over a codebook is a population law and therefore scale free. Measured, its
+hub concentration \emph{rises} with corpus size where the real corpus
+declines, because adding rows to a codebook of fixed size crowds the same
+attractors. A fixed codebook is a fixed set of owners one level up.
+
+We state this as the operative lesson rather than as a conjecture. Any
+construction in which the number of attractors does not grow with the corpus
+will fail subsample covariance, and the direction of the failure is
+predictable from whether the attractors are enumerable.
 
 \section{Implications}\label{sec:implications}
 
