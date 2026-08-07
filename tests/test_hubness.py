@@ -79,3 +79,52 @@ def test_count_stats_reports_every_form(tmp_path):
     assert st["rho"] == 500 * 10 / 2000
     assert st["hub_excess"] > 1.5  # the planted hub is visible above chance
     assert abs(st["count_mean"] - 500 * 10 / 2000) < 1e-9
+
+
+def test_poisson_tail_share_matches_simulation():
+    # The analytic null must agree with what a structureless corpus does.
+    from openvector_bench.hubness import poisson_tail_share, tail_share
+
+    rng = np.random.default_rng(5)
+    for lam in (0.5, 2.0, 12.0):
+        c = rng.poisson(lam, size=200_000)
+        sim = tail_share(c, 0.01)
+        ana = poisson_tail_share(lam, 200_000, 0.01)
+        assert abs(sim - ana) / max(ana, 1e-9) < 0.05, (lam, sim, ana)
+
+
+def test_tail_excess_is_far_more_stable_than_the_maximum():
+    """The tail statistic's advantage is signal-to-noise, not effect size.
+
+    Measured 2026-08-07: against the same planted 1% hub population, the
+    maximum reports a LARGER excess than the tail at every occupancy — it is
+    sensitive to the extreme tail where planted hubs land — but its
+    seed-to-seed spread is 10-30x larger, because a maximum is one draw.
+    Per unit of noise the tail wins by roughly 10x, which is what a gate
+    needs. Asserting the effect sizes the other way round would have been
+    wrong, and was: this test replaces one that claimed it.
+    """
+    from openvector_bench.hubness import hub_excess, tail_excess
+
+    n, lam = 200_000, 2.0
+    tail, mx = [], []
+    for sd in range(5):
+        r = np.random.default_rng(100 + sd)
+        c = r.poisson(lam, size=n).astype(float)
+        hubs = r.choice(n, size=n // 100, replace=False)
+        c[hubs] += r.poisson(lam * 6, size=len(hubs))
+        tail.append(tail_excess(c, n, 0.01))
+        mx.append(hub_excess(c.max(), c.mean(), n))
+    assert np.mean(tail) > 1.5  # structure is detected
+    assert np.std(tail) < np.std(mx) / 3  # and detected far more stably
+    snr_tail = (np.mean(tail) - 1) / max(np.std(tail), 1e-9)
+    snr_max = (np.mean(mx) - 1) / max(np.std(mx), 1e-9)
+    assert snr_tail > 3 * snr_max
+
+
+def test_tail_excess_is_one_without_structure():
+    from openvector_bench.hubness import tail_excess
+
+    rng = np.random.default_rng(7)
+    c = rng.poisson(0.5, size=200_000)
+    assert 0.9 <= tail_excess(c, 200_000, 0.01) <= 1.1

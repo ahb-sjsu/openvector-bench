@@ -70,6 +70,32 @@ signal, and any gate reading it is mostly reading noise. This is a property
 of the ladder's fixed budget, not of real data: at `n_base` = 200,000 with
 10,000 queries, `rho` = 0.5, so most points are never retrieved at all.
 
+## 3a. The maximum is the wrong reduction at low occupancy
+
+`count_max` is a single draw, so its variance does not shrink with corpus
+size. `tail_share` — the mass captured by the busiest one percent — sums
+thousands of points instead. Against an identical planted 1% hub population
+(measured 2026-08-07, 5 seeds, n = 200,000):
+
+| rho | tail excess | max excess | tail s.d. | max s.d. | tail SNR gain |
+|---|---|---|---|---|---|
+| 0.5 | 1.29 | 1.87 | 0.005 | 0.163 | ~11× |
+| 1.0 | 1.61 | 2.15 | 0.007 | 0.094 | ~9× |
+| 2.0 | 2.06 | 2.60 | 0.008 | 0.045 | ~8× |
+| 4.0 | 2.63 | 2.95 | 0.012 | 0.121 | ~9× |
+
+The maximum reports the *larger* excess — it is sensitive to exactly the
+extreme tail where hubs land — but its seed-to-seed spread is 10–30× wider.
+Per unit of noise the tail wins by roughly an order of magnitude, and a gate
+is a statement about signal per unit of noise.
+
+**A better statistic does not rescue a starved budget.** Both statistics
+lose power as `rho` falls: the same relative structure reads 2.63× at
+`rho` = 4 and 1.29× at `rho` = 0.5, because Poisson's own tail is
+proportionally fat when occupancy is low. The registered ladder's top cell
+at k = 10 runs at `rho` = 0.5. It needs more queries, not a cleverer
+reduction.
+
 ## 4. Rules
 
 1. **Report `rho` on every cell.** A count statistic without its budget is
@@ -81,8 +107,14 @@ of the ladder's fixed budget, not of real data: at `n_base` = 200,000 with
    corpus" is a legitimate and different question.
 4. **Do not compare cells whose `rho` differs** unless the statistic is
    `rho`-invariant.
-5. **Flag cells whose `hub_excess` is below 2.0** as low-signal. They are
+5. **Flag cells whose excess is below 2.0** as low-signal. They are
    dominated by the null ceiling and should not carry a gate on their own.
+6. **Prefer `tail_excess` to `hub_excess` for gates.** Same null discipline,
+   roughly 10x the signal-to-noise.
+7. **Keep `rho` >= 2 on any cell that carries a gate.** Below that no count
+   statistic has usable power, whatever its form. For the registered ladder
+   at k = 10 this means `n_query` >= 0.2 * `n_base` — the current fixed
+   10,000 does not meet it above n = 50,000.
 
 ## 5. Implementation
 

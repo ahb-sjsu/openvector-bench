@@ -90,6 +90,63 @@ def hub_excess(count_max: float, count_mean: float, n_base: int) -> float:
     return float(count_max) / max(nm, 1)
 
 
+def _poisson_pmf(lam: float, c: int) -> float:
+    if lam <= 0:
+        return 1.0 if c == 0 else 0.0
+    return math.exp(-lam + c * math.log(lam) - math.lgamma(c + 1))
+
+
+def tail_share(counts: np.ndarray, frac: float = 0.01) -> float:
+    """Share of all retrieval slots captured by the busiest ``frac`` of points.
+
+    The robust replacement for ``count_max``. A maximum over ``n_base`` sparse
+    counts is an extreme-value draw, so at low occupancy it is mostly noise —
+    which is exactly the regime the registered ladder's top cells sit in. A
+    tail mass sums thousands of points instead of taking one, so its
+    signal survives where the maximum's does not.
+    """
+    c = np.sort(np.asarray(counts, dtype=np.float64))[::-1]
+    m = max(1, int(round(len(c) * frac)))
+    total = c.sum()
+    return float(c[:m].sum() / max(total, 1e-12))
+
+
+def poisson_tail_share(lam: float, n_base: int, frac: float = 0.01) -> float:
+    """``tail_share`` for a structureless Poisson corpus, computed exactly.
+
+    Walks the Poisson tail from the top until ``frac * n_base`` points are
+    accounted for, taking a partial share of the boundary count so the
+    result is continuous in ``frac`` rather than stepping. No simulation, so
+    no seed and no sampling noise in the reference.
+    """
+    if lam <= 0 or n_base <= 0:
+        return 1.0
+    m = max(1.0, n_base * frac)
+    c_hi = max(1, int(lam + 12 * math.sqrt(lam) + 12))
+    taken = 0.0
+    mass = 0.0
+    for c in range(c_hi, -1, -1):
+        cnt = n_base * _poisson_pmf(lam, c)
+        if taken + cnt >= m:
+            mass += (m - taken) * c
+            taken = m
+            break
+        taken += cnt
+        mass += cnt * c
+    return float(mass / max(n_base * lam, 1e-12))
+
+
+def tail_excess(counts: np.ndarray, n_base: int, frac: float = 0.01) -> float:
+    """Observed tail mass over the structureless expectation.
+
+    1.0 means the busiest ``frac`` of points capture no more than chance
+    gives them. Use in place of ``hub_excess`` wherever occupancy is low.
+    """
+    c = np.asarray(counts, dtype=np.float64)
+    null = poisson_tail_share(float(c.mean()), n_base, frac)
+    return float(tail_share(c, frac) / max(null, 1e-12))
+
+
 def count_stats(idx: np.ndarray, n_base: int, k: int, n_query: int) -> dict:
     """All four forms for one measured cell, so callers cannot pick one by
     accident: raw for continuity, share for budget invariance, excess for
@@ -105,5 +162,7 @@ def count_stats(idx: np.ndarray, n_base: int, k: int, n_query: int) -> dict:
         "hub_share": hub_share(cmax, n_query, k),
         "null_max": poisson_null_max(cmean, n_base),
         "hub_excess": hub_excess(cmax, cmean, n_base),
+        "tail_share_1pct": tail_share(c, 0.01),
+        "tail_excess_1pct": tail_excess(c, n_base, 0.01),
         "rho": rho(n_query, k, n_base),
     }
