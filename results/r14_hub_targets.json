@@ -1,0 +1,173 @@
+{
+ "meta": {
+  "source": "results/r11v2_real_ref.json (committed round-11 real reference, 5 draws)",
+  "derivation": "re-expression only; no new measurement",
+  "convention": {
+   "n_query": 10000,
+   "fixed_across_ladder": true,
+   "rho_by_k": {
+    "10": null,
+    "30": null,
+    "100": null
+   }
+  },
+  "why": "raw count_max is budget-bound and half its ladder slope is the Poisson null ceiling"
+ },
+ "cells": [
+  {
+   "k": 10,
+   "n": 25000,
+   "rho": 4.0,
+   "count_mean": 4.0,
+   "count_max": 42,
+   "null_max": 14,
+   "hub_share": 0.00042,
+   "hub_excess": 3.0,
+   "s_k": 1.5962481316882655
+  },
+  {
+   "k": 10,
+   "n": 50000,
+   "rho": 2.0,
+   "count_mean": 2.0,
+   "count_max": 24.8,
+   "null_max": 10,
+   "hub_share": 0.000248,
+   "hub_excess": 2.48,
+   "s_k": 1.5144674204469244
+  },
+  {
+   "k": 10,
+   "n": 100000,
+   "rho": 1.0,
+   "count_mean": 1.0,
+   "count_max": 14.2,
+   "null_max": 8,
+   "hub_share": 0.00014199999999999998,
+   "hub_excess": 1.775,
+   "s_k": 1.577248412270712
+  },
+  {
+   "k": 10,
+   "n": 200000,
+   "rho": 0.5,
+   "count_mean": 0.5,
+   "count_max": 9.4,
+   "null_max": 6,
+   "hub_share": 9.400000000000001e-05,
+   "hub_excess": 1.5666666666666667,
+   "s_k": 1.793234059528984
+  },
+  {
+   "k": 30,
+   "n": 25000,
+   "rho": 12.0,
+   "count_mean": 12.0,
+   "count_max": 107,
+   "null_max": 28,
+   "hub_share": 0.00035666666666666664,
+   "hub_excess": 3.8214285714285716,
+   "s_k": 1.7469675396875832
+  },
+  {
+   "k": 30,
+   "n": 50000,
+   "rho": 6.0,
+   "count_mean": 6.0,
+   "count_max": 64.4,
+   "null_max": 18,
+   "hub_share": 0.0002146666666666667,
+   "hub_excess": 3.577777777777778,
+   "s_k": 1.638140481257596
+  },
+  {
+   "k": 30,
+   "n": 100000,
+   "rho": 3.0,
+   "count_mean": 3.0,
+   "count_max": 37.4,
+   "null_max": 13,
+   "hub_share": 0.00012466666666666667,
+   "hub_excess": 2.876923076923077,
+   "s_k": 1.5333777393727404
+  },
+  {
+   "k": 30,
+   "n": 200000,
+   "rho": 1.5,
+   "count_mean": 1.5,
+   "count_max": 23.8,
+   "null_max": 9,
+   "hub_share": 7.933333333333334e-05,
+   "hub_excess": 2.6444444444444444,
+   "s_k": 1.5140969003011326
+  },
+  {
+   "k": 100,
+   "n": 25000,
+   "rho": 40.0,
+   "count_mean": 40.0,
+   "count_max": 298.4,
+   "null_max": 67,
+   "hub_share": 0.0002984,
+   "hub_excess": 4.4537313432835814,
+   "s_k": 1.7504688947653597
+  },
+  {
+   "k": 100,
+   "n": 50000,
+   "rho": 20.0,
+   "count_mean": 20.0,
+   "count_max": 188.4,
+   "null_max": 41,
+   "hub_share": 0.0001884,
+   "hub_excess": 4.595121951219513,
+   "s_k": 1.7766641389408329
+  },
+  {
+   "k": 100,
+   "n": 100000,
+   "rho": 10.0,
+   "count_mean": 10.0,
+   "count_max": 113.4,
+   "null_max": 26,
+   "hub_share": 0.0001134,
+   "hub_excess": 4.361538461538462,
+   "s_k": 1.6894554331692075
+  },
+  {
+   "k": 100,
+   "n": 200000,
+   "rho": 5.0,
+   "count_mean": 5.0,
+   "count_max": 63,
+   "null_max": 18,
+   "hub_share": 6.3e-05,
+   "hub_excess": 3.5,
+   "s_k": 1.5821384611804148
+  }
+ ],
+ "slopes": {
+  "k10": {
+   "count_max": -0.7283419188847647,
+   "hub_share": -0.728341918884765,
+   "null_max": -0.39891053588967046,
+   "hub_excess": -0.32943138299509417,
+   "s_k": 0.0562235980723674
+  },
+  "k30": {
+   "count_max": -0.7289754372168675,
+   "hub_share": -0.7289754372168674,
+   "null_max": -0.5381775045147095,
+   "hub_excess": -0.19079793270215817,
+   "s_k": -0.07145317305989204
+  },
+  "k100": {
+   "count_max": -0.746384973027443,
+   "hub_share": -0.7463849730274426,
+   "null_max": -0.634560485352337,
+   "hub_excess": -0.11182448767510582,
+   "s_k": -0.05102093742235189
+  }
+ }
+}
