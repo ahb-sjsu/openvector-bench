@@ -113,13 +113,34 @@ that this round exists to test.
   **rejected a generator that correctly matched real**.
 
   The intent of the criterion is unchanged and the target is now measured
-  rather than assumed. The tolerance of ±0.15/decade is set to roughly three
-  times the between-protocol disagreement, not to any candidate's
-  performance, and no candidate has been measured against it. Recording this
-  explicitly because amending a threshold after seeing data is the
-  circularity this campaign keeps paying for, and the distinction being
-  claimed here is that the *target* was mis-measured, not that the *bar* was
-  inconvenient.
+  rather than assumed. Recording that explicitly because amending a threshold
+  after seeing data is the circularity this campaign keeps paying for, and
+  the distinction being claimed is that the *target* was mis-measured, not
+  that the *bar* was inconvenient.
+
+  **Confirmation over a wider ladder, and a per-k split (2026-08-07).** The
+  first measurement spanned 0.6 of a decade, which is thin for a slope that a
+  gate depends on. Repeated over 1.2 decades (n from 6,250 to 100,000):
+
+  | k | narrow, constant ρ | fixed n_q | wide, constant ρ | spread |
+  |---|---|---|---|---|
+  | 10 | +0.543 | +0.474 | **+0.511** | 0.07 |
+  | 30 | +0.372 | +0.449 | **+0.229** | 0.22 |
+
+  **k = 10 is confirmed** and its target is +0.51/decade with a measurement
+  spread of 0.07. The ±0.15 tolerance is roughly twice that spread and stands.
+
+  **k = 30 is not confirmed.** Three measurements span 0.22, and the per-cell
+  values are non-monotonic across the ladder, so the target carries more
+  uncertainty than the tolerance it would be enforced with. A candidate
+  cannot be held to a precision the target does not have. **P-14B therefore
+  gates on k = 10 only.** k = 30 is measured and reported alongside, and it
+  may carry a gate once its target is pinned by more seeds, which is a
+  measurement this round does not require.
+
+  This is the low-signal discipline of `spec/QUERY_BUDGET.md` applied to a
+  target rather than to a cell. A number too uncertain to enforce is reported,
+  not enforced.
 - **P-14C (geometry is not silently paid for).** Freezing the corpus and
   searching only the query model leaves the geometry gates unmoved beyond
   draw noise: each of G1, G3, G4, G7, G8 changes by ≤ 0.05× from its frozen
