@@ -79,6 +79,30 @@ Rounds 18 and 19 are **held**, not cancelled. They construct attractiveness
 from scratch, which is worth doing only if modifying the best existing family
 fails.
 
+**Second amendment, same day** ([`R17_INTERVENTION.md`](R17_INTERVENTION.md)).
+The amendment above asserted, without measuring it, that the Zipf
+cluster-choice law was the defect. An intervention run says otherwise. Holding
+the cluster count fixed gives +0.905 ± 0.111 and scaling it as n^0.5 gives
+**+0.393 ± 0.102**, a 3.4 SEM difference that lands inside the tolerance
+around real's +0.51. **The cause is densification at a fixed cluster count,
+not the choice law.** Every added row joins one of a fixed number of clusters,
+so within-cluster competition intensifies.
+
+This does not contradict round 16. There, attractiveness is *drawn* from a
+popularity law and growing the atom count adds atoms in the same proportions,
+leaving the shape and the rise unchanged. Here attractiveness is *geometric*
+and the cluster count sets how many rivals each point has. Two mechanisms
+produce similar rises and respond to opposite interventions, so diagnosing
+which one a family has is mandatory rather than optional.
+
+The fix as demonstrated is not admissible: setting the cluster count from n
+makes the generator scale-aware, and the grid subsamples a pool rather than
+regenerating, which would reintroduce the sampling-operator problem of rounds
+9 and 11. Round 17 is therefore rewritten again, as an **emergent** cluster
+process where the count grows as a consequence of drawing rows. The exponent
+bracket is registered now, before the family is built: 0 gives +0.905 and 0.5
+gives +0.393, so the value matching real lies near **0.35 to 0.40**.
+
 ---
 
 ## 3. The shared instrument
