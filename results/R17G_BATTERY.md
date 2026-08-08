@@ -115,3 +115,43 @@ exemption.
 
 Nothing here is an argument for abandoning the family. It is an argument that
 the target moved and the search has to be redone against where it actually is.
+
+## Addendum — the correction is confined to intrinsic dimension
+
+Measured after the fact from the same cells, at n = 100,000, k = 10.
+
+| gate | stored | re-measured | ratio | in band? |
+|---|---|---|---|---|
+| G1 two-NN intrinsic dim | 51.82 | 19.92 | 0.384 | **moved** |
+| G2 ball-growth intrinsic dim | 13.88 | 8.75 | 0.630 | **moved** |
+| G3 effective rank | 178.98 | 179.81 | 1.005 | in |
+| G4 dims90 | 362.00 | 362.00 | 1.000 | in |
+| G5 relative contrast | 1.27 | 1.29 | 1.017 | in |
+| G7 local ID IQR | 27.02 | 22.54 | 0.834 | in |
+| G8 PCA retention | 0.61 | 0.67 | 1.099 | in |
+
+**Only the two intrinsic-dimension estimators moved.** G1 and G2 both read
+local intrinsic dimension off query-to-base distances, and both fell by
+roughly the same mechanism. Every other gate is inside its own equivalence
+band, with G4 identical to the digit.
+
+This is a coherent signature rather than a scattered one, and it matches the
+mechanism PREREG_RC1 described when it mandated the re-measurement. A
+topically concentrated query marginal makes neighbourhoods look
+higher-dimensional than the corpus is. It does not touch the corpus spectrum,
+which is why G3 and G4 do not move, and it barely touches contrast and
+retention.
+
+**This makes the re-fit tractable.** The scope is not "re-run the round-8
+search". The spectral, contrast, IQR and retention targets are unchanged, so
+the parameters governing them do not need to move. What needs re-fitting is
+whatever sets local intrinsic dimension, principally `local_dim`, currently
+94 and producing G1 of 62 to 67 against a corrected target near 20.
+
+A linear first guess puts `local_dim` near 94 x 20/65, about 29. The
+relationship is not guaranteed linear, so this is a one-dimensional search
+rather than an arithmetic substitution, but a one-dimensional search is cheap
+and can be run before anything larger is contemplated.
+
+The battery re-run should wait for that. Re-running now would spend four hours
+confirming a G1 failure the matched-rho cells have already established.
