@@ -67,7 +67,11 @@ def main() -> None:
     ap.add_argument("--out", default="rc1_scores.json")
     a = ap.parse_args()
 
-    cells = json.load(open(a.cells, encoding="utf-8"))
+    raw = json.load(open(a.cells, encoding="utf-8"))
+    # Accept either a bare list or the {meta, cells} envelope the newer
+    # drivers write, so a scoring step cannot fail at the end of a long run
+    # for a reason that has nothing to do with the measurement.
+    cells = raw["cells"] if isinstance(raw, dict) else raw
     # (corpus, battery, n, k) -> {gate: [values across subsamples]}
     grouped: dict = defaultdict(lambda: defaultdict(list))
     for c in cells:
@@ -94,7 +98,15 @@ def main() -> None:
             for g, (lo, hi, mandatory) in GATES.items():
                 r, clo, chi = ratio_ci(vals[g], ref[g])
                 ok = bool(np.isfinite(clo) and clo >= lo and chi <= hi)
+                # A gate can fail two very different ways. Out of band means
+                # measured and wrong. Unscoreable means the estimator returned
+                # nothing usable, which for the deconvolved G6 happens wherever
+                # occupancy is too low to separate signal from the Poisson
+                # null. Both block admission, but only the first is evidence
+                # about the candidate, so they are recorded apart.
+                unscoreable = not np.isfinite(clo)
                 results[g] = {
+                    "unscoreable": unscoreable,
                     "ratio": None if not np.isfinite(r) else round(r, 4),
                     "ci": (
                         [None, None]
@@ -108,7 +120,8 @@ def main() -> None:
                 if ok:
                     passed += 1
                 elif mandatory:
-                    mandatory_fail.append(f"{g}@{battery}/n={n}/k={k}")
+                    tag = "UNSCOREABLE" if unscoreable else "out-of-band"
+                    mandatory_fail.append(f"{g}@{battery}/n={n}/k={k} [{tag}]")
             if passed >= len(GATES) - 2:
                 cells_pass += 1
             detail.append(
