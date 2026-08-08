@@ -1,0 +1,127 @@
+# SPDX-License-Identifier: MIT
+"""Filament family: low-dimensional threads in a high-dimensional arrangement.
+
+**Status: EXPLORATORY.** Not registered, not an admission claim, seal untouched.
+
+## Why this shape
+
+`R21B_SCALE_DEPENDENCE.md` measured the target as a curve: real's local growth
+dimension RISES with radius, from ~15.7 at r = 0.888 to ~37.8 at r = 1.125, and
+the ladders collapse in radius to 1.9% so this is geometry rather than estimator
+bias. Four constructions have now been excluded for the same structural reason —
+each has a local dimension that is scale-invariant or globally fixed:
+
+* self-similar cascades — flat by construction (`R21_BITMAP_PROBE`);
+* Whitney flags — *inverted*, s falls 0.47-0.62x where real rises, because a
+  cone is high-dimensional inside and the inter-cone layout is low-dimensional;
+* conformal maps — local similarities, so dimension-preserving exactly, and
+  Liouville restricts them to Mobius in dim >= 3;
+* elliptic / elliptical constructions — flat tori and elliptical distributions
+  both fix local dimension globally; the radial profile moves density, not
+  dimension.
+
+This family is the **mirror image of the Whitney failure**. Points lie on
+`2**log2_filaments` low-dimensional threads (`fil_dim`, a few directions each),
+whose centres are scattered across an `arrange_dim`-dimensional arrangement:
+
+    x = c_f  +  scale_f * (u @ B_f),     u ~ N(0, I_fil_dim)
+
+At radii below a filament's extent a neighbourhood runs ALONG the thread and
+sees `fil_dim` directions. Past that extent it reaches neighbouring threads,
+whose offsets span the arrangement, and the direction count opens up toward
+`arrange_dim`. So
+
+    s(r) : fil_dim  ->  arrange_dim
+
+rises, and the crossover radius is a genuine characteristic scale rather than a
+depth budget. `scale_spread` gives the per-filament extents a lognormal spread,
+which smears what would otherwise be a step into a ramp — real's transition is
+gradual, spanning a factor of ~1.27 in radius.
+
+**The null is a scale merge, not a dimension merge.** Setting
+`fil_dim == arrange_dim` was tried first and is NOT a null: it removes the
+dimension separation while leaving the scale separation (extent 0.15 against a
+centre spacing of ~sqrt(2)) intact, and it duly produced a STRONGER rise
+(beta +4.79) than the family arm. The correct null raises `fil_scale` until a
+thread's extent matches its centre spacing and sets `scale_spread = 0`, so
+there is a single scale and s(r) must flatten. A thread extent of
+`fil_scale * sqrt(fil_dim)` against a spacing of ~sqrt(2) puts that at
+`fil_scale ~ 0.5` for `fil_dim = 8`.
+
+## Scope of this version
+
+Emission uses ``default_rng``, matching every other family in
+``generator_search.py``, so it is reproducible per (seed, n) but NOT bit-exact
+across platforms and NOT random-access. That is deliberate: random access is a
+`DISTRIBUTION.md` requirement and this family is built to be convertible —
+row -> filament and filament -> basis are both pure hash lookups, so the
+splitmix64 machinery in ``bitmap_gen`` ports directly. The conversion is
+deferred until the profile is shown to be worth keeping.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+
+from openvector_bench.geometry import normalize
+
+FILAMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
+    ("log2_filaments", 4.0, 18.0, 14.0),  # F = 2**this threads
+    ("fil_dim", 1.0, 64.0, 8.0),  # thread dimension -> s at SMALL radius
+    ("arrange_dim", 4.0, 256.0, 40.0),  # arrangement dim -> s at LARGE radius
+    ("fil_scale", 0.005, 1.0, 0.15),  # thread extent vs centre spacing -> crossover
+    ("scale_spread", 0.0, 2.0, 0.5),  # lognormal spread of extents -> ramp not step
+    ("size_tail", 0.0, 2.5, 1.0),  # Zipf on thread occupancy -> hubness
+    ("noise", 0.0, 0.2, 0.01),  # isotropic floor
+)
+
+
+def filament_corpus(p: dict[str, float], n: int, dim: int, seed: int) -> np.ndarray:
+    """A corpus of low-dimensional threads scattered in a high-dimensional layout.
+
+    Returns unit-normed rows, matching ``synth_corpus``'s contract.
+    """
+    rng = np.random.default_rng(seed)
+    n_fil = min(max(2, int(round(2 ** p["log2_filaments"]))), max(2, n // 2))
+    fil_dim = min(max(1, int(round(p["fil_dim"]))), dim)
+    arr_dim = min(max(2, int(round(p["arrange_dim"]))), dim)
+
+    # Thread centres: unit vectors confined to an arr_dim-dimensional subspace,
+    # so the number of centres within radius r grows as r**arr_dim and the
+    # large-radius growth slope reads arr_dim rather than the ambient dimension.
+    basis_a = np.linalg.qr(rng.standard_normal((dim, arr_dim)).astype(np.float32))[0]
+    centres = rng.standard_normal((n_fil, arr_dim)).astype(np.float32) @ basis_a.T
+    centres = normalize(centres)
+
+    # Heavy-tailed occupancy: a few dense threads are the hub candidates.
+    w = np.arange(1, n_fil + 1, dtype=np.float64) ** (-p["size_tail"])
+    counts = rng.multinomial(n, w / w.sum())
+
+    # Lognormal extents: without a spread the crossover is a step, and real's
+    # ramp spans a factor of ~1.27 in radius.
+    scales = np.float32(p["fil_scale"]) * np.exp(
+        np.float32(p["scale_spread"]) * rng.standard_normal(n_fil).astype(np.float32)
+    )
+
+    x = np.empty((n, dim), dtype=np.float32)
+    row = 0
+    inv_sq = np.float32(1.0 / np.sqrt(dim))
+    for f in range(n_fil):
+        ck = int(counts[f])
+        if ck == 0:
+            continue
+        # Thread directions span the FULL ambient space (not the arrangement
+        # subspace), which keeps effective rank high and stops the corpus
+        # collapsing onto an arr_dim-dimensional flat.
+        b = rng.standard_normal((fil_dim, dim)).astype(np.float32) * inv_sq
+        u = rng.standard_normal((ck, fil_dim)).astype(np.float32)
+        x[row : row + ck] = centres[f] + scales[f] * (u @ b)
+        row += ck
+    if row < n:  # multinomial rounding
+        x[row:] = centres[rng.integers(0, n_fil, n - row)]
+
+    noise = float(p["noise"])
+    if noise > 0.0:
+        x += np.float32(noise) * rng.standard_normal(x.shape).astype(np.float32)
+    rng.shuffle(x)  # de-correlate row order from thread order
+    return normalize(x)
