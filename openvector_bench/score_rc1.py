@@ -25,9 +25,14 @@ GATES = {
     "g1_id_twonn": (0.85, 1.15, True),
     "g2_id_ballgrowth": (0.80, 1.20, False),
     "g3_eff_rank": (0.85, 1.15, False),
-    "g4_dims90": (0.85, 1.15, False),
+    # PREREG_RC1 v2 section 5 registers G4 in the wider band with G2 and G7,
+    # as an estimator of known higher variance. This read 0.85/1.15, which is
+    # stricter than registered and would fail candidates the rule admits.
+    "g4_dims90": (0.80, 1.20, False),
     "g5_relative_contrast": (0.85, 1.15, True),
-    "g6_hubness_skew": (0.85, 1.15, True),
+    # Amendment 2026-08-07: G6 is scored as the deconvolved form. The raw
+    # skew is left unscored because three of twelve cells cannot fail on it.
+    "g6_attractiveness_skew": (0.85, 1.15, True),
     "g7_local_id_iqr": (0.80, 1.20, False),
     "g8_pca_retention": (0.85, 1.15, False),
 }

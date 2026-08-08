@@ -34,6 +34,8 @@ from dataclasses import asdict, dataclass, field
 
 import numpy as np
 
+from openvector_bench.hubness import attractiveness_skew
+
 K_GRID = [int(x) for x in os.environ.get("RC_K_GRID", "10,30,100").split(",")]
 N_GRID = [
     int(x) for x in os.environ.get("RC_N_GRID", "25000,50000,100000,200000").split(",")
@@ -298,6 +300,12 @@ class Cell:
     g4_dims90: int
     g5_relative_contrast: float
     g6_hubness_skew: float
+    # PREREG_RC1 amendment 2026-08-07: G6 is SCORED as the Poisson-deconvolved
+    # attractiveness skew. The raw skew stays alongside it because the stored
+    # real reference from 2026-07-20 carries only the raw form, so keeping both
+    # is what lets the two be compared and the re-measurement be audited.
+    g6_attractiveness_skew: float
+    rho: float
     g7_local_id_iqr: float
     g8_pca_retention: float
     descriptors: dict = field(default_factory=dict)
@@ -332,6 +340,12 @@ def measure(
                 g4_dims90=d90,
                 g5_relative_contrast=relative_contrast(d, base, q, k),
                 g6_hubness_skew=hubness(idx, len(base), k),
+                g6_attractiveness_skew=attractiveness_skew(
+                    np.bincount(idx[:, :k].ravel(), minlength=len(base)).astype(
+                        np.float64
+                    )
+                ),
+                rho=float(len(q) * k / max(len(base), 1)),
                 g7_local_id_iqr=float(np.subtract(*np.percentile(lid, [75, 25]))),
                 g8_pca_retention=pca_retention(base, q, idx, k),
                 descriptors=desc,
