@@ -104,74 +104,74 @@ safe.
 
 The setting is a benchmark-admission problem. OpenVector Bench requires a
 procedural corpus generator whose measured geometry matches real embeddings
-across eight registered gates --- intrinsic dimension, ball-growth slope,
-effective rank, dims-to-90\%, relative contrast, hubness skew, local-ID
-spread, and PCA retention (G1--G8) --- in two measurement batteries:
-corpus$\to$corpus and held-out-queries$\to$corpus. The search for such a
-generator was run under a falsification discipline: before every gating round
-a prediction and a named falsifier were registered; every miss was reported as
-a miss; a sealed evaluation set was never opened. This paper is about what
-that discipline surfaced.
+across eight registered gates, which are intrinsic dimension, ball-growth
+slope, effective rank, dimensions to ninety percent of energy, relative
+contrast, hubness skew, local intrinsic dimension spread and neighbourhood
+retention under projection. Each is measured in two batteries, one comparing
+a corpus against itself and one comparing held-out queries against a corpus.
+The search for such a generator ran under a falsification discipline. Before
+every gating round a prediction and a named falsifier were registered, every
+miss was reported as a miss, and a sealed evaluation set was never opened.
+This paper is about what that discipline surfaced.
 
 The mystery arose midway through the campaign. Successive generator families
-solved every gate \emph{individually} --- intrinsic dimension, rank, PCA
-retention, local-ID spread, hubness each fell to some construction --- yet
-each new family hit a hard \emph{pairwise} wall. In round 5, hubness
-$\times$ effective rank: twelve independent search shards (480 evaluations)
-mapped a clean two-ended Pareto frontier with nothing in the middle. In
-rounds 6--7, hubness $\times$ ball growth. Walls of this shape invite a
-physics reading: a genuine trade-off, a conservation law of embedding
-geometry, a reason the benchmark cannot be passed. The reading is wrong ---
-and showing \emph{why} it is wrong turns out to be more useful than passing
-the benchmark.
+solved every gate individually, with intrinsic dimension, rank, retention,
+local spread and hubness each falling to some construction, and yet each new
+family hit a hard pairwise wall. In round 5 the wall stood between hubness
+and effective rank, where twelve independent search shards running 480
+evaluations mapped a clean two-ended frontier with nothing in the middle. In
+rounds 6 and 7 it stood between hubness and ball growth. Walls of this shape
+invite a physics reading, in which the trade-off is genuine, some
+conservation law of embedding geometry holds, and the benchmark cannot be
+passed. That reading is wrong, and showing why it is wrong turns out to be
+more useful than passing the benchmark.
 
-The resolution is that the walls were properties of \emph{mechanism binding},
-not of the statistics. When one generative control (a Zipf codebook hierarchy,
-a shared immersion, a single query recipe) sets two geometric quantities at
-once, those quantities trade off \emph{under that family} --- and the
-frontier dissolves the moment the layers are given separate mechanisms. The
-contributions are:
-\textbf{(C1)} a four-layer decomposition of embedding geometry --- global
-metric/spectral structure, corpus measure $\muC$, query measure $\muQ$, and
-local scale structure (\S\ref{sec:decomposition});
-\textbf{(C2)} the hubness-polytope and independence theorems --- hubness as
-$H_k(\mathcal{C},\mathcal{Q},d)$, a linear image of the query measure, with
-universal approximate independence of spectrum, local scale, and query
-hubness by explicit construction (\S\ref{sec:theory});
-\textbf{(C3)} three constructive empirical separations under pre-registered
-protocols (\S\ref{sec:separations});
-\textbf{(C4)} the capture-basin account and the non-identifiability of scalar
-hubness (\S\ref{sec:hubness});
-\textbf{(C5)} the hub anatomy vector $A_{\mathrm{hub}}$, the registered
-anatomy falsifier that caught a scalar-gaming optimizer in the wild, and a
-generator-specific Jacobian controllability test
-(\S\ref{sec:anatomy}, \S\ref{sec:jacobian});
-\textbf{(C6)} implications for benchmark design and differential ANN testing
-(\S\ref{sec:implications}; companion paper: \emph{Fuzzing the Bond Metric}).
+The walls were properties of mechanism binding rather than of the statistics.
+When one generative control sets two geometric quantities at once, and a Zipf
+codebook hierarchy, a shared immersion and a single query recipe each do
+exactly that, those quantities trade off under that family. The frontier
+dissolves the moment the layers are given separate mechanisms.
 
-Epistemic status, stated plainly: the decomposition is \emph{strongly
-corroborated and materially sharpened} by the falsification chain --- not
-universally confirmed. The theorems of \S\ref{sec:theory} establish that no
-universal law couples the layers; whether a \emph{particular} family or a
-\emph{particular} real embedding distribution couples them is an empirical
-question, and \S\ref{sec:limits} reports where coupling is real --- including
+This paper makes six contributions. The first is a four-layer decomposition of
+embedding geometry into global metric and spectral structure, the corpus
+measure, the query measure and local scale structure
+(\S\ref{sec:decomposition}). The second is the hubness-polytope and
+independence theorems, which treat hubness as a linear image of the query
+measure and establish universal approximate independence of spectrum, local
+scale and query hubness by explicit construction (\S\ref{sec:theory}). The
+third is three constructive empirical separations under pre-registered
+protocols (\S\ref{sec:separations}). The fourth is the capture-basin account
+and the non-identifiability of scalar hubness (\S\ref{sec:hubness}). The
+fifth is the hub anatomy vector, the registered anatomy falsifier that caught
+a scalar-gaming optimizer in the wild, and a generator-specific
+controllability test (\S\ref{sec:anatomy}, \S\ref{sec:jacobian}). The sixth is
+a set of implications for benchmark design and differential testing of
+approximate nearest-neighbour systems (\S\ref{sec:implications}), developed
+further in the companion paper \emph{Fuzzing the Bond Metric}.
+
+The falsification chain corroborates the decomposition and sharpens it. It
+does not confirm it universally. The theorems of \S\ref{sec:theory} establish
+that no universal law couples the layers, while whether a particular family or
+a particular real embedding distribution couples them remains an empirical
+question. Section \ref{sec:limits} reports where coupling is real, including
 at corpus scales beyond the fitting regime, where the campaign's own
 registered grid rejected its winning candidate.
 
 \paragraph{Relation to the workload-theory programme.} This paper is the
-first output of a registered research programme (\emph{Vector Workload
-Normal Forms}, \texttt{spec/NORMAL\_FORMS.md} in the benchmark repository)
-whose object of study is the joint workload
-$W = (P_X, P_Q, d, k, N)$ and whose target is a compact descriptor
-$\Phi(W)$ predicting ANN system behaviour. In the programme's terms, the
-four-layer decomposition is the coarse structure of the proposed workload
-normal form; the theorems here are its WP1 identifiability limits (the
-strongest available ``identical corpus diagnostics, different workload''
-construction); and the generator campaign is its WP3 intervention
-laboratory. Everything in this paper concerns geometry and measurement ---
-whether matched geometry \emph{plus anatomy} transfers to matched
-recall--cost behaviour on real ANN indexes is the programme's next
-registered gate (WP5), pre-registered at the time of writing.
+first output of a registered research programme, \emph{Vector Workload
+Normal Forms}, recorded as \texttt{spec/NORMAL\_FORMS.md} in the benchmark
+repository. Its object of study is the joint workload of corpus distribution,
+query distribution, metric, neighbour count and corpus size, and its target is
+a compact descriptor of that workload predicting the behaviour of approximate
+nearest-neighbour systems. In the programme's terms the four-layer
+decomposition is the coarse structure of the proposed normal form, the
+theorems here are its identifiability limits and supply the strongest
+available construction giving identical corpus diagnostics under different
+workloads, and the generator campaign is its intervention laboratory.
+Everything in this paper concerns geometry and measurement. Whether matched
+geometry together with matched anatomy transfers to matched recall and cost
+behaviour on real indexes is the programme's next registered gate,
+pre-registered at the time of writing.
 
 \section{The four-layer decomposition}\label{sec:decomposition}
 
