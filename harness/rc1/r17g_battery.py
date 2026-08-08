@@ -110,7 +110,16 @@ def main() -> None:
                 "capacity": (None, None),
             }.items():
                 if name == "capacity":
-                    nq = min(N_QUERY * 2, max(1000, n // 10))
+                    # The candidate's query pool must be drawn by the SAME rule
+                    # as real's, or the two are compared at different
+                    # occupancies and the query-dependent gates measure the
+                    # budget difference instead of the family. The first
+                    # version of this line used max(1000, n // 10), which gave
+                    # rho 1.0 against real's 4.0 at n=25,000 and invalidated
+                    # six of twelve cells. real holds out min(N_QUERY*2,
+                    # len(corpus)//10) and measure() then samples N_QUERY from
+                    # it, so matching the holdout size matches the occupancy.
+                    nq = len(real_q)
                     gen_n = int(round((n + nq) / (1.0 - QUERY_FRAC)))
                     pr = {**params0, "cluster_growth": ALPHA, "cluster_capacity": cap_c}
                     x = hier_query_corpus(pr, gen_n, DIM, 1000 + sub)
