@@ -1,0 +1,108 @@
+{
+ "meta": {
+  "question": "what sets G1 when local_dim is small?",
+  "hypothesis": "between-cluster geometry; neighbours span clusters so the two-NN estimator reads the arrangement of centres",
+  "n": 25000,
+  "dim": 1024,
+  "k": 10,
+  "n_query": 10000,
+  "seeds": [
+   0,
+   1
+  ],
+  "real_g1_at_n": 26.64,
+  "status": "reported, not gated"
+ },
+ "arms": {
+  "PURE": [
+   {
+    "local_dim": 6,
+    "g1": 218.27272033691406,
+    "purity": 0.12085
+   },
+   {
+    "local_dim": 12,
+    "g1": 215.24359893798828,
+    "purity": 0.12215999999999999
+   },
+   {
+    "local_dim": 24,
+    "g1": 214.54537200927734,
+    "purity": 0.12147
+   },
+   {
+    "local_dim": 48,
+    "g1": 211.11866760253906,
+    "purity": 0.124405
+   },
+   {
+    "local_dim": 94,
+    "g1": 202.3720932006836,
+    "purity": 0.12577500000000003
+   }
+  ],
+  "FROZEN": [
+   {
+    "local_dim": 6,
+    "g1": 72.48711013793945,
+    "purity": 0.4621799999999999
+   },
+   {
+    "local_dim": 12,
+    "g1": 45.62734031677246,
+    "purity": 0.36421
+   },
+   {
+    "local_dim": 24,
+    "g1": 39.42121124267578,
+    "purity": 0.281135
+   },
+   {
+    "local_dim": 48,
+    "g1": 46.88359260559082,
+    "purity": 0.228295
+   },
+   {
+    "local_dim": 94,
+    "g1": 63.43155479431152,
+    "purity": 0.19942500000000002
+   }
+  ],
+  "KSWEEP": [
+   {
+    "log2_clusters": 0,
+    "clusters": 1,
+    "g1": 215.24359893798828,
+    "purity": 0.12215999999999999
+   },
+   {
+    "log2_clusters": 2,
+    "clusters": 4,
+    "g1": 179.24947357177734,
+    "purity": 0.15028000000000002
+   },
+   {
+    "log2_clusters": 4,
+    "clusters": 16,
+    "g1": 103.23223495483398,
+    "purity": 0.25373
+   },
+   {
+    "log2_clusters": 6.2812,
+    "clusters": 78,
+    "g1": 45.62734031677246,
+    "purity": 0.36421
+   },
+   {
+    "log2_clusters": 8,
+    "clusters": 256,
+    "g1": 32.36108207702637,
+    "purity": 0.45274499999999995
+   }
+  ]
+ },
+ "neighbourhoods_span_clusters": true,
+ "pure_removes_floor": false,
+ "cluster_count_raises_g1": false,
+ "reading": "Refuted. Neither removing clusters nor sweeping their count moves the floor, so between-cluster geometry is not what sets G1 at low local_dim. The floor lives inside the cluster construction and the next diagnostic should look there."
+}
