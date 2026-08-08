@@ -34,64 +34,70 @@ round-9 frontier integrated)}
 \maketitle
 
 \begin{abstract}
-Summary statistics of embedding geometry --- intrinsic dimension, effective rank,
-hubness skew, ball-growth slope --- are routinely treated as properties of a corpus
-and are widely believed to trade off against one another. We show that several of
-these trade-offs are \emph{representational artifacts}: they appear when a
-generative mechanism (or a learned representation) binds distinct geometric layers
-to a single control, and they dissolve when the layers are given separate
-mechanisms. We propose a four-layer decomposition of embedding geometry --- global
-metric/spectral structure, corpus measure $\muC$, query measure $\muQ$, and local
-scale structure --- and support it with a pre-registered falsification chain over a
-procedural corpus-generator search (seven experiment rounds against a real
-$1024$-dimensional text-embedding corpus). Three constructive separations result:
-(i) angular hub structure vs.\ global spectrum, an apparently sharp Pareto
-frontier dissolved by splitting placement from colouring; (ii) \emph{same hubness,
-different anatomy}: a synthetic corpus and the real corpus share the same scalar
-hubness reading produced by opposite mechanisms (centrality-driven super-hubs,
-max reverse-$k$NN count 369, vs.\ density-driven moderate hubs, max count 78) ---
-one-number hubness is non-identifying; (iii) hubness vs.\ ball growth, dissolved
-by recognising that the real system's hubness lives substantially in the query
-marginal: writing hubness as $H_k(\mathcal{C},\mathcal{Q},d)$, reverse-neighbour
-counts sample the query mass of top-$k$ capture basins,
-$N_k(x_j)\approx|\mathcal{Q}|\,\muQ(\capture{x_j})$. We complement the
-empirical chain with an \emph{independent-realizability theorem}: the
-achievable hub vectors of a fixed corpus form a polytope (the convex hull of
-retrievable top-$k$ incidence vectors), and an arbitrarily small
-simplex-address augmentation --- which preserves every corpus-to-corpus
-neighbour ordering exactly and perturbs the spectrum by $O(\delta)$ ---
-expands that polytope to the full hypersimplex $\Delta(n,k)$, so no universal
-functional law of the form $G6=f(G2,G3,G7,G8)$ can hold over finite retrieval
-experiments. We conclude that apparent geometric trade-offs can be artifacts
-of forcing corpus metric, corpus measure, query measure, and local scale
-through a shared mechanism, propose a hub \emph{anatomy vector} as the
-reporting standard, and derive a registered anatomy falsifier that prevents
-optimizers from reproducing a scalar by rebuilding a known pathology. The
-falsifier promptly earned its keep: in the final round the optimizer satisfied
-all six registered gate bands numerically while the anatomy check convicted it
-of rebuilding corpus super-hubs (base-to-base skew $\approx 7$, max
-reverse-count $\approx 350$) despite having a genuine query-measure knob
-available --- one-number geometry invites Goodharting that only anatomy-level
-registration catches. Pricing the anatomy into the fitness and applying one
-Jacobian-informed correction then closed the campaign: all six registered
-gates within $[0.5,2.0]\times$ \emph{and} anatomy in band
-(skew $1.4$--$1.9$, max count $52$--$104$ vs.\ real $1.5$/$78$) on three
-fresh seeds --- real's numbers by real's mechanism.
-Finally we show that one-number hubness fails in a second and stronger way
-that is not about mechanism at all. Retrieval counts are properties of a
-corpus measured under a query budget, and at low occupancy the structureless
-expectation dominates the reading. On the real corpus the hubness of the
-largest grid cell is $1.27$ times its own Poisson null, so a ratio gate whose
-null term is shared by candidate and reference is driven toward unity
-independently of hub structure. Three of twelve cells in the admission rule
-could not fail. We decompose the measured scaling slope into a null-ceiling
-term and a hub-structure term, finding roughly half the apparent thinning to
-be the ceiling, and give budget-invariant replacements including a Poisson
-deconvolution that recovers the attractiveness skew of the corpus itself.
+Summary statistics of embedding geometry are routinely treated as properties
+of a corpus. Intrinsic dimension, effective rank, hubness skew and ball-growth
+slope are widely believed to trade off against one another. We show that
+several of these trade-offs are representational artifacts. They appear when a
+generative mechanism binds distinct geometric layers to a single control, and
+they dissolve when the layers are given separate mechanisms.
+
+We propose a four-layer decomposition of embedding geometry into global metric
+structure, corpus measure, query measure and local scale, and support it with
+a pre-registered falsification chain over a procedural generator search run
+against a real text-embedding corpus of 1024 dimensions.
+
+Three constructive separations result. Angular hub structure and global
+spectrum appear to sit on a sharp frontier, and splitting placement from
+colouring dissolves it. A synthetic corpus and the real corpus produce the
+same scalar hubness reading by opposite mechanisms, one with centrality-driven
+super-hubs reaching a maximum reverse-neighbour count of 369 and the other
+with density-driven moderate hubs reaching 78, so a one-number hubness reading
+does not identify the mechanism that produced it. Hubness and ball growth
+separate once the real system's hubness is recognised as living substantially
+in the query marginal, because reverse-neighbour counts sample the query mass
+of the regions each point captures.
+
+We complement the empirical chain with an independent-realizability theorem.
+The achievable hub vectors of a fixed corpus form a polytope, the convex hull
+of retrievable incidence vectors. An arbitrarily small simplex-address
+augmentation preserves every corpus-to-corpus neighbour ordering exactly,
+perturbs the spectrum only in proportion to its own size, and expands that
+polytope to the full hypersimplex. No universal functional law expressing
+hubness as a function of the other gates can therefore hold over finite
+retrieval experiments.
+
+We conclude that apparent geometric trade-offs can be artifacts of forcing
+corpus metric, corpus measure, query measure and local scale through a shared
+mechanism. We propose a hub anatomy vector as the reporting standard and
+derive a registered anatomy falsifier that stops an optimizer reproducing a
+scalar by rebuilding a known pathology. The falsifier earned its keep. In the
+final round the optimizer satisfied all six registered gate bands numerically
+while the anatomy check convicted it of rebuilding corpus super-hubs, at a
+base-to-base skew near 7 and a maximum reverse count near 350, despite having
+a genuine query-measure knob available. One-number geometry invites the
+optimizer to game the number, and only anatomy-level registration catches it.
+Pricing the anatomy into the fitness and applying one Jacobian-informed
+correction closed the campaign, with all six registered gates in band and
+anatomy in band on three fresh seeds, reaching real corpora's numbers by real
+corpora's mechanism.
+
+One-number hubness then fails in a second and stronger way that is not about
+mechanism at all. Retrieval counts are properties of a corpus measured under a
+query budget, and at low occupancy the structureless expectation dominates the
+reading. On the real corpus the hubness of the largest grid cell is 1.27 times
+its own Poisson null, so a ratio gate whose null term is shared by candidate
+and reference is driven toward agreement independently of hub structure. Three
+of the twelve cells in the admission rule could not fail. We decompose the
+measured scaling slope into a null-ceiling term and a hub-structure term,
+finding roughly half the apparent thinning to be the ceiling, and give
+budget-invariant replacements including a Poisson deconvolution that recovers
+the attractiveness skew of the corpus itself.
+
 The same analysis yields a structural prediction that we then confirm and
-report as a negative: any construction whose number of attractors does not
-grow with the corpus fails subsample covariance, which we observe at three
-levels of abstraction including a fixed codebook that was expected to be safe.
+report as a negative. Any construction whose number of attractors does not
+grow with the corpus fails subsample covariance. We observe this at three
+levels of abstraction, including a fixed codebook that was expected to be
+safe.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -1014,10 +1020,10 @@ number of attractors does not grow with the corpus will fail, and that the
 direction of failure is predictable from whether the attractors are
 enumerable. We then registered and ran the test that lesson implies. A
 codebook was given a Pitman-Yor popularity law, so that the number of atoms a
-corpus touches grows as $n^{lpha}$ with the growth emergent rather than
-instructed. The growth works, with nominal $lpha$ of $0.3$, $0.5$ and $0.7$
+corpus touches grows as $n^{\alpha}$ with the growth emergent rather than
+instructed. The growth works, with nominal $\alpha$ of $0.3$, $0.5$ and $0.7$
 producing measured growth exponents of $0.329$, $0.509$ and $0.730$. The hub
-scaling does not move. Every $lpha$ in the declared range gives a slope
+scaling does not move. Every $\alpha$ in the declared range gives a slope
 between $+2.5$ and $+3.8$ per decade against a real $+0.51$, and the fixed
 codebook sits inside that same range at $+2.9$.
 
