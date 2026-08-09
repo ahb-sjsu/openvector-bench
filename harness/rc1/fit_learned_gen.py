@@ -16,6 +16,18 @@ the autograd graph. The objective is therefore the geometry itself:
             ( dlog r_gen - dlog r_real )^2
       + w_level * sum over rungs of ( mean log r_gen - mean log r_real )^2
 
+**w_level defaults to ZERO, and that is a correctness point, not a tuning
+choice.** The registered statistic is scale-invariant: under r -> c*r, log r
+shifts by a constant, dlog r is unchanged, so s(r) and the ratio are unchanged.
+PROFILE.md scores the ratio and its trend, neither of which depends on the
+absolute radius. A level term is therefore unnecessary — and at w_level = 0.05
+it was actively harmful: real's log-radius span is only ~0.15 across the k
+grid, so each dlog r is ~0.010 and the shape term is ~1e-4, while the level
+mismatch contributed ~2e-3. The nominally weak term was 25x the one that
+mattered, and the cheapest way to satisfy it was to shrink the radii, which
+squashed the profile. The optimiser duly moved the ratio from 0.6 at init to
+0.21 while the loss fell 60x.
+
 **The loss is on DIFFERENCES of log r, not levels, and that is not a detail.**
 A first attempt scored ``sum (log r_gen(k) - log r_real(k))^2`` and failed for
 an instructive reason: that objective is dominated by the overall *scale* of
@@ -80,7 +92,7 @@ NQ = int(os.environ.get("FL_NQ", "512"))
 STEPS = int(os.environ.get("FL_STEPS", "150"))
 LR = float(os.environ.get("FL_LR", "3e-3"))
 W_SHAPE = float(os.environ.get("FL_W_SHAPE", "1.0"))
-W_LEVEL = float(os.environ.get("FL_W_LEVEL", "0.05"))
+W_LEVEL = float(os.environ.get("FL_W_LEVEL", "0.0"))
 SEED = 1234
 
 torch.set_num_threads(int(os.environ.get("FL_THREADS", "6")))
@@ -122,6 +134,12 @@ def main() -> int:
         x = tp["alpha"] * z + h @ tp["W2"]
         return x / torch.clamp(x.norm(dim=1, keepdim=True), min=1e-12)
 
+    # FIXED rung draws. Resampling these every step made the objective itself
+    # noisy: with few queries the median r(k) targets moved between steps, so
+    # the optimiser chased noise and reached loss 5e-5 while the true ratio sat
+    # at 0.27. One draw per rung, held for the whole fit.
+    fixed_idx = {n: torch.randperm(nmax)[:n] for n in rungs}
+
     hist = []
     t0 = time.time()
     for step in range(STEPS):
@@ -130,7 +148,7 @@ def main() -> int:
         q = xa[nmax:]
         loss = 0.0
         for n in rungs:
-            idx = torch.randperm(nmax)[:n]
+            idx = fixed_idx[n]
             rk = rk_torch(xa[idx], q, kgrid)
             lg, lt = torch.log(rk), torch.log(target_rk[n])
             # shape: consecutive differences of log r ARE the profile
@@ -144,7 +162,7 @@ def main() -> int:
                 xa2 = fwd(z_all)
                 ratios = []
                 for n in rungs:
-                    rk = rk_torch(xa2[torch.randperm(nmax)[:n]], xa2[nmax:], kgrid)
+                    rk = rk_torch(xa2[fixed_idx[n]], xa2[nmax:], kgrid)
                     lk = torch.log(torch.tensor([float(k) for k in kgrid]))
                     s = torch.gradient(lk, spacing=(torch.log(rk),))[0]
                     ratios.append(float(s[-1] / s[0]))

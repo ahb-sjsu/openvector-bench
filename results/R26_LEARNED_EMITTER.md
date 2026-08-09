@@ -1,4 +1,4 @@
-# A learned emitter: scaffold works, first fit inconclusive
+# A learned emitter cannot produce the ramp — row-to-row dependence looks necessary
 
 **Exploratory, not a registered round.** No admission claim, seal untouched.
 Measured 2026-08-09. Module
@@ -52,10 +52,57 @@ queries, three seeds:
 
 Target trend +0.828, fitted **+0.088**.
 
-## Why this is inconclusive rather than a refutation
+## Second fit, with the objective corrected: a meaningful negative
 
-Training loss reached 5e-5 while the true ratio sat at 0.27. That gap is the
-result: **the optimiser was fitting noise.** With 384 queries and a freshly
+The first fit was inconclusive because the objective was noisy and mis-scaled
+(both diagnosed below). With those fixed — scale-invariant loss, fixed rung
+draws, 2000 queries, hidden width 128 (262k parameters, still only 0.26
+MFLOPs/row) — the loss **converges** (9e-5, flat from step 80 through 199) and
+the answer is stable:
+
+| rung | target ratio | fitted |
+|---|---|---|
+| 5,000 | 1.576 | 0.387 |
+| 10,000 | 2.151 | 0.427 |
+
+Target trend +0.828, fitted **+0.057**. The map produces a *falling* profile —
+ratio below 1 — like all ten hand-designed families. The residual is ~95%
+relative error (real's `dlog r` is ~0.010 per k-step; RMS error 0.0095), so this
+is not a near miss.
+
+### Why a per-row map cannot do it — the mechanism
+
+A per-row map sends iid noise through one fixed smooth function, so rows are iid
+draws from a single pushforward distribution. At small radii a smooth map is
+locally linear, so the local dimension tends to the Jacobian rank — **high** at
+small r — and falls as curvature bites at larger r. A falling profile is what
+this construction produces *by default*.
+
+Real's profile rises, which requires neighbourhoods that are **low**-dimensional
+at small radius: nearby rows constrained to a low-dimensional set — same article,
+paraphrase, near-duplicate. With iid rows such neighbours occur only by
+coincidence at a rate fixed by the density. In a real corpus they are
+**structural**, and their density is what drives `s_lo` down as n grows.
+
+This is the third independent route to the same wall: the filament family
+saturates because one characteristic scale is resolved and then exhausted
+(`R21C`); the cascade family cannot separate level-dominance from distance
+collapse (`R21D`); and a per-row map cannot manufacture structural near-duplicates
+at all. **Row-to-row dependence looks necessary, not optional.**
+
+### Caveats on the negative
+
+One architecture (2-layer MLP, tanh, skip), 200 steps, one learning rate, one
+initialisation, two rungs. The loss plateau is evidence of convergence to *an*
+optimum, not proof of the global one. The mechanism argument above is reasoning,
+not measurement, and would deserve its own test — e.g. a deliberately
+cluster-forming map, which is no longer a per-row map and therefore concedes the
+point.
+
+## Appendix: two objective bugs, both diagnosed by arithmetic
+
+**Bug 1 — a noisy objective.** Training loss reached 5e-5 while the true ratio
+sat at 0.27: the optimiser was fitting noise. With 384 queries and a freshly
 resampled rung subset at every step, the median `r(k)` values it chased were
 themselves noisy, so a low loss on noisy draws is not a fit to the curve. The
 shape term also averages fifteen consecutive differences, diluting precisely the
@@ -66,9 +113,16 @@ the ramp. That question — whose negative answer would be the more valuable one
 since it would make row-to-row dependence *necessary* rather than optional —
 remains open.
 
-### An objective bug worth recording
+**Bug 2 — a level term that dominated.** `w_level` was set to 0.05 to "weakly"
+pin the radii. Real's log-radius span is only ~0.15 across the k grid, so each
+`dlog r` is ~0.010 and the shape term is ~1e-4, while the level mismatch
+contributed ~2e-3 — the nominally weak term was **25x** the one that mattered,
+and the cheapest way to satisfy it was to shrink radii, which squashed the
+profile. It is now zero, and that is a correctness point rather than tuning:
+the registered statistic is scale-invariant (under `r -> c*r`, `dlog r` is
+unchanged), so no level term is needed at all.
 
-The first attempt scored `Σ (log r_gen(k) − log r_real(k))²`. That is dominated
+**Bug 3 — the wrong quantity entirely.** The first attempt scored `Σ (log r_gen(k) − log r_real(k))²`. That is dominated
 by the overall *scale* of the radii: a near-constant offset in log r contributes
 most of the loss and nothing to the profile. The optimiser reduced the loss 3x
 while the trend rose to +0.619 at step 40 and then **collapsed to −0.282** — it
