@@ -117,18 +117,37 @@ assumed:
 1. **Low-dimensional base** — an isotropic base gives G1 ~300 against ~17.
 2. **Multi-scale recursive duplication** — single-scale saturates (`R21C`), and
    recursive beats flat 2x here.
-3. **n-invariant duplicate density** — otherwise G1 falls 10-17x too fast.
+3. **Something that holds G1 at ~17 while duplicates are present** — and this
+   is the one nothing has supplied. "Make the duplicate density n-invariant" was
+   the hypothesis; three sweeps refuted it (see above). The trade-off between G1
+   level and G1 slope survives every parameterisation tried.
 
 All three are cheap and compose with `bitmap_gen`: a low-dimensional base is a
 fixed random projection, and duplication needs only a hash from row index to a
 source row plus more hash noise. No training, no transcendentals.
 
-**The open engineering question is random access.** Recursive duplication is
-exactly the row-to-row dependence that makes O(1) emission non-trivial: row *i*'s
-source must be derivable from *i* alone. A hash to an earlier index works, but
-the resulting ancestry chain has depth, so emitting one row means walking it —
-O(depth) rather than O(1). Whether depth stays bounded at 10¹² is unresolved and
-is the thing to settle before this family is worth registering.
+**Random access: RESOLVED, and viable** (`dup_feasibility.json`). Recursive
+duplication is the row-to-row dependence that puts O(1) emission in doubt, so it
+was settled before anything was built on it. With `source(i) = splitmix64(i) mod
+i` the ancestry is a random recursive tree; measured depth by walking 20k sampled
+rows to root:
+
+| n | mean depth | p99 | max |
+|---|---|---|---|
+| 10⁶ | 6.89 | 14 | 19 |
+| 10⁹ | 13.84 | 23 | 34 |
+| 10¹² | 20.75 | 32 | 41 |
+
+O(log n) with no pathological tail. At p99 depth that is ~33k ops/row against
+`bitmap_gen`'s ~1200 — about **125 MB/s/core** against the ~10 MB/s bound below
+which fetching beats regeneration and `DISTRIBUTION.md` §3's ordering inverts.
+Twelve times inside the bound, so unlike the encoder route this is not close.
+
+**Replication: also confirmed.** The two best arms over four seeds give
++0.987 ± 0.086 and +1.065 ± 0.146 — the first within 1% of target with a seed
+spread *smaller* than real's own block-to-block sd of 0.099. The G1 defect
+replicates equally cleanly (10.3/5.6/3.5 in every seed), which is what makes it
+a systematic property rather than noise.
 
 ## Process note
 
