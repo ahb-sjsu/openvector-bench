@@ -28,7 +28,15 @@ uint8), so this is the T7 rung of the real thing rather than a toy.
 | 1 | every shard verifies against its Merkle root | **PASS** |
 | 2 | reconstructed bytes identical to the originals | **PASS** |
 | 3 | index returns **identical** answers for a fixed query set | **PASS** |
-| 4 | corrupted chunk detected and rejected | **PASS** (tamper); signature **not exercised** |
+| 4 | signature verifies **and** corrupted chunk detected | **PASS** (both clauses) |
+
+The signature clause was closed in a second run
+([`r22_reconstruction_signed.json`](r22_reconstruction_signed.json)) with a real
+detached GPG signature from the repository's own commit-signing key
+(`ed25519/E5B1306234254456`), giving `4_signature: true` alongside
+`4_tamper_detected: true`. That run was executed on the workstation rather than
+Atlas because the key lives there; every other number below is from the Atlas
+run and the two agree on criteria 1-3 and on all reportables.
 
 Criterion 2 is checked by an independent whole-file SHA-256, not by the
 manifest's own chunk hashes, so it is not circular. Criterion 3 is exact k-NN
@@ -83,11 +91,15 @@ sources, with an index that answers identically and corruption detected.
 
 **Not licensed, and each is a real gap:**
 
-1. **The signature is untested.** There is no GPG secret key on Atlas, so the
-   run used `--sign` unset. Criterion 4's tamper clause passed; its signature
-   clause did not run. `DISTRIBUTION.md` wants the same identity that signs the
-   repository's commits, so this needs the author's key rather than an
-   ephemeral one — the code path exists (`sign_manifest`/`verify_signature`).
+1. ~~The signature is untested.~~ **CLOSED** — signed and verified with the
+   repository's own commit-signing key, exactly the identity `DISTRIBUTION.md`
+   §2 names. Closing it exposed a real bug: `sign_manifest` invoked a bare
+   `gpg`, and on Windows a Git-for-Windows install ships its own GnuPG with a
+   *separate keyring*, so `gpg` on PATH resolved to a binary that does not hold
+   the key — failing with `No secret key`, which reads like a missing key rather
+   than the wrong program, while git itself signs commits happily via its
+   configured `gpg.program`. `manifest.gpg_program()` now resolves
+   `$OVB_GPG` -> `git config gpg.program` -> `gpg`.
 2. **All sources were local filesystem.** No NRP S3 bucket, no Zenodo DOI, no
    origin fetch. Phase 1's multi-region and durable-mirror claims are untouched,
    and the per-source latencies above are storage-local, not network.
@@ -114,7 +126,7 @@ needs exactly this partial-verification chain.
 
 ## Next
 
-1. Re-run with `--sign <keyid>` to close criterion 4 properly.
+1. ~~Re-run with `--sign`~~ — DONE, criterion 4 fully closed.
 2. Publish one shard set to a real remote (NRP S3 or Zenodo) and re-run so the
    fetch tier is network-backed and the latency figures mean something.
 3. Run regeneration on a second toolchain (different numpy/platform) and report
