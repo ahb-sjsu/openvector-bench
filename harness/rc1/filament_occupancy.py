@@ -78,8 +78,38 @@ TARGETS = os.environ.get("FO_TARGETS", "results/small_rung_targets.json")
 T_MU_MED = 1.0523
 T_MU_FRAC = 0.0167
 
+PT_GRID = json.loads(os.environ.get("FO_PT", "[1.5, 4, 12, 40]"))
+FD_GRID = json.loads(os.environ.get("FO_FD", "[8, 16]"))
+AD_GRID = json.loads(os.environ.get("FO_AD", "[40, 90]"))
+FS_GRID = json.loads(os.environ.get("FO_FS", "[0.25]"))
+# Real carries a SMALL near-duplicate population (frac mu>1.5 = 0.017) that the
+# pure filament family lacks entirely (0.000). R27 had 60% — 35x too many. This
+# overlays duplicates at the proportion real actually exhibits.
+DUP_GRID = json.loads(os.environ.get("FO_DUP", "[0.0]"))
+DUPCOS_GRID = json.loads(os.environ.get("FO_DUPCOS", "[0.95]"))
 
-def build(n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale):
+
+def add_duplicates(x, rng, frac, cos_target):
+    """Replace a small fraction of rows with near-copies of other rows."""
+    if frac <= 0:
+        return x
+    n = len(x)
+    k = int(round(n * frac))
+    if k <= 0:
+        return x
+    tgt = rng.choice(n, k, replace=False)
+    src = rng.integers(0, n, k)
+    rel = float(np.sqrt(1.0 / cos_target**2 - 1.0))
+    parent = x[src]
+    pn = np.linalg.norm(parent, axis=1, keepdims=True)
+    noise = rng.standard_normal((k, x.shape[1])).astype(np.float32)
+    noise /= np.maximum(np.linalg.norm(noise, axis=1, keepdims=True), 1e-12)
+    x[tgt] = parent + np.float32(rel) * pn * noise
+    return x
+
+
+def build(n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale,
+          dup_frac=0.0, dup_cos=0.95):
     """Threads whose COUNT scales with n, so occupancy is the swept variable."""
     n_thread = max(2, int(round(n / max(per_thread, 1e-9))))
     basis_a = np.linalg.qr(rng.standard_normal((dim, arrange_dim)))[0].astype(np.float32)
@@ -99,16 +129,17 @@ def build(n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale):
         b = rng.standard_normal((fil_dim, dim)).astype(np.float32) * inv
         u = rng.standard_normal((hi - lo, fil_dim)).astype(np.float32)
         x[order[lo:hi]] = centres[t] + np.float32(fil_scale) * (u @ b)
-    return x
+    return add_duplicates(x, rng, dup_frac, dup_cos)
 
 
-def arm(per_thread, fil_dim, arrange_dim, fil_scale) -> dict:
+def arm(per_thread, fil_dim, arrange_dim, fil_scale,
+        dup_frac=0.0, dup_cos=0.95) -> dict:
     trends, g1e, g1m, mus, mufr, slos, shis = [], [], [], [], [], [], []
     for sd in SEEDS:
         rng = np.random.default_rng(sd)
         nmax = max(NS)
         x = normalize(build(nmax + NQ, DIM, rng, per_thread, fil_dim,
-                            arrange_dim, fil_scale))
+                            arrange_dim, fil_scale, dup_frac, dup_cos))
         q = x[nmax:]
         ratios, g1s, s_lo, s_hi = [], [], [], []
         for n in NS:
@@ -157,17 +188,22 @@ def main() -> int:
     res, t0 = {}, time.time()
     print(f"{'arm':30s} {'trend':>7s} {'G1':>6s} {'G1exp':>7s} {'s_lo':>14s} "
           f"{'mu':>6s} {'mu>1.5':>7s} {'score':>7s}", flush=True)
-    for per_thread in (1.5, 4, 12, 40):
-        for fil_dim in (8, 16):
-            for arrange_dim in (40, 90):
-                name = f"pt{per_thread}_fd{fil_dim}_ad{arrange_dim}"
-                v = arm(per_thread, fil_dim, arrange_dim, 0.25)
-                v["score"] = score(v)
-                res[name] = v
-                slo = "/".join(f"{s:.0f}" for s in v["s_lo"])
-                print(f"{name:30s} {v['trend']:+7.3f} {v['g1_mean']:6.1f} "
-                      f"{v['g1_exp']:+7.3f} {slo:>14s} {v['mu_med']:6.3f} "
-                      f"{v['mu_frac']:7.3f} {v['score']:7.2f}", flush=True)
+    for per_thread in PT_GRID:
+        for fil_dim in FD_GRID:
+            for arrange_dim in AD_GRID:
+                for fil_scale in FS_GRID:
+                  for dupf in DUP_GRID:
+                   for dupc in DUPCOS_GRID:
+                    name = (f"pt{per_thread}_fd{fil_dim}_ad{arrange_dim}"
+                            f"_fs{fil_scale}_dup{dupf}c{dupc}")
+                    v = arm(per_thread, fil_dim, arrange_dim, fil_scale,
+                            dupf, dupc)
+                    v["score"] = score(v)
+                    res[name] = v
+                    slo = "/".join(f"{s:.0f}" for s in v["s_lo"])
+                    print(f"{name:30s} {v['trend']:+7.3f} {v['g1_mean']:6.1f} "
+                          f"{v['g1_exp']:+7.3f} {slo:>14s} {v['mu_med']:6.3f} "
+                          f"{v['mu_frac']:7.3f} {v['score']:7.2f}", flush=True)
 
     best = min(res.items(), key=lambda kv: kv[1]["score"])
     b = best[1]
