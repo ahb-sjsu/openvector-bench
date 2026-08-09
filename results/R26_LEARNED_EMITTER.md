@@ -99,7 +99,10 @@ not measurement, and would deserve its own test — e.g. a deliberately
 cluster-forming map, which is no longer a per-row map and therefore concedes the
 point.
 
-## Appendix: two objective bugs, both diagnosed by arithmetic
+## Appendix: three objective bugs, each caught by arithmetic
+
+Each produced a confident wrong answer, and each was found by checking a number
+against the quantity it was supposed to represent rather than against intuition.
 
 **Bug 1 — a noisy objective.** Training loss reached 5e-5 while the true ratio
 sat at 0.27: the optimiser was fitting noise. With 384 queries and a freshly
@@ -107,11 +110,6 @@ resampled rung subset at every step, the median `r(k)` values it chased were
 themselves noisy, so a low loss on noisy draws is not a fit to the curve. The
 shape term also averages fifteen consecutive differences, diluting precisely the
 endpoint errors that the ratio depends on.
-
-So the run says nothing about whether a per-row map of hash noise *can* express
-the ramp. That question — whose negative answer would be the more valuable one,
-since it would make row-to-row dependence *necessary* rather than optional —
-remains open.
 
 **Bug 2 — a level term that dominated.** `w_level` was set to 0.05 to "weakly"
 pin the radii. Real's log-radius span is only ~0.15 across the k grid, so each
@@ -128,22 +126,23 @@ most of the loss and nothing to the profile. The optimiser reduced the loss 3x
 while the trend rose to +0.619 at step 40 and then **collapsed to −0.282** — it
 walked away from a good profile because the objective did not reward it. Since
 `s = dlog k / dlog r` and `dlog k` is fixed by the grid, matching `dlog r` *is*
-matching `s(r)`; the loss now scores consecutive differences with the level
-pinned separately and weakly.
+matching `s(r)`; the loss now scores consecutive differences, with no level
+term at all (see Bug 2).
 
 Two incidental facts from that failed run are worth keeping: the map reached
 trend **+0.619** unprompted, so it is not obviously incapable; and the
 deployment-path check passed there too.
 
-## What it would take to conclude
+## What would overturn the negative
 
-1. Queries ≥ 2000 and a **fixed** rung subsample, so the objective is not itself
-   noisy — this is the change that matters most.
-2. Endpoint-weighted or ratio-explicit loss terms, so the statistic being
-   targeted is the one the spec scores.
-3. Evaluation through the deployment path at every checkpoint, not the in-loop
-   diagnostic, which was misleading in both runs.
-4. A capacity sweep; hidden=64 was chosen for cost headroom, not from evidence.
+1. A capacity or architecture sweep — one 2-layer MLP is thin evidence about the
+   whole class of per-row maps.
+2. More rungs and longer fits; two rungs and 200 steps is the minimum that
+   supports a trend at all.
+3. Most decisive: a deliberately cluster-forming map. If a **non**-iid
+   construction reaches the ramp where this one cannot, that confirms the
+   mechanism rather than just the outcome — though such a construction is no
+   longer a per-row map, which concedes the point.
 
 ## Standing caveat
 
