@@ -1,4 +1,11 @@
-# The filament shape is live again — R21C's exclusion was a parameterisation artifact
+# The filament shape survives R21C, but fails the registered protocol
+
+> **Outcome notice (added after registered-scale testing).** Everything below
+> was measured at reduced rungs. At `PROFILE.md`'s registered protocol the
+> family **fails**: see the closing section. The two findings that survive are
+> that real has no near-duplicates, and that R21C's exclusion was a fixed-F
+> artifact. The claim that the family was "close and needs re-tuning" does not
+> survive and is retracted.
 
 **Exploratory, not a registered round.** No admission claim, seal untouched.
 Measured 2026-08-09. Driver
@@ -111,3 +118,41 @@ topical arrangement dimension, passages per topic), not free coefficients.
 Shared-basis vectorisation, verify equivalence at reduced scale, then **re-tune**
 (not merely re-measure) against `PROFILE.md`'s registered targets at a 600k pool.
 Only then is there a candidate worth adversarial validation.
+
+
+## Registered-protocol result: the family fails
+
+`filament_registered2.json`, 600k pool so per-rung density matches the
+registered protocol, 10k holdout, rungs 25k/50k/100k. Targets measured under the
+same protocol (`registered_targets.json`): trend +0.440, G1 23.1, G1 exponent
+−0.174, mu 1.0346.
+
+| arm | trend | G1 | G1 exp | mu |
+|---|---|---|---|---|
+| target | +0.440 | 23.1 | −0.174 | 1.0346 |
+| pt4 (reduced-scale optimum) | +0.113 | 100.2 | −0.597 | 1.008 |
+| pt48 | +6.166 | 21.0 | **+0.158** | 1.047 |
+| pt96 | +2.471 | 23.8 | **+0.260** | 1.042 |
+
+**A parameterisation error found here, and it matters for reading everything
+above.** Occupancy was defined as points-per-thread *in the pool*, but the
+geometry responds to points-per-thread *in the rung*, and the rung/pool ratio
+differs by a factor of five between protocols — 91% at reduced scale, 17%
+registered. So `points_per_thread` does not mean the same thing in the two
+settings, and the ~158 arms of reduced-scale tuning were optimising a quantity
+that does not transfer.
+
+Correcting it fixes the G1 *level* (21.0 and 23.8 against 23.1) and breaks
+everything else: the trend runs 5-14x high, the **G1 exponent takes the wrong
+sign** — G1 rises with n where real's falls — and the ratios become erratic and
+non-monotonic (2.775 / 9.238 / 6.201). Across both registered attempts the
+family gives either G1 five times too high with too little trend, or the right
+G1 with far too much trend and an inverted exponent.
+
+**The reduced-scale fit was an artifact of its density regime.** This is
+consistent with `R24`, which found density — not row count — governs the profile
+for *real* embeddings; it should not have been surprising that it governs the
+generator too. The requirement that follows is stronger than the five-target
+match pursued above: a candidate must reproduce **how the profile moves with
+density**, not merely its values at one operating point. Nothing in twenty-three
+rounds has been tested against that.
