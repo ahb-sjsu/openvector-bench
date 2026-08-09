@@ -151,18 +151,40 @@ objects and matching one does not deliver the other.
    n resolves the thread (4.2 → 14.6) where real's FALLS (27.4 → 15.7). A single
    characteristic scale saturates once resolved.
 3. **The indicated structure is multi-scale with dimension decreasing toward
-   finer scales** — hierarchy, not one scale and not scale-free. That is the
-   bitmap family's original `dim_decay` intent, which has never actually
-   functioned (masked first by the noise floor, then by truncation dominance).
-3. **Conformal maps cannot fix the dimension axis** — they are local
+   finer scales** — hierarchy, not one scale and not scale-free. That was the
+   bitmap family's original `dim_decay` intent, and
+   [`R21D_DIMDECAY_REFUTED.md`](R21D_DIMDECAY_REFUTED.md) has since closed that
+   route too: amplitude decay is simultaneously what makes a level dominate the
+   local dimension and what collapses the neighbour distance, so the two
+   cascade regimes are exhaustive and both fail.
+4. **Conformal maps cannot fix the dimension axis** — they are local
    similarities, so they preserve local dimension exactly, and Liouville's
    theorem restricts them to Mobius transformations in dim >= 3. That same
    inertness makes them the safe way to add a *density* gradient: round 1's
    Poincare `exp_0` conformal factor reached hubness 0.85x where every
    cluster-structured family capped near 0.2x (`generator_search.py:182`).
 
-## Next required step
+## Status of the sampling caveat — CLOSED
 
-Re-run the controls and the stratified arms on the 600k pool, so the "not
-scale-free" claim rests on matched sampling. Only then is it worth designing a
-family for the profile.
+An earlier version of this document ended by requiring the controls and the
+stratified arms to be re-run on the 600k pool before the "not scale-free" claim
+could stand. **That has been done** (`scale_probe4.py`, table in §"Controls on
+the 600k pool" above, record [`scale_probe4.json`](scale_probe4.json)). All six
+corpora — real, `null_gaussian`, `null_lowrank`, `bitmap_L60`, `bitmap_L90`,
+`strat_as_built` — went through one protocol on the 600k pool with uniform
+per-rung draws.
+
+The re-run **changed the conclusion**: mean beta does not separate real from a
+deep cascade (+3.47 vs +3.25), so "real is not scale-free" is not supported by
+beta level. What survives is the n-trend plus the level gap, as recorded above.
+
+The stratified table in §4 below is the only part still carried from the
+discredited head-slice pool. Its levels are provisional; its **sign is not** —
+`strat_as_built` measured on the 600k pool gives beta **-4.88** (s 55.4 -> 39.8
+at n=200k), confirming the inversion under matched sampling.
+
+## Next
+
+The profile is not registered anywhere in `spec/`. Using `s(r)` as a *fitting
+signal* is fine; publishing a profile-match **claim** requires pre-registering
+the statistic and its bands first.
