@@ -1,4 +1,4 @@
-# Structural near-duplicates produce the ramp — the first construction to match the trend
+# Structural near-duplicates produce the ramp, but not the dimension level
 
 **Exploratory, not a registered round.** No admission claim, seal untouched.
 Measured 2026-08-09. Driver
@@ -69,6 +69,45 @@ pairs accumulate at ever-smaller separations, crushing `r1`. In a real corpus,
 adding documents adds *more* near-duplicates without making existing ones
 closer — the duplicate density per unit n is roughly invariant. **The duplication
 process must be scale-free in n, and this one is not.**
+
+## Follow-up: the G1 gap does not close, and the tension is structural
+
+Three further sweeps (2026-08-09, `dup_heavytail.json`, `dup_cosine.json`) tried
+to fix the G1 slope. None did, and together they locate the problem.
+
+**Heavy-tailed separations — refuted.** Drawing sigma from a lognormal was
+predicted to leave most points without an ultra-close neighbour. It does the
+opposite: the *small*-sigma tail creates more extremely-close pairs while large
+-sigma duplicates simply become ordinary points. Raising tau increases the trend
+(+1.17 -> +1.63) and *steepens* the G1 exponent (-0.66 -> -0.93).
+
+**A parameterisation defect found on the way.** `sigma` is not a relative scale:
+a base_dim-20 source row has norm ~4.5 while a sigma-perturbation in 1024 dims
+has norm 32*sigma, so sigma=0.15 already exceeds the signal (parent-child cosine
+~0.68) and means something different at every base_dim. Re-parameterising by the
+**parent-child cosine** makes the knob comparable to the data — real's 4-NN sits
+at r = 0.93, i.e. cosine ~0.57.
+
+**Cosine sweep — the tension made explicit.**
+
+| duplicate tightness | G1 exponent (target −0.073) | G1 level (target 17.7) |
+|---|---|---|
+| cos 0.95 (tight) | **−0.17 to −0.20** | 2.3–3.6 |
+| cos 0.57 (loose) | −0.70 to −0.91 | **9.1–10.1** |
+
+Tight duplicates fix the slope and destroy the level; loose duplicates do the
+reverse. Meanwhile the trend *overshoots* nearly everywhere (+0.74 to +8.07) —
+it is the easy quantity here, not the hard one.
+
+**Across roughly forty arms in three parameterisations, no configuration exceeds
+G1 ~10.3 against a target of 17.7.** The base alone sits near 20 and every
+duplicate pulls G1 down, so hitting 17.7 requires few duplicates — and few
+duplicates means no ramp. That is a structural trade-off, not a tuning problem.
+
+So the honest status of this family: it matches **one** of the three registered
+quantities, does so easily to the point of overshooting, and cannot reach the
+other two at the same time. The ramp mechanism is confirmed; the family built
+around it is not sufficient.
 
 ## Where that leaves the eighth family
 
