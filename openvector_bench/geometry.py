@@ -240,6 +240,42 @@ def id_ball_growth(d: np.ndarray, k: int) -> float:
     return float(np.polyfit(np.log(radii[ok]), np.log(counts[ok]), 1)[0])
 
 
+# --------------------------------------------------------------------------- #
+# The scale-resolved growth profile (spec/PROFILE.md §1)                       #
+# --------------------------------------------------------------------------- #
+PROFILE_KGRID: tuple[int, ...] = tuple(
+    sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
+)
+
+
+def growth_slope(
+    d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID
+) -> tuple[np.ndarray, np.ndarray]:
+    """``(r, s)`` where ``s(r) = dlog k / dlog r`` — the registered profile.
+
+    This is the pre-limit form of Local Intrinsic Dimensionality (Houle, SISAP
+    2017), equivalently the local slope of the Grassberger-Procaccia correlation
+    integral. It is *not* a new estimator; see ``spec/PROFILE.md`` §1.
+
+    ``d`` is the sorted neighbour-distance matrix from :func:`knn` with at least
+    ``max(kgrid)`` columns.
+    """
+    r = np.array([float(np.median(d[:, k - 1])) for k in kgrid])
+    return r, np.gradient(np.log(np.array(kgrid, dtype=float)), np.log(r))
+
+
+def profile_ratio(d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID) -> float:
+    """The registered k-matched ratio ``s(k_max)/s(k_min)`` (``PROFILE.md`` §1).
+
+    Matched in k and dimensionless. Deliberately *not* ``beta = dlog s/dlog r``:
+    beta divides by each corpus's own log-radius span, and corpora occupy
+    disjoint bands with spans differing up to 6x, which makes it unsound across
+    corpora (``PROFILE.md`` §1, ``results/R21B_SCALE_DEPENDENCE.md``).
+    """
+    _, s = growth_slope(d, kgrid)
+    return float(s[-1] / max(s[0], 1e-9))
+
+
 def spectrum(x: np.ndarray) -> tuple[float, int]:
     xc = x - x.mean(0, keepdims=True)
     lam = np.linalg.svd(xc, compute_uv=False) ** 2 / max(len(xc) - 1, 1)

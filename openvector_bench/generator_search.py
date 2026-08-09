@@ -22,6 +22,7 @@ from __future__ import annotations
 import numpy as np
 
 from .geometry import (
+    PROFILE_KGRID,
     hubness,
     id_ball_growth,
     id_local,
@@ -29,6 +30,7 @@ from .geometry import (
     knn,
     normalize,
     pca_retention,
+    profile_ratio,
     relative_contrast,
     spectrum,
 )
@@ -1619,6 +1621,22 @@ def _log_ratio(gen: float, real: float, eps: float = 1e-9) -> float:
     return float(np.log((abs(gen) + eps) / (abs(real) + eps)))
 
 
+# Registered profile target — spec/PROFILE.md §3. Mean and block-to-block sd
+# across four independent contiguous 600k blocks (results/R24_SAMPLING_PROTOCOL).
+# Kept here so the fitness and the spec cannot drift apart silently.
+PROFILE_TARGET: dict = {
+    "ratio_trend": 0.4512,
+    "ratio_trend_sd": 0.0988,
+    "ratios": {
+        25_000: (1.373, 0.099),
+        50_000: (1.616, 0.056),
+        100_000: (1.923, 0.087),
+        200_000: (2.313, 0.123),
+    },
+}
+PROFILE_NS: tuple[int, ...] = (25_000, 50_000, 100_000, 200_000)
+
+
 def make_evaluate_fn(
     target: dict[str, dict[int, dict[str, float]]],
     *,
@@ -1634,6 +1652,9 @@ def make_evaluate_fn(
     params_spec=PARAMS,
     anatomy_target: float | None = None,
     anatomy_queries: int = 2000,
+    profile_target: dict | None = None,
+    profile_ns: tuple[int, ...] = PROFILE_NS,
+    profile_nq: int = 5000,
 ):
     """Build the shared ``evaluate_fn(params) -> (score, errors)``.
 
@@ -1657,9 +1678,28 @@ def make_evaluate_fn(
     optimizer accepts: round 7's score-best point hit every gate band while
     rebuilding corpus super-hubs (skew ~7 vs real ~1.5). Pricing the anatomy
     makes the query-marginal mechanism the cheap path, not the expensive one.
+
+    ``profile_target`` (``spec/PROFILE.md``): when set, the registered
+    scale-resolved dimension profile is priced at mandatory weight — the
+    k-matched ratio at each rung in ``profile_ns`` and its trend in ``ln n``.
+
+    **Profile terms are scored as z-scores, not log-ratios.** The trend can be
+    zero or negative, so a log-ratio is undefined; and unlike the gates we have
+    a *measured* block-to-block sd for each quantity (four independent 600k
+    blocks), so the natural unit is standard deviations of the target's own
+    sampling variance. A candidate inside the registered ±2 sd band therefore
+    contributes ≤ 2 per term. Gates keep their log-ratio convention.
+
+    **Cost warning.** The profile requires a rung ladder, so a corpus of
+    ``max(profile_ns) + profile_nq`` rows plus one exact k-NN pass per rung —
+    roughly 50-150x a gate-only evaluation. Two-stage search is intended:
+    gate-only fitness for the wide fan-out, profile rescoring for survivors. A
+    cheap stage may subset ``profile_ns``, but admission (``PROFILE.md`` §3)
+    requires all four registered rungs.
     """
     ks = tuple(int(k) for k in ks)
     kmax = max(ks)
+    profile_kmax = max(PROFILE_KGRID)
 
     def evaluate_fn(params: np.ndarray) -> tuple[float, dict[str, float]]:
         p = decode(params, params_spec)
@@ -1707,6 +1747,42 @@ def make_evaluate_fn(
             )
             errors["bb_skew@anatomy"] = e
             num += weight_mandatory * abs(e)
+            den += weight_mandatory
+        if profile_target is not None:
+            nmax = max(profile_ns)
+            full_p = generator(p, nmax + profile_nq, dim, seed)
+            q_p = full_p[nmax:]
+            ratios = []
+            for nn in profile_ns:
+                # Rungs are uniform draws from ONE instance, mirroring the
+                # registered protocol (PROFILE.md §2): the real ladder
+                # subsamples a dense pool, so a fresh draw per rung would be a
+                # different manifold and would measure cross-instance geometry.
+                rsub = np.random.default_rng(seed + nn)
+                bi = rsub.choice(nmax, size=min(nn, nmax), replace=False)
+                d_p, _ = knn(full_p[bi], q_p, profile_kmax)
+                ratio = profile_ratio(d_p)
+                ratios.append(ratio)
+                tgt = profile_target.get("ratios", {}).get(nn)
+                if tgt is not None:
+                    mu_r, sd_r = tgt
+                    z = (nan_penalty if not np.isfinite(ratio)
+                         else (ratio - mu_r) / max(sd_r, 1e-9))
+                    errors[f"ratio@n{nn}"] = float(z)
+                    num += weight_mandatory * abs(z)
+                    den += weight_mandatory
+            good = [(nn, r_) for nn, r_ in zip(profile_ns, ratios) if np.isfinite(r_)]
+            if len(good) >= 2:
+                trend = float(
+                    np.polyfit(np.log([g[0] for g in good]), [g[1] for g in good], 1)[0]
+                )
+                z = (trend - profile_target["ratio_trend"]) / max(
+                    profile_target["ratio_trend_sd"], 1e-9
+                )
+            else:
+                z = nan_penalty
+            errors["ratio_trend@profile"] = float(z)
+            num += weight_mandatory * abs(z)
             den += weight_mandatory
         return (num / den if den else nan_penalty), errors
 
