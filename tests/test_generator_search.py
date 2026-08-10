@@ -479,3 +479,94 @@ def test_emergent_cluster_count_grows_with_the_corpus():
             counts.append(int((rng.multinomial(nb, wp) > 0).sum()))
         fit = np.polyfit(np.log10(ns), np.log10(counts), 1)[0]
         assert abs(fit - growth) < 0.08, (growth, fit, counts)
+
+
+def test_density_span_is_zero_for_iid_rows():
+    """`PROFILE.md` §3b's structural claim, as a regression test.
+
+    For a generator whose rows are i.i.d., density is not a variable: n rows
+    drawn from a small pool and from a large one are identically distributed,
+    so both spans are zero up to sampling noise. Real embeddings span
+    +2.397 +- 0.085 on the ratio. This is what makes §3b exclude a whole
+    construction class rather than a parameter region (`R29`).
+    """
+    import numpy as np
+
+    from openvector_bench.geometry import id_twonn, knn, normalize, profile_ratio
+
+    rng = np.random.default_rng(0)
+    dim, n_fix, nq = 32, 600, 400
+    pools = (1500, 6000)
+    x = normalize(rng.standard_normal((max(pools), dim)).astype(np.float32))
+
+    ratios, g1s = [], []
+    for pool_n in pools:
+        pool = x[:pool_n]
+        hr = np.random.default_rng(7)
+        m = np.zeros(pool_n, dtype=bool)
+        m[hr.choice(pool_n, nq, replace=False)] = True
+        q, body = pool[m], pool[~m]
+        r2 = np.random.default_rng(11)
+        d, _ = knn(body[r2.choice(len(body), n_fix, replace=False)], q, 100)
+        ratios.append(profile_ratio(d, kgrid=(4, 10, 25, 60, 100)))
+        g1s.append(float(id_twonn(d)))
+
+    # A 4x change in pool at fixed row count must move nothing. The real
+    # corpus moves its ratio by 2.4 over a 12x pool change.
+    assert abs(ratios[0] - ratios[1]) < 0.25, ratios
+    assert abs(np.log(g1s[0] / g1s[1])) < 0.15, g1s
+
+
+def test_density_term_prices_the_registered_ladder():
+    """The density term fires, and its keys match `PROFILE.md` §3b."""
+    import numpy as np
+
+    from openvector_bench.generator_search import (
+        DENSITY_TARGET,
+        PARAMS,
+        make_evaluate_fn,
+        measure_corpus,
+        synth_corpus,
+    )
+
+    # Registered structure at test scale: the plumbing is what is under test,
+    # not the values.
+    pools = (2000, 4000, 8000)
+    dtgt = {"n_fixed": 500,
+            "per_density": {p: {"density": 500 / p, "ratio": 1.5,
+                                "ratio_sd": 0.1, "g1": 20.0, "g1_sd": 1.0}
+                            for p in pools},
+            "ratio_span": 2.4, "ratio_span_sd": 0.085,
+            "logg1_span": -0.494, "logg1_span_sd": 0.054}
+
+    from openvector_bench.generator_search import decode
+
+    dim = 32
+    real = synth_corpus(decode(np.full(len(PARAMS), 0.5), PARAMS), 1200, dim, 1)
+    tgt = measure_corpus(real[:1000], real[1000:], ks=(10,), kmax=10,
+                         batteries=("A",), n_query=200, seed=1)
+
+    fn = make_evaluate_fn(tgt, dim=dim, n=600, n_query=200, ks=(10,),
+                          batteries=("A",), seed=1, profile_pool=max(pools),
+                          profile_nq=300, density_target=dtgt, density_n=500,
+                          density_pools=pools)
+    score, errs = fn(np.full(len(PARAMS), 0.5))
+
+    # The registered constants must match `PROFILE.md` §3b exactly. The fitness
+    # and the spec drifting apart silently is the failure this guards.
+    assert DENSITY_TARGET["n_fixed"] == 25_000
+    assert DENSITY_TARGET["ratio_span"] == 2.397
+    assert DENSITY_TARGET["ratio_span_sd"] == 0.085
+    assert DENSITY_TARGET["logg1_span"] == -0.494
+    assert DENSITY_TARGET["logg1_span_sd"] == 0.054
+    assert sorted(DENSITY_TARGET["per_density"]) == [
+        50_000, 100_000, 200_000, 400_000, 600_000]
+
+    assert np.isfinite(score)
+    assert "ratio_span@density" in errs
+    assert "logg1_span@density" in errs
+    for p in pools:
+        assert f"ratio@dens{p}" in errs, sorted(errs)
+        assert f"g1@dens{p}" in errs, sorted(errs)
+    # synth_corpus emits i.i.d. rows, so its span must be far from real's +2.4.
+    assert errs["ratio_span@density"] < -10.0, errs["ratio_span@density"]

@@ -1636,6 +1636,52 @@ PROFILE_TARGET: dict = {
 }
 PROFILE_NS: tuple[int, ...] = (25_000, 50_000, 100_000, 200_000)
 
+# The pool the rungs are drawn from. This is NOT free: `PROFILE_TARGET` was
+# measured from a 600k pool, so a rung of n rows sits at density n/600k. Scoring
+# a candidate whose rungs come from a smaller pool compares two different
+# operating points -- the error that invalidated 158 arms of filament tuning
+# (`R28`, closing section), where occupancy was defined at pool level while the
+# geometry responds at rung level.
+PROFILE_POOL: int = 600_000
+
+# Registered density ladder -- spec/PROFILE.md §3b. Row count is held FIXED
+# while the pool varies, which is the only way to separate the two effects the
+# rung ladder confounds: along the ladder density and row count move together,
+# so `ratio_trend` alone cannot say which is doing the work.
+#
+# The target is per-density VALUES plus a fixed-endpoint CONTRAST, deliberately
+# not a fitted slope. The response is strongly convex -- the local slope
+# quadruples from +0.41 to +1.79 across this range -- so a single fitted slope
+# would depend on which pools were chosen, which is precisely the span
+# dependence that disqualified `beta` in PROFILE.md §1. The endpoints are part
+# of the definition, so the contrast has no such freedom.
+#
+# Values are means and block-to-block sds across four independent contiguous
+# 600k blocks at corpus offsets 0 / 10M / 20M / 30M
+# (`results/density_ladder.json`, `R29`). Kept here so the fitness and the spec
+# cannot drift apart silently.
+DENSITY_N: int = 25_000
+DENSITY_POOLS: tuple[int, ...] = (50_000, 100_000, 200_000, 400_000, 600_000)
+DENSITY_TARGET: dict = {
+    "n_fixed": 25_000,
+    "per_density": {
+        50_000: {"density": 0.5000, "ratio": 3.722, "ratio_sd": 0.074,
+                 "g1": 16.27, "g1_sd": 0.58},
+        100_000: {"density": 0.2500, "ratio": 2.582, "ratio_sd": 0.144,
+                  "g1": 17.08, "g1_sd": 0.39},
+        200_000: {"density": 0.1250, "ratio": 1.774, "ratio_sd": 0.068,
+                  "g1": 19.52, "g1_sd": 0.36},
+        400_000: {"density": 0.0625, "ratio": 1.464, "ratio_sd": 0.018,
+                  "g1": 23.62, "g1_sd": 0.24},
+        600_000: {"density": 0.0417, "ratio": 1.325, "ratio_sd": 0.026,
+                  "g1": 26.66, "g1_sd": 0.56},
+    },
+    "ratio_span": 2.397,
+    "ratio_span_sd": 0.085,
+    "logg1_span": -0.494,
+    "logg1_span_sd": 0.054,
+}
+
 
 def make_evaluate_fn(
     target: dict[str, dict[int, dict[str, float]]],
@@ -1655,6 +1701,10 @@ def make_evaluate_fn(
     profile_target: dict | None = None,
     profile_ns: tuple[int, ...] = PROFILE_NS,
     profile_nq: int = 5000,
+    profile_pool: int = PROFILE_POOL,
+    density_target: dict | None = None,
+    density_n: int = DENSITY_N,
+    density_pools: tuple[int, ...] = DENSITY_POOLS,
 ):
     """Build the shared ``evaluate_fn(params) -> (score, errors)``.
 
@@ -1690,12 +1740,48 @@ def make_evaluate_fn(
     sampling variance. A candidate inside the registered ±2 sd band therefore
     contributes ≤ 2 per term. Gates keep their log-ratio convention.
 
-    **Cost warning.** The profile requires a rung ladder, so a corpus of
-    ``max(profile_ns) + profile_nq`` rows plus one exact k-NN pass per rung —
-    roughly 50-150x a gate-only evaluation. Two-stage search is intended:
-    gate-only fitness for the wide fan-out, profile rescoring for survivors. A
-    cheap stage may subset ``profile_ns``, but admission (``PROFILE.md`` §3)
-    requires all four registered rungs.
+    ``density_target`` (``spec/PROFILE.md`` §3b): when set, the **density
+    response** is priced at mandatory weight — how the ratio and G1 move as the
+    pool varies at *fixed* row count.
+
+    This is a materially stronger requirement than ``profile_target``, and the
+    reason it exists is `R28`. Along the rung ladder, density and row count move
+    together (rung n from a fixed pool sits at density ``n/pool``), so ``trend``
+    is a *sum* of two effects and cannot say which is doing the work. In real
+    embeddings those effects are large and opposite — density ``+0.93`` against
+    row count ``≈-0.49`` — so a family can land the lumped ``+0.45`` at one
+    operating point with both components wrong. That is exactly how the filament
+    family fit at reduced scale and inverted at registered scale. Holding n
+    fixed and varying the pool isolates the density partial; the ladder then
+    pins the sum, and the two together pin both partials without ever fitting a
+    surface in the fitness.
+
+    G1 is the sharper of the two: its ladder exponent (-0.170) and its pure
+    density response agree closely, and on a factorial (n, pool) grid its
+    row-count partial is +0.073 +- 0.037 against a density partial of
+    -0.217 +- 0.029. G1 is, to measurement accuracy, a function of density
+    alone. A candidate whose G1 tracks row count rather than density is excluded
+    by this term even if it matches every value in §3.
+
+    **Scored as values plus a fixed-endpoint contrast, not as a fitted slope.**
+    The density response is strongly convex, so a slope fitted over
+    ``density_pools`` would depend on which pools those are -- the span
+    dependence that disqualified ``beta`` (``PROFILE.md`` §1). Each registered
+    density contributes a z-score on ``ratio`` and on ``G1``, and the span
+    between the extreme registered densities contributes two more.
+
+    **Cost warning.** The profile requires a rung ladder drawn from a
+    ``profile_pool``-row corpus (600k at the registered protocol) plus one exact
+    k-NN pass per rung — roughly 50-150x a gate-only evaluation. Two-stage
+    search is intended: gate-only fitness for the wide fan-out, profile
+    rescoring for survivors. The density term reuses that same pool and adds
+    only ``len(density_pools)`` k-NN passes at fixed ``density_n``, so it is
+    cheap once the pool exists.
+
+    A cheap stage may subset ``profile_ns``, but it **must not** shrink
+    ``profile_pool`` while holding the rungs fixed: that changes the density and
+    therefore the target. Admission (``PROFILE.md`` §3) requires all four
+    registered rungs at the registered pool.
     """
     ks = tuple(int(k) for k in ks)
     kmax = max(ks)
@@ -1748,10 +1834,24 @@ def make_evaluate_fn(
             errors["bb_skew@anatomy"] = e
             num += weight_mandatory * abs(e)
             den += weight_mandatory
+        if profile_target is not None or density_target is not None:
+            # ONE pool serves both terms. Its size is the registered pool, not
+            # `max(profile_ns)`: the rungs must sit at the density the target
+            # was measured at (PROFILE.md §2, §3b).
+            pool_n = max(int(profile_pool), max(profile_ns) + profile_nq)
+            full_p = generator(p, pool_n, dim, seed)
+            # Queries are a uniform HOLDOUT from the pool and the base is the
+            # remainder (PROFILE.md §2). Taking queries as a tail slice makes
+            # the split non-exchangeable and inflates every neighbour
+            # diagnostic -- G1 16.1 -> 65.7 in `R23`.
+            hr = np.random.default_rng(seed + 7)
+            nq_p = min(profile_nq, pool_n // 2)
+            hi = hr.choice(pool_n, size=nq_p, replace=False)
+            hold = np.zeros(pool_n, dtype=bool)
+            hold[hi] = True
+            q_p, body_p = full_p[hold], full_p[~hold]
+
         if profile_target is not None:
-            nmax = max(profile_ns)
-            full_p = generator(p, nmax + profile_nq, dim, seed)
-            q_p = full_p[nmax:]
             ratios = []
             for nn in profile_ns:
                 # Rungs are uniform draws from ONE instance, mirroring the
@@ -1759,8 +1859,9 @@ def make_evaluate_fn(
                 # subsamples a dense pool, so a fresh draw per rung would be a
                 # different manifold and would measure cross-instance geometry.
                 rsub = np.random.default_rng(seed + nn)
-                bi = rsub.choice(nmax, size=min(nn, nmax), replace=False)
-                d_p, _ = knn(full_p[bi], q_p, profile_kmax)
+                bi = rsub.choice(len(body_p), size=min(nn, len(body_p)),
+                                 replace=False)
+                d_p, _ = knn(body_p[bi], q_p, profile_kmax)
                 ratio = profile_ratio(d_p)
                 ratios.append(ratio)
                 tgt = profile_target.get("ratios", {}).get(nn)
@@ -1784,6 +1885,71 @@ def make_evaluate_fn(
             errors["ratio_trend@profile"] = float(z)
             num += weight_mandatory * abs(z)
             den += weight_mandatory
+        if density_target is not None:
+            dn = int(density_n)
+            measured_pools: list[int] = []
+            d_ratios: list[float] = []
+            d_g1: list[float] = []
+            for pool_p in density_pools:
+                pp = min(int(pool_p), pool_n)
+                nq_d = min(profile_nq, pp // 2)
+                if pp - nq_d < dn:
+                    continue
+                sub = full_p[:pp]
+                # Per-sub-pool holdout, not one holdout over the whole pool.
+                # A global holdout leaves the base a head-slice of a corpus
+                # whose queries span all of it -- the non-exchangeable split of
+                # `R23`. It inflates G1 ~2x at the smallest pool and does so
+                # monotonically in pool size, so the artifact reads as a clean
+                # density trend and is not self-announcing.
+                hr_d = np.random.default_rng(seed + 7)
+                hm = np.zeros(pp, dtype=bool)
+                hm[hr_d.choice(pp, size=nq_d, replace=False)] = True
+                q_d, body_d = sub[hm], sub[~hm]
+                rsub = np.random.default_rng(seed + 500_000 + pp)
+                bi = rsub.choice(len(body_d), size=dn, replace=False)
+                d_d, _ = knn(body_d[bi], q_d, profile_kmax)
+                r_ = profile_ratio(d_d)
+                g_ = float(id_twonn(d_d))
+                if not (np.isfinite(r_) and np.isfinite(g_) and g_ > 0):
+                    continue
+                measured_pools.append(pp)
+                d_ratios.append(r_)
+                d_g1.append(g_)
+            # Per-density values, scored as z-scores against block-to-block sd
+            # -- the same convention as the per-rung ratios above.
+            per = density_target.get("per_density", {})
+            for pool_p, r_, g_ in zip(measured_pools, d_ratios, d_g1):
+                tg_d = per.get(int(pool_p)) or per.get(str(int(pool_p)))
+                if tg_d is None:
+                    continue
+                for key, val in (("ratio", r_), ("g1", g_)):
+                    mu_d, sd_d = tg_d[key], tg_d[f"{key}_sd"]
+                    z_d = (val - mu_d) / max(sd_d, 1e-9)
+                    errors[f"{key}@dens{pool_p}"] = float(z_d)
+                    num += weight_mandatory * abs(z_d)
+                    den += weight_mandatory
+            # Fixed-endpoint contrast across the registered density span. Both
+            # endpoints must be present -- a contrast over a shorter span is a
+            # different quantity, not a noisier estimate of the same one.
+            lo_p, hi_p = max(density_pools), min(density_pools)
+            if lo_p in measured_pools and hi_p in measured_pools:
+                i_lo = measured_pools.index(lo_p)   # lowest density
+                i_hi = measured_pools.index(hi_p)   # highest density
+                sp_r = d_ratios[i_hi] - d_ratios[i_lo]
+                sp_g = float(np.log(d_g1[i_hi] / d_g1[i_lo]))
+                z_r = (sp_r - density_target["ratio_span"]) / max(
+                    density_target["ratio_span_sd"], 1e-9
+                )
+                z_g = (sp_g - density_target["logg1_span"]) / max(
+                    density_target["logg1_span_sd"], 1e-9
+                )
+            else:
+                z_r = z_g = nan_penalty
+            errors["ratio_span@density"] = float(z_r)
+            errors["logg1_span@density"] = float(z_g)
+            num += weight_mandatory * (abs(z_r) + abs(z_g))
+            den += 2 * weight_mandatory
         return (num / den if den else nan_penalty), errors
 
     return evaluate_fn

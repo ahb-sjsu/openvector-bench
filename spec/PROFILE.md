@@ -43,6 +43,16 @@ G1(n)        = TwoNN estimate at corpus size n
 G1 exponent  = d log G1 / d log n
 ```
 
+**Third summary — the density ladder (§3b):**
+
+```
+ratio(delta), G1(delta)    at FIXED n, with delta = n / pool
+```
+
+Both ladders above vary n at a fixed pool, so `delta` and `n` move together and
+neither summary can say which is doing the work. §3b holds n fixed and varies
+the pool, which separates them.
+
 ### Why the ratio and not beta
 
 `beta = d log s / d log r` is **not** registered and must not be used for
@@ -103,6 +113,88 @@ covariance gives +0.021 (`R25`). So the band is not trivially satisfiable.
 
 ---
 
+## 3b. The density ladder — registered 2026-08-10
+
+**Registered after §3 and after the R28 failure that motivated it, but before
+any generator has been searched against it.** No candidate has been scored on
+this criterion.
+
+### Why a second ladder exists
+
+§3 varies n at a fixed 600k pool, so a rung of n rows sits at density
+`n/600k`: row count and density move together and `trend` is their *sum*. On a
+factorial (n, pool) grid the two partials are large and opposite
+(`results/density_grid.json`):
+
+| response | ∂/∂log n | ∂/∂log density |
+|---|---|---|
+| ratio | −0.189 ± 0.176 (1.1σ) | **+0.844 ± 0.137 (6.1σ)** |
+| log G1 | +0.073 ± 0.037 (2.0σ) | **−0.217 ± 0.029 (7.6σ)** |
+
+So the registered `trend` of +0.451 is a near-cancellation of two larger terms,
+and **G1 is, to measurement accuracy, a function of density alone** — its
+row-count partial is consistent with zero. A family can land the lumped trend at
+one operating point with both components wrong. That is exactly what the
+filament family did: it fit at 91% rung/pool density and inverted the G1
+exponent's sign at the registered 17% (`R28`, closing section).
+
+### Protocol
+
+As §2, with one change: **n is fixed at 25,000** and the pool varies over
+50,000 / 100,000 / 200,000 / 400,000 / 600,000, giving densities 0.500 / 0.250 /
+0.125 / 0.0625 / 0.0417. The holdout of 10,000 is drawn **from within each
+pool**, never once from the largest — a single global holdout leaves the base a
+head-slice of a corpus whose queries span all of it, the non-exchangeable split
+of `R23`. It inflates G1 roughly 2x at the smallest pool and does so
+monotonically, so the artifact reads as a clean density trend and is not
+self-announcing (it was committed and caught during this measurement).
+
+### Registered target values
+
+Four independent contiguous 600k blocks at corpus offsets 0 / 10M / 20M / 30M
+(`results/density_ladder.json`, `R29`), n = 25,000 throughout:
+
+| density | pool | ratio (mean ± sd) | G1 (mean ± sd) |
+|---|---|---|---|
+| 0.5000 | 50,000 | 3.722 ± 0.074 | 16.27 ± 0.58 |
+| 0.2500 | 100,000 | 2.582 ± 0.144 | 17.08 ± 0.39 |
+| 0.1250 | 200,000 | 1.774 ± 0.068 | 19.52 ± 0.36 |
+| 0.0625 | 400,000 | 1.464 ± 0.018 | 23.62 ± 0.24 |
+| 0.0417 | 600,000 | 1.325 ± 0.026 | 26.66 ± 0.56 |
+
+| summary (fixed endpoints 0.500 vs 0.0417) | mean | sd | **band (±2 sd)** |
+|---|---|---|---|
+| ratio span | +2.397 | 0.085 | **[+2.227, +2.567]** |
+| log G1 span | −0.494 | 0.054 | **[−0.602, −0.386]** |
+
+**Admission on this criterion requires both spans inside their bands and the
+five per-density values each within ±2 sd.**
+
+### Why a contrast and not a fitted slope
+
+The response is strongly convex — the local slope of ratio against log density
+runs +0.41, +0.46, +0.98, +1.79 across the four intervals. A slope fitted over
+the ladder would therefore depend on which pools were chosen, which is the same
+span dependence that disqualified `beta` in §1. The endpoints here are part of
+the definition, so the contrast has no such freedom. A contrast over a shorter
+span is a *different quantity*, not a noisier estimate of this one.
+
+### Discriminating power — this criterion is structural
+
+For any generator that emits rows **i.i.d.**, density is not a variable: n rows
+drawn from a pool of 50,000 or of 600,000 are identically distributed, so both
+spans are exactly zero up to sampling noise. No parameter setting changes this.
+Real embeddings have a ratio span of +2.397 ± 0.085 — a ~28σ separation.
+
+This is the first registered criterion that **excludes a whole construction
+class a priori** rather than by measurement. It is only satisfiable by
+generators whose geometry rests on finite *shared* structure that subsampling
+genuinely thins — a fixed set of centres, threads or latents — because only then
+does a pool exist to be dense or sparse in. Measured controls at the registered
+protocol are in `R29`.
+
+---
+
 ## 4. Scope conditions — where the target is and is not defined
 
 These are registered as limits, not caveats to be relaxed later.
@@ -112,7 +204,10 @@ These are registered as limits, not caveats to be relaxed later.
   ramp to −0.003 and doubles G1 to ≈49 (`R24`). Subsampling a large corpus does
   not produce a smaller corpus of the same geometry — this is
   `CAPACITY_CONJECTURE.md` C3 measured directly. Any comparison between corpora
-  must hold density fixed.
+  must hold density fixed. §3b makes this quantitative: at *fixed* row count,
+  varying density alone moves the ratio 2.8x and G1 1.6x, and on a factorial
+  grid the row-count partial is not significant for the ratio at all. Density is
+  the primary variable of this profile and row count is close to incidental.
 * **Position-independent.** Four offsets across 41M rows reproduce the target
   within the sd above, so the head is an arbitrary but harmless choice (`R24`).
 * **Not an anisotropy restatement.** Anisotropy is neither sufficient (exact-
@@ -141,6 +236,16 @@ The profile criterion should be considered unsound if any of these holds.
 * **P4.** Real embeddings from three further encoders all fall outside the
   bands, making the target a property of one model rather than of embedding
   geometry.
+* **P5.** The §3b spans prove sensitive to the fixed row count: measuring the
+  density ladder at n = 50,000 instead of 25,000 moves either span outside its
+  band. The spans are registered at n = 25,000 and are claimed only there, but a
+  quantity that swings with an arbitrary protocol choice is a weak target even
+  so.
+* **P6.** An i.i.d. row generator is found with a non-zero §3b span. This should
+  be impossible by construction — such rows are identically distributed
+  regardless of pool size — so it would indicate the span is measuring an
+  artifact of the subsampling procedure rather than corpus structure. The
+  measured i.i.d. controls in `R29` are the standing check on this.
 
 ---
 
