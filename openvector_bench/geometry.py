@@ -276,6 +276,37 @@ def profile_ratio(d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID) -> floa
     return float(s[-1] / max(s[0], 1e-9))
 
 
+def exchangeable_split(
+    support: np.ndarray, n_base: int, n_query: int, seed: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Split an index ``support`` into base and query indices exchangeably.
+
+    Base and queries **must** be drawn from the same region. Sampling queries
+    from a different support -- a tail slice, a global holdout over a corpus
+    whose base is a head slice or a clumped subset -- makes the split
+    non-exchangeable and inflates every neighbour diagnostic. It moved measured
+    G1 from 16.1 to 65.7 in `R23`, and has been reintroduced three separate
+    times since (`R29`, `R30`, and the first clumpiness ladder in `R31`), each
+    time producing smooth, plausible, monotone numbers.
+
+    The failure is not self-announcing, so the split is constructed here once
+    rather than per experiment: choose the support first, then partition it.
+
+    Returns ``(base_idx, query_idx)``, both sorted, disjoint, and drawn from the
+    same support.
+    """
+    support = np.asarray(support)
+    need = n_base + n_query
+    if len(support) < need:
+        raise ValueError(
+            f"support has {len(support)} rows, need {need} "
+            f"(n_base={n_base} + n_query={n_query})"
+        )
+    rng = np.random.default_rng(seed)
+    picked = rng.permutation(support)[:need]
+    return np.sort(picked[:n_base]), np.sort(picked[n_base:])
+
+
 def spectrum(x: np.ndarray) -> tuple[float, int]:
     xc = x - x.mean(0, keepdims=True)
     lam = np.linalg.svd(xc, compute_uv=False) ** 2 / max(len(xc) - 1, 1)

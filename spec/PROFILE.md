@@ -179,6 +179,29 @@ span dependence that disqualified `beta` in §1. The endpoints here are part of
 the definition, so the contrast has no such freedom. A contrast over a shorter
 span is a *different quantity*, not a noisier estimate of this one.
 
+### Interpretation (added 2026-08-10 after `R31`)
+
+The values above are unaffected — they were measured under a fixed protocol and
+reproduce. What `R31` changes is what they *mean*, and therefore how a candidate
+should be built.
+
+**Density is not the underlying variable; index adjacency is.** Holding span and
+row count fixed at 600,000 and 25,000 and varying only how clumped the sample is
+reproduces the entire ladder: a draw of runs of 100 contiguous rows gives ratio
+4.05 and G1 15.9 against the W = 35,000 window's 4.09 and 16.5, and a draw with
+no adjacent rows gives 1.28 and 26.1 against the full window's 1.31 and 26.6.
+Shrinking the pool matters only because it forces adjacent rows into the sample.
+
+Real therefore has two nested regimes — within-article passages at G1 ≈ 15,
+μ ≈ 1.057, and cross-article structure at G1 ≈ 26, μ ≈ 1.029 — and §3 is a
+mixture of them weighted by how many same-article neighbours survive sampling.
+The transition is sharp: one adjacent neighbour moves G1 from 26.1 to 14.1.
+
+Two consequences. The i.i.d. exclusion below is strengthened, since adjacency is
+a property of the row *sequence*. And **the spans should not be fitted
+directly** — they are a consequence of the two-regime structure, and a generator
+built with those regimes should produce them without their being scored.
+
 ### Discriminating power — this criterion is structural
 
 For any generator that emits rows **i.i.d.**, density is not a variable: n rows

@@ -33,3 +33,35 @@ def test_intrinsic_dimension_separates_structure_from_noise():
     d_lr, _ = knn(lr[500:], lr[:500], 10)
     d_iid, _ = knn(iid[500:], iid[:500], 10)
     assert id_twonn(d_lr) < id_twonn(d_iid)
+
+
+def test_exchangeable_split_shares_one_support():
+    """Base and queries must come from the same region (`R23`, `R31`).
+
+    The defect this guards recurred three times because it produces smooth,
+    monotone, plausible numbers: a clumped base against a global query holdout
+    read G1 26.75 -> 60.92 across the clumping ladder and pointed at the
+    opposite conclusion.
+    """
+    import numpy as np
+
+    from openvector_bench.geometry import exchangeable_split
+
+    support = np.sort(np.random.default_rng(0).choice(10_000, 3_000, replace=False))
+    base, query = exchangeable_split(support, 2_000, 500, seed=1)
+
+    assert len(base) == 2_000 and len(query) == 500
+    assert not set(base.tolist()) & set(query.tolist())
+    assert set(base.tolist()) <= set(support.tolist())
+    assert set(query.tolist()) <= set(support.tolist())
+    assert (np.diff(base) > 0).all() and (np.diff(query) > 0).all()
+
+    # Deterministic in the seed, and it refuses an undersized support.
+    b2, q2 = exchangeable_split(support, 2_000, 500, seed=1)
+    assert (b2 == base).all() and (q2 == query).all()
+    try:
+        exchangeable_split(support, 2_900, 500, seed=1)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("undersized support must raise")
