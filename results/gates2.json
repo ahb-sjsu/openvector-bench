@@ -1,0 +1,38 @@
+{
+  "real": {
+    "g1_id_twonn": 17.228,
+    "g2_id_ballgrowth": 5.495,
+    "g3_eff_rank": 182.295,
+    "g4_dims90": 359.0,
+    "g5_relative_contrast": 1.369,
+    "g6_hubness_skew": 1.696,
+    "g7_local_id_iqr": 12.18,
+    "g8_pca_retention": 0.73
+  },
+  "arms": {
+    "pcb_dl64_dg90_fd22": {
+      "gates": {
+        "g1_id_twonn": 17.962862014770508,
+        "g2_id_ballgrowth": 3.8219920902860207,
+        "g3_eff_rank": 75.68091583251953,
+        "g4_dims90": 440.0,
+        "g5_relative_contrast": 2.652813767335847,
+        "g6_hubness_skew": 1.5874858814538855,
+        "g7_local_id_iqr": 3.858996033668518,
+        "g8_pca_retention": 0.8341546786546787
+      }
+    },
+    "pcb_dl64_dg90_fd30": {
+      "gates": {
+        "g1_id_twonn": 21.78338050842285,
+        "g2_id_ballgrowth": 4.46097611454924,
+        "g3_eff_rank": 75.75110626220703,
+        "g4_dims90": 442.0,
+        "g5_relative_contrast": 2.638998634764915,
+        "g6_hubness_skew": 1.5852165394640254,
+        "g7_local_id_iqr": 4.581257581710815,
+        "g8_pca_retention": 0.815924741924742
+      }
+    }
+  }
+}
