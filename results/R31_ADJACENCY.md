@@ -1,5 +1,13 @@
 # Density was never the variable — index adjacency is
 
+> **Framing correction (added after `R33`).** The "two nested regimes, G1 ≈ 15
+> and G1 ≈ 26" reading below is wrong, though every measured value stands. G1 is
+> TwoNN, a k = 1,2 statistic, so it reads the finest scale and not the manifold.
+> Measuring the full `s(k)` curve shows the two regimes **converge** at large k
+> (35.13 vs 35.73 at k = 500): real is one ~36-dimensional cloud carrying a
+> ~9-dimensional local structure that appears only when adjacent rows are
+> sampled. The adjacency finding itself is unaffected.
+
 **Exploratory, not a registered round.** No admission claim, seal untouched.
 Measured 2026-08-10. Driver `harness/rc1/clumpiness.py`; record
 `results/clumpiness.json`. Follows `R29` (which registered the density ladder)

@@ -570,3 +570,43 @@ def test_density_term_prices_the_registered_ladder():
         assert f"g1@dens{p}" in errs, sorted(errs)
     # synth_corpus emits i.i.d. rows, so its span must be far from real's +2.4.
     assert errs["ratio_span@density"] < -10.0, errs["ratio_span@density"]
+
+
+def test_cascade_reproduces_the_measured_index_autocorrelation():
+    """`R32`: the corpus is a trajectory whose cosine decays with index gap.
+
+    The weights were fitted to `R30`'s measured autocorrelation, so this checks
+    the construction implements what was fitted -- not that the fit is right.
+    The out-of-sample claims (G1, the §3b spans) live in `R32`.
+    """
+    import numpy as np
+
+    from openvector_bench.twoscale_gen import CASCADE_PARAMS, cascade_corpus
+
+    p = {k: d for k, _, _, d in CASCADE_PARAMS}
+    x = cascade_corpus(p, 20_000, 256, 1)
+    assert np.allclose(np.linalg.norm(x, axis=1), 1.0, atol=1e-4)
+
+    real = {1: 0.598, 2: 0.530, 4: 0.449, 8: 0.367, 16: 0.304, 32: 0.267}
+    prev = 1.0
+    for gap, target in real.items():
+        cos = float(np.mean(np.sum(x[:10_000] * x[gap:10_000 + gap], axis=1)))
+        assert abs(cos - target) < 0.02, (gap, cos, target)
+        assert cos < prev, "autocorrelation must decay with index gap"
+        prev = cos
+
+
+def test_cascade_row_depends_only_on_its_index_prefixes():
+    """Random access: row i is built from `i >> s`, so a prefix is stable.
+
+    Not yet byte-reproducible (numpy RNG, materialised tables), but the
+    index structure that makes random access possible must hold.
+    """
+    import numpy as np
+
+    from openvector_bench.twoscale_gen import CASCADE_PARAMS, cascade_corpus
+
+    p = {k: d for k, _, _, d in CASCADE_PARAMS}
+    a = cascade_corpus(p, 4096, 64, 7)
+    b = cascade_corpus(p, 4096, 64, 7, chunk=512)
+    assert np.allclose(a, b, atol=1e-6), "chunking must not change any row"
