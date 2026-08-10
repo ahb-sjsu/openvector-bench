@@ -1,5 +1,14 @@
 # Rank and ramp pull against each other, and g5 follows neither
 
+> **Corrected by `R40`.** The claim that g5 "responds to nothing tried" is
+> **withdrawn**. g5 is governed by the within-article *variance*, which is
+> `fil_scale` — held at 0.45 in every arm below. Varying it moves g5 from 2.658
+> to 1.348, through real's 1.369. `eff_rank` follows the same knob (75.7 →
+> 284.9), so the rank-versus-ramp opposition recorded here is an artifact of
+> having moved rank with `d_glob`; `fil_scale` moves rank further at a fraction
+> of the cost to the ramp. The measurements below stand; the conclusions drawn
+> from them do not.
+
 **Exploratory, not a registered round.** No admission claim, seal untouched.
 Measured 2026-08-10. Driver `harness/rc1/tension_probe.py`; record
 `results/tension.json`. Follows `R37`.
