@@ -54,7 +54,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .geometry import normalize
+from .geometry import normalize, reproducible_matmul
 
 # (name, lo, hi, default) -- the search-space convention used across the project.
 TWOSCALE_PARAMS: tuple[tuple[str, float, float, float], ...] = (
@@ -113,7 +113,7 @@ def twoscale_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         e = min(s + chunk, n)
         own = np.minimum(
             np.searchsorted(bounds, np.arange(s, e), side="right"), n_group - 1)
-        acc = coeffs[own] @ basis_arr.T
+        acc = reproducible_matmul(coeffs[own], basis_arr.T)
         u = rng.standard_normal((e - s, fil_dim)).astype(np.float32)
         sel = group_dirs[own]
         for j in range(fil_dim):
@@ -238,7 +238,7 @@ def cascade_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         idx = np.arange(st, en)
         acc = np.broadcast_to(w_glob * m, (en - st, dim)).copy()
         for s in range(n_lev):
-            acc += w[s] * (tables[s][idx >> s] @ bases[s].T)
+            acc += w[s] * reproducible_matmul(tables[s][idx >> s], bases[s].T)
         x[st:en] = acc
     return normalize(x)
 
@@ -256,7 +256,7 @@ def centre_cloud(p: dict[str, float], n_group: int, dim: int,
         rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
     coeffs = rng.standard_normal((n_group, arr_dim)).astype(np.float32)
     coeffs /= np.maximum(np.linalg.norm(coeffs, axis=1, keepdims=True), 1e-12)
-    return normalize(coeffs @ basis_arr.T)
+    return normalize(reproducible_matmul(coeffs, basis_arr.T))
 
 
 CASCADE_PARAMS: tuple[tuple[str, float, float, float], ...] = (

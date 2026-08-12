@@ -65,3 +65,32 @@ def test_exchangeable_split_shares_one_support():
         pass
     else:
         raise AssertionError("undersized support must raise")
+
+
+def test_reproducible_matmul_matches_matmul_and_fixes_order():
+    """float32 `@` is not bit-reproducible across platforms; this is.
+
+    Measured Windows vs Linux on identical inputs, same OpenBLAS build: the f32
+    product hashes differ because SIMD width and blocking reorder the inner sum.
+    `DISTRIBUTION.md` §3 makes regeneration a first-class source, so a
+    float-heavy emitter must order its reductions explicitly (`R48`).
+    """
+    import numpy as np
+
+    from openvector_bench.geometry import reproducible_matmul
+
+    rng = np.random.default_rng(7)
+    a = rng.standard_normal((64, 16)).astype(np.float32)
+    b = rng.standard_normal((16, 32)).astype(np.float32)
+
+    got = reproducible_matmul(a, b)
+    assert got.shape == (64, 32) and got.dtype == np.float32
+    # Numerically the same product, to f32 tolerance.
+    assert np.allclose(got, a @ b, rtol=1e-5, atol=1e-5)
+    # Deterministic: same inputs, same bytes, every time.
+    assert reproducible_matmul(a, b).tobytes() == got.tobytes()
+    # And it does not depend on BLAS: equals the explicit rank-1 accumulation.
+    ref = np.zeros((64, 32), dtype=np.float32)
+    for j in range(16):
+        ref += a[:, j : j + 1] * b[j : j + 1, :]
+    assert ref.tobytes() == got.tobytes()

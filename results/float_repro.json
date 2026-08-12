@@ -1,0 +1,17 @@
+{
+  "toolchain": {
+    "platform": "Windows-10-10.0.19045-SP0",
+    "python": "3.12.2",
+    "numpy": "2.3.5"
+  },
+  "rng_inputs": {
+    "a": "1c56bd3f35e9e8d1",
+    "b": "982f00942f56be8a"
+  },
+  "matmul_f32": "f81d6818a180a252",
+  "matmul_f64": "1638aeb221d9ecb9",
+  "reproducible_matmul": "8bfa2e55f7ac67d9",
+  "qr_only": "4cbb9cfe40d84626",
+  "build_matmul_f32": "780554a1770ccb26",
+  "build_reproducible": "798a32a5ee5af3f0"
+}

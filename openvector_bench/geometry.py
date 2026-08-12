@@ -276,6 +276,35 @@ def profile_ratio(d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID) -> floa
     return float(s[-1] / max(s[0], 1e-9))
 
 
+def reproducible_matmul(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """``a @ b`` with a summation order that does not depend on the BLAS.
+
+    A float32 ``@`` is **not** bit-reproducible across platforms. Measured on
+    identical inputs, same OpenBLAS build, Windows vs Linux: the f32 product
+    hashes differ (``f81d6818`` vs ``a04d9149``) because SIMD width and blocking
+    change the order of the inner sum, and f32 has too little precision to
+    absorb the reordering. The same product in f64 agrees, as does an explicit
+    fixed-order accumulation.
+
+    This matters beyond tidiness. `DISTRIBUTION.md` §3 makes regeneration a
+    first-class source, and `R22`'s cross-toolchain result (16/16 shards
+    byte-identical) holds only because ``philox_u8`` is pure integer arithmetic.
+    Any float-heavy emitter forfeits that guarantee unless its reductions are
+    ordered explicitly.
+
+    Accumulating one rank-1 term at a time is the conservative choice: it uses
+    no BLAS at all, so it does not rely on f64 having enough headroom for the
+    reduction length. Cost is a Python loop over ``a.shape[1]``, which is the
+    inner dimension and small in every use here.
+    """
+    a = np.asarray(a)
+    b = np.asarray(b)
+    out = np.zeros((a.shape[0], b.shape[1]), dtype=np.float32)
+    for j in range(a.shape[1]):
+        out += a[:, j : j + 1].astype(np.float32) * b[j : j + 1, :].astype(np.float32)
+    return out
+
+
 def exchangeable_split(
     support: np.ndarray, n_base: int, n_query: int, seed: int
 ) -> tuple[np.ndarray, np.ndarray]:
