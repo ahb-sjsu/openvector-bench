@@ -22,12 +22,19 @@ predecessors.
 """
 
 import json
+import os
 import time
 
 import numpy as np
 import torch
 
 from hashgpu import hgauss_t, hidx_t, hunif_t, verify
+
+# batch_probe is NOT imported here. NRP compute nodes restrict egress, so
+# `pip install` hangs until the pod is killed -- that is what produced a run
+# with no logs at all. The k-NN batch is instead sized by a local doubling
+# search with OOM recovery, which is the same idea without a wheel.
+probe = None
 
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 print("device=" + DEV + " " + (torch.cuda.get_device_name(0) if DEV == "cuda" else ""),
@@ -130,10 +137,42 @@ def build(brk=0.35, fil_dim=48, nlev=6, d_loc=64, d_glob=57, w_loc=0.6,
     return normalize_t(x), a_of
 
 
+_KNN_BS = [None]
+
+
+def knn_batch(base, q, k):
+    """Size the k-NN batch by binary search with OOM recovery.
+
+    The first NRP pod was OOMKilled because the memory shape was hand-guessed.
+    `batch_probe.probe` is the tool for that, and a larger batch also raises GPU
+    utilisation -- which is most likely what reaped the R55/R56 pods at ~50 s.
+    """
+    if _KNN_BS[0] is not None:
+        return _KNN_BS[0]
+    bs = 1024
+    while bs * 2 <= q.shape[0]:
+        try:
+            sim = q[:bs * 2] @ base.T
+            torch.topk(sim, k, dim=1)
+            del sim
+            if DEV == "cuda":
+                torch.cuda.empty_cache()
+            bs *= 2
+        except torch.cuda.OutOfMemoryError:
+            if DEV == "cuda":
+                torch.cuda.empty_cache()
+            break
+    bs = max(1024, int(bs * 0.75))          # headroom
+    print("  sized k-NN batch %d (was a hand-guessed 2048)" % bs, flush=True)
+    _KNN_BS[0] = bs
+    return bs
+
+
 def knn_t(base, q, k):
     od, oi = [], []
-    for s in range(0, q.shape[0], 2048):
-        sim = q[s:s + 2048] @ base.T
+    bs = knn_batch(base, q, k)
+    for s in range(0, q.shape[0], bs):
+        sim = q[s:s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -155,9 +194,14 @@ def clumped(n_rows, need, bb, rng):
     return np.sort(rng.permutation(idx)[:need])
 
 
-print("brk  | ratio  rms | s(4) s(14) s(53) | D_art d50s  d50x  OVERLAP", flush=True)
+ARMS = (0.10, 0.15, 0.20, 0.25)
+_idx = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
+MY_ARMS = (ARMS[_idx],) if _idx < len(ARMS) else ()
+print("pod index %d -> brk %s" % (_idx, MY_ARMS), flush=True)
+print("brk  | ratio  rms |  g1     g6   | s(4) s(14) s(53) | D_art d50s  OVERLAP",
+      flush=True)
 out = {}
-for brk in (0.0, 0.15, 0.35, 0.55):
+for brk in MY_ARMS:
     t0 = time.time()
     x, a_of = build(brk=brk)
     rng = np.random.default_rng(20_100)
@@ -173,18 +217,24 @@ for brk in (0.0, 0.15, 0.35, 0.55):
     s = np.gradient(np.log(np.array(KG, float)), np.log(r))
     ratio = float(s[-1] / max(s[0], 1e-9))
     rms = float(np.sqrt(np.mean((s - REAL_S) ** 2)))
+    mu = dn[:, 1] / np.maximum(dn[:, 0], 1e-12)
+    g1 = float(np.log(2.0) / np.mean(np.log(np.maximum(mu, 1.0 + 1e-9))))
+    cnt = np.bincount(nnn[:, :10].ravel(), minlength=len(bi)).astype(np.float64)
+    g6 = float(((cnt - cnt.mean()) ** 3).mean() / max(cnt.std() ** 3, 1e-12))
     same = a_of[bi[nnn]] == a_of[qi][:, None]
     din, dout = dn[same], dn[~same]
     D = float(np.percentile(din, 90) / max(np.percentile(din, 10), 1e-9))
     ovl = float((dout < np.percentile(din, 90)).mean())
-    out["brk%s" % brk] = {"ratio": ratio, "rms": rms, "D_article": D,
+    out["brk%s" % brk] = {"ratio": ratio, "rms": rms, "g1": g1, "g6": g6,
+                          "D_article": D,
                           "d50_same": float(np.median(din)),
                           "d50_cross": float(np.median(dout)), "overlap": ovl,
                           "s": [float(v) for v in s]}
-    print("%.2f | %5.3f %5.2f | %5.1f %5.1f %5.1f | %5.2f %.3f %.3f  %.4f   (%.0fs)"
-          % (brk, ratio, rms, s[0], s[4], s[8], D, np.median(din),
-             np.median(dout), ovl, time.time() - t0), flush=True)
+    print("%.2f | %5.3f %5.2f | %6.2f %6.3f | %5.1f %5.1f %5.1f | %5.2f %.3f  %.4f   (%.0fs)"
+          % (brk, ratio, rms, g1, g6, s[0], s[4], s[8], D, np.median(din),
+             ovl, time.time() - t0), flush=True)
 
-print("real | 4.050  0.00 |  8.8  16.1  28.9 |  1.72 0.884 1.099  0.1140")
-print("RESULT_JSON " + json.dumps(out), flush=True)
+    print("RESULT_JSON " + json.dumps(out), flush=True)
+
+print("real | 4.050  0.00 |  17.23  1.696 |  8.8  16.1  28.9 |  1.72 0.884  0.1140")
 print("SEG_SWEEP_DONE", flush=True)

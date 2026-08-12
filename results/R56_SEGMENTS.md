@@ -1,5 +1,12 @@
 # Segmented articles fill the k=14 dip, after five mechanisms failed
 
+> **Correction (`R57`).** The ratio result below — 4.181 against 4.050 — is
+> **endpoint cancellation, not a match**, and the claim is withdrawn. At that
+> break rate `s(4)` is 12.7 against 8.82 and `s(500)` is ~53 against 35.73; both
+> ends are ~45% high and the quotient lands by coincidence. This is the `R46`
+> failure mode repeating. The `s(14)` result stands and is robust: 15.0-16.0
+> across break rates 0.10-0.15 against real's 16.08.
+
 **Exploratory, not a registered round. PARTIAL — 3 of 4 arms; see the run note.**
 No admission claim, seal untouched. Measured 2026-08-12 on an NRP A10. Driver
 `harness/rc1/seg_sweep.py` with `harness/rc1/hashgpu.py`; record
