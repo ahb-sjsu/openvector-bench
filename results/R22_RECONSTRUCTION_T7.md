@@ -103,11 +103,27 @@ sources, with an index that answers identically and corruption detected.
 2. **All sources were local filesystem.** No NRP S3 bucket, no Zenodo DOI, no
    origin fetch. Phase 1's multi-region and durable-mirror claims are untouched,
    and the per-source latencies above are storage-local, not network.
-3. **One toolchain.** Regeneration was exact within a single Python/numpy build.
-   The reportable §3 actually cares about — regeneration-success rate *across*
-   toolchains and platforms — is untested here, and it is the interesting one,
-   since it decides whether the regeneration tier is a reliable source or an
-   occasional optimisation.
+3. ~~**One toolchain.**~~ **CLOSED 2026-08-11** — regeneration is exact
+   *across* toolchains. Sixteen shards, indices 0 to 10^12 (including 2^31-1 and
+   2^32+17), regenerated on two genuinely different platforms:
+
+   | | local | remote |
+   |---|---|---|
+   | platform | Windows-10-10.0.19045 | Linux-6.8.0, glibc 2.39 |
+   | python | 3.12.2 | 3.12.3 |
+   | numpy | **2.3.5** | **2.4.4** |
+
+   **16/16 byte-identical, a 100% cross-toolchain regeneration-success rate**
+   (`results/xtoolchain.json`). Different OS, libc, Python patch and numpy
+   *minor* version. This is the reportable `DISTRIBUTION.md` §3 actually cares
+   about, and it settles the question in the strong direction: the regeneration
+   tier is a reliable source, not an occasional optimisation.
+
+   The reason it holds is structural rather than lucky — `philox_u8` is pure
+   integer arithmetic over a counter-based bit generator, with no floating point
+   anywhere in the path, so there is nothing for a platform to round differently.
+   That property is a design requirement for any RC-1 emitter, not a happy
+   accident of this one.
 4. **Not the RC-1 corpus.** This is 128-d uint8 from `philox_u8`. It validates
    the distribution mechanism, not any claim about RC-1's geometry.
 
@@ -129,5 +145,5 @@ needs exactly this partial-verification chain.
 1. ~~Re-run with `--sign`~~ — DONE, criterion 4 fully closed.
 2. Publish one shard set to a real remote (NRP S3 or Zenodo) and re-run so the
    fetch tier is network-backed and the latency figures mean something.
-3. Run regeneration on a second toolchain (different numpy/platform) and report
-   the cross-toolchain success rate — the number §3 is actually about.
+3. ~~Run regeneration on a second toolchain~~ — DONE, 16/16 byte-identical
+   across Windows/numpy 2.3.5 and Linux/numpy 2.4.4.
