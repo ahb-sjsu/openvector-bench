@@ -141,6 +141,14 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         seg = _hier_block(art, np.maximum(pos, 0), seg_break, salt=23)
         sid = art * np.int64(1_000_003) + seg
 
+        # Shared components are computed once per distinct key and gathered
+        # back, not once per row. ~23 rows share an article and a few share a
+        # segment, so this is a large constant factor. Random access means a row
+        # is computable *from* its index, not that shared work must be repeated:
+        # the output is bit-identical either way (asserted in the tests).
+        u_art, art_inv = np.unique(art, return_inverse=True)
+        u_sid, sid_inv = np.unique(sid, return_inverse=True)
+
         # arrangement: nested clustering over articles
         acc = np.zeros((end - start, dim), dtype=np.float32)
         for L in range(arr_levels):
@@ -149,17 +157,20 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
             # centre. Assignment is by the article index rather than a hash, so
             # it is a pure function of the row (`R35`: above-article structure
             # is not index-local, but the *arrangement* still keys off article).
-            coef = hash_gaussian(art // max(1, per), np.full_like(art, L),
+            coef = hash_gaussian(u_art // max(1, per), np.full_like(u_art, L),
                                  count=d_glob, salt=43)
             coef /= np.maximum(np.linalg.norm(coef, axis=1, keepdims=True), 1e-12)
-            acc += float(lw[L]) * reproducible_matmul(coef, bg.T)
+            acc += float(lw[L]) * reproducible_matmul(coef, bg.T)[art_inv]
 
         # segment centre: the shared component a break resets
-        sdir = hash_index(sid, count=d_loc, modulus=n_pool, salt=53)
-        sco = hash_gaussian(sid, count=d_loc, salt=57)
+        sdir = hash_index(u_sid, count=d_loc, modulus=n_pool, salt=53)
+        sco = hash_gaussian(u_sid, count=d_loc, salt=57)
         sco /= np.maximum(np.linalg.norm(sco, axis=1, keepdims=True), 1e-12)
+        cen = np.zeros((len(u_sid), dim), dtype=np.float32)
         for j in range(d_loc):
-            acc += (np.float32(w_loc) * sco[:, j])[:, None] * pool[sdir[:, j]]
+            cen += (np.float32(w_loc) * sco[:, j])[:, None] * pool[sdir[:, j]]
+        acc += cen[sid_inv]
+        del cen
 
         # within-segment path, keyed on the segment so a break resets it too
         for L in range(nlev):
