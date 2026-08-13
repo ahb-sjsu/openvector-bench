@@ -93,8 +93,9 @@ def hash_gaussian(*keys, count: int = 1, salt: int = 0) -> np.ndarray:
         for t in range(UNIFORMS_PER_NORMAL):
             tt = _U64(t)
             h = splitmix64(base[..., None] ^ (cols + tt * splitmix64(tt + SALT_GAUSS)))
-            out += ((h >> _U64(11)).astype(np.float64)
-                    / float(1 << 53)).astype(np.float32)
+            out += ((h >> _U64(11)).astype(np.float64) / float(1 << 53)).astype(
+                np.float32
+            )
     return out - np.float32(UNIFORMS_PER_NORMAL / 2)
 
 

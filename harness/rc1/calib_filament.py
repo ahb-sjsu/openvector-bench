@@ -43,7 +43,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from openvector_bench.filament_gen import FILAMENT_PARAMS, filament_corpus  # noqa: E402
-from openvector_bench.geometry import id_twonn, knn, normalize  # noqa: E402
+from openvector_bench.geometry import id_twonn, knn  # noqa: E402
 
 OUT = os.environ.get("CAL_OUT", "/home/claude/ovb_scale/calib_filament.json")
 N = int(os.environ.get("CAL_N", "25000"))
@@ -54,8 +54,15 @@ DIM = 1024
 
 KGRID = sorted({int(round(v)) for v in np.geomspace(4, KMAX, 16)})
 
-BASE = dict(log2_filaments=14.0, fil_dim=8.0, arrange_dim=40.0,
-            fil_scale=0.15, scale_spread=0.5, size_tail=1.0, noise=0.01)
+BASE = dict(
+    log2_filaments=14.0,
+    fil_dim=8.0,
+    arrange_dim=40.0,
+    fil_scale=0.15,
+    scale_spread=0.5,
+    size_tail=1.0,
+    noise=0.01,
+)
 
 # One factor at a time. Each entry: (knob, [values])
 OFAT = [
@@ -89,13 +96,17 @@ def cell(p: dict, n: int) -> dict:
         cross = float(np.interp(mid, s, r)) if s[-1] > s[0] else float("nan")
     except Exception:
         cross = float("nan")
-    out = {"g1": float(id_twonn(d)), "s_lo": float(s[0]), "s_hi": float(s[-1]),
-           "r_lo": float(r[0]), "r_hi": float(r[-1]), "beta": beta,
-           "crossover_r": cross,
-           # estimator domain check (the R20 precondition), per cell
-           "usable_mu_frac": float(
-               (d[:, 1] / np.maximum(d[:, 0], 1e-12) > 1.0).mean()),
-           }
+    out = {
+        "g1": float(id_twonn(d)),
+        "s_lo": float(s[0]),
+        "s_hi": float(s[-1]),
+        "r_lo": float(r[0]),
+        "r_hi": float(r[-1]),
+        "beta": beta,
+        "crossover_r": cross,
+        # estimator domain check (the R20 precondition), per cell
+        "usable_mu_frac": float((d[:, 1] / np.maximum(d[:, 0], 1e-12) > 1.0).mean()),
+    }
     del x, d
     gc.collect()
     return out
@@ -103,8 +114,10 @@ def cell(p: dict, n: int) -> dict:
 
 def main() -> int:
     print(f"base {BASE}  n={N} nq={NQ} kmax={KMAX}", flush=True)
-    print("TARGET real n=25k: G1 25.97  s 27.4->35.2  beta +1.80  r 0.946..1.124\n",
-          flush=True)
+    print(
+        "TARGET real n=25k: G1 25.97  s 27.4->35.2  beta +1.80  r 0.946..1.124\n",
+        flush=True,
+    )
 
     results: dict[str, dict] = {"ofat": {}, "n_sweep": {}}
 
@@ -113,10 +126,13 @@ def main() -> int:
         for v in values:
             c = cell(params(**{knob: v}), N)
             results["ofat"][knob][str(v)] = c
-            print(f"{knob:16s}={v:7.2f}  G1={c['g1']:7.2f}  "
-                  f"s {c['s_lo']:6.1f}->{c['s_hi']:6.1f}  beta={c['beta']:+6.2f}  "
-                  f"r {c['r_lo']:.3f}..{c['r_hi']:.3f}  cross={c['crossover_r']:.3f}  "
-                  f"mu_ok={c['usable_mu_frac']:.2f}", flush=True)
+            print(
+                f"{knob:16s}={v:7.2f}  G1={c['g1']:7.2f}  "
+                f"s {c['s_lo']:6.1f}->{c['s_hi']:6.1f}  beta={c['beta']:+6.2f}  "
+                f"r {c['r_lo']:.3f}..{c['r_hi']:.3f}  cross={c['crossover_r']:.3f}  "
+                f"mu_ok={c['usable_mu_frac']:.2f}",
+                flush=True,
+            )
         # sensitivity: dlog(stat)/dlog(knob) across the swept range
         vs = np.array([float(v) for v in values])
         for stat in ("s_lo", "s_hi", "g1"):
@@ -124,8 +140,9 @@ def main() -> int:
             ok = (y > 0) & (vs > 0)
             if ok.sum() >= 2:
                 sl = float(np.polyfit(np.log(vs[ok]), np.log(y[ok]), 1)[0])
-                print(f"    sensitivity dlog({stat})/dlog({knob}) = {sl:+.2f}",
-                      flush=True)
+                print(
+                    f"    sensitivity dlog({stat})/dlog({knob}) = {sl:+.2f}", flush=True
+                )
         print("", flush=True)
 
     # The failure that killed every arm is a family x n interaction.
@@ -136,18 +153,33 @@ def main() -> int:
             c = cell(params(log2_filaments=lf), n)
             results["n_sweep"][label][str(n)] = c
             betas.append(c["beta"])
-            print(f"{label} n={n:6d}  G1={c['g1']:7.2f}  "
-                  f"s {c['s_lo']:6.1f}->{c['s_hi']:6.1f}  beta={c['beta']:+6.2f}",
-                  flush=True)
+            print(
+                f"{label} n={n:6d}  G1={c['g1']:7.2f}  "
+                f"s {c['s_lo']:6.1f}->{c['s_hi']:6.1f}  beta={c['beta']:+6.2f}",
+                flush=True,
+            )
         tr = float(np.polyfit(np.log(N_SWEEP), betas, 1)[0])
         results["n_sweep"][label]["beta_trend"] = tr
-        print(f"  -> {label} beta trend {tr:+.2f} per ln n   (real +1.41)\n",
-              flush=True)
+        print(
+            f"  -> {label} beta trend {tr:+.2f} per ln n   (real +1.41)\n", flush=True
+        )
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"n": N, "nq": NQ, "kmax": KMAX, "kgrid": KGRID,
-                              "base": BASE, "n_sweep": N_SWEEP},
-                   "results": results}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "n": N,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "kgrid": KGRID,
+                    "base": BASE,
+                    "n_sweep": N_SWEEP,
+                },
+                "results": results,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("CALIB_FILAMENT_DONE", flush=True)
     return 0

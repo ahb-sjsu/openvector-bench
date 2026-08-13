@@ -33,8 +33,7 @@ def fit(gaps=GAPS, rho=RHO, n_levels=N_LEVELS):
     kern = np.maximum(0.0, 1.0 - gaps[:, None] / lev[None, :])
     design = np.hstack([kern, np.ones((len(gaps), 1))])
     # Weight the sum-to-one constraint heavily so rho is a correlation.
-    a, _ = nnls(np.vstack([design, np.full(n_levels + 1, 50.0)]),
-                np.append(rho, 50.0))
+    a, _ = nnls(np.vstack([design, np.full(n_levels + 1, 50.0)]), np.append(rho, 50.0))
     a = a / a.sum()
     return a[:-1], float(a[-1]), design @ a
 
@@ -45,13 +44,17 @@ def main() -> int:
     for s, v in enumerate(lev_var):
         if v > 1e-4:
             print(f"  s={s:2d}  span {2 ** s:6d} rows   var {v:.4f}")
-    print(f"  global                       var {glob_var:.4f}"
-          f"   (random-pair baseline {RANDOM_BASELINE})")
+    print(
+        f"  global                       var {glob_var:.4f}"
+        f"   (random-pair baseline {RANDOM_BASELINE})"
+    )
     print("\ngap   measured   fitted")
     for g, r, p in zip(GAPS, RHO, pred):
         print(f"{int(g):4d}   {r:.4f}     {p:.4f}")
-    print(f"\nrms {np.sqrt(((RHO - pred) ** 2).mean()):.6f}  "
-          f"(exact by construction: {len(lev_var) + 1} params, {len(GAPS)} gaps)")
+    print(
+        f"\nrms {np.sqrt(((RHO - pred) ** 2).mean()):.6f}  "
+        f"(exact by construction: {len(lev_var) + 1} params, {len(GAPS)} gaps)"
+    )
     return 0
 
 

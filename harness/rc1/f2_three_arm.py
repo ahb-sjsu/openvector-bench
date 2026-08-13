@@ -71,8 +71,10 @@ for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
 
 from openvector_bench.geometry import id_twonn, knn, normalize  # noqa: E402
 
-BLOBS = ("/home/claude/.cache/huggingface/hub/"
-         "datasets--CohereLabs--wikipedia-2023-11-embed-multilingual-v3/blobs")
+BLOBS = (
+    "/home/claude/.cache/huggingface/hub/"
+    "datasets--CohereLabs--wikipedia-2023-11-embed-multilingual-v3/blobs"
+)
 OUT = os.environ.get("F3_OUT", "/home/claude/ovb_scale/f2_three_arm.json")
 EMB_DIR = os.environ.get("F3_CACHE_DIR", "/archive/experiments/f2_arms")
 NEED = int(os.environ.get("F3_N", "60000"))
@@ -82,16 +84,21 @@ KMAX = int(os.environ.get("F3_KMAX", "500"))
 PER_BLOB = 600
 
 KGRID = sorted({int(round(v)) for v in np.geomspace(4, KMAX, 16)})
-ARMS = [("labse", "sentence-transformers/LaBSE"),
-        ("lebse", "ahbond/lebse"),
-        ("bge_m3", "BAAI/bge-m3")]
+ARMS = [
+    ("labse", "sentence-transformers/LaBSE"),
+    ("lebse", "ahbond/lebse"),
+    ("bge_m3", "BAAI/bge-m3"),
+]
 
 
 def load_paired(need: int):
     import pyarrow.parquet as pq
 
-    files = [f for f in sorted(glob.glob(os.path.join(BLOBS, "*")))
-             if not f.endswith(".lock")]
+    files = [
+        f
+        for f in sorted(glob.glob(os.path.join(BLOBS, "*")))
+        if not f.endswith(".lock")
+    ]
     texts, embs, got = [], [], 0
     for f in files:
         try:
@@ -118,25 +125,40 @@ def profile(name: str, x: np.ndarray) -> dict:
         ratio = float(s[-1] / max(s[0], 1e-9))
         beta = float(np.log(max(s[-1], 1e-9) / max(s[0], 1e-9)) / np.log(r[-1] / r[0]))
         g1 = float(id_twonn(d))
-        per_n[str(n)] = {"g1": g1, "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                         "s_ratio": ratio, "beta": beta,
-                         "r_lo": float(r[0]), "r_hi": float(r[-1]),
-                         "r": r.tolist(), "s": s.tolist()}
+        per_n[str(n)] = {
+            "g1": g1,
+            "s_lo": float(s[0]),
+            "s_hi": float(s[-1]),
+            "s_ratio": ratio,
+            "beta": beta,
+            "r_lo": float(r[0]),
+            "r_hi": float(r[-1]),
+            "r": r.tolist(),
+            "s": s.tolist(),
+        }
         ratios.append(ratio)
         g1s.append(g1)
         betas.append(beta)
-        print(f"    {name:8s} n={n:6d} dim={x.shape[1]:4d} G1={g1:7.2f} "
-              f"s {s[0]:6.1f}->{s[-1]:6.1f} ratio {ratio:.2f} beta {beta:+6.2f} "
-              f"r [{r[0]:.3f},{r[-1]:.3f}]", flush=True)
+        print(
+            f"    {name:8s} n={n:6d} dim={x.shape[1]:4d} G1={g1:7.2f} "
+            f"s {s[0]:6.1f}->{s[-1]:6.1f} ratio {ratio:.2f} beta {beta:+6.2f} "
+            f"r [{r[0]:.3f},{r[-1]:.3f}]",
+            flush=True,
+        )
     ln = np.log(NS)
-    out = {"dim": int(x.shape[1]), "per_n": per_n,
-           "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0]),
-           "beta_trend": float(np.polyfit(ln, betas, 1)[0]),
-           "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
-           "mean_norm": float(np.linalg.norm(xn.mean(0)))}
-    print(f"  -> {name}: s_ratio trend {out['s_ratio_trend']:+.3f}/ln n, "
-          f"G1 exp {out['g1_exponent']:+.3f}, ||mean|| {out['mean_norm']:.3f}",
-          flush=True)
+    out = {
+        "dim": int(x.shape[1]),
+        "per_n": per_n,
+        "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0]),
+        "beta_trend": float(np.polyfit(ln, betas, 1)[0]),
+        "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
+        "mean_norm": float(np.linalg.norm(xn.mean(0))),
+    }
+    print(
+        f"  -> {name}: s_ratio trend {out['s_ratio_trend']:+.3f}/ln n, "
+        f"G1 exp {out['g1_exponent']:+.3f}, ||mean|| {out['mean_norm']:.3f}",
+        flush=True,
+    )
     return out
 
 
@@ -153,13 +175,21 @@ def encode(model_id: str, tag: str, texts: list[str]) -> np.ndarray:
     chunks, t0, done = [], time.time(), 0
     STEP = 5000
     for i in range(0, len(texts), STEP):
-        chunks.append(m.encode(texts[i:i + STEP], batch_size=16,
-                               show_progress_bar=False,
-                               convert_to_numpy=True).astype(np.float32))
-        done += len(texts[i:i + STEP])
+        chunks.append(
+            m.encode(
+                texts[i : i + STEP],
+                batch_size=16,
+                show_progress_bar=False,
+                convert_to_numpy=True,
+            ).astype(np.float32)
+        )
+        done += len(texts[i : i + STEP])
         el = time.time() - t0
-        print(f"  {tag}: {done}/{len(texts)}  {done/el:.1f} sent/s  "
-              f"eta {(len(texts)-done)/max(done/el,1e-9)/60:.0f} min", flush=True)
+        print(
+            f"  {tag}: {done}/{len(texts)}  {done/el:.1f} sent/s  "
+            f"eta {(len(texts)-done)/max(done/el,1e-9)/60:.0f} min",
+            flush=True,
+        )
     x = np.concatenate(chunks)
     np.save(path, x)
     del m
@@ -178,16 +208,31 @@ def main() -> int:
     perm = np.random.default_rng(20260808).permutation(len(texts))
     texts = [texts[i] for i in perm]
     cohere = cohere[perm]
-    print(f"loaded {len(texts)} paired rows, cohere {cohere.shape}; "
-          f"permuted for exchangeable base/query split", flush=True)
+    print(
+        f"loaded {len(texts)} paired rows, cohere {cohere.shape}; "
+        f"permuted for exchangeable base/query split",
+        flush=True,
+    )
 
     results: dict = {}
 
     def save():
         with open(OUT, "w", encoding="utf-8") as f:
-            json.dump({"config": {"n": NEED, "ns": NS, "nq": NQ, "kmax": KMAX,
-                                  "kgrid": KGRID, "arms": ARMS},
-                       "results": results}, f, indent=2)
+            json.dump(
+                {
+                    "config": {
+                        "n": NEED,
+                        "ns": NS,
+                        "nq": NQ,
+                        "kmax": KMAX,
+                        "kgrid": KGRID,
+                        "arms": ARMS,
+                    },
+                    "results": results,
+                },
+                f,
+                indent=2,
+            )
 
     print("\n[cohere reference]", flush=True)
     results["cohere"] = profile("cohere", cohere)
@@ -205,17 +250,26 @@ def main() -> int:
         save()
 
     print("\n=== F2 THREE-ARM SUMMARY ===", flush=True)
-    print(f"{'arm':10s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
-          f"{'G1 exp':>8s} {'||mean||':>9s}", flush=True)
+    print(
+        f"{'arm':10s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
+        f"{'G1 exp':>8s} {'||mean||':>9s}",
+        flush=True,
+    )
     for k, v in results.items():
         if "error" in v:
             print(f"{k:10s} FAILED", flush=True)
             continue
-        print(f"{k:10s} {v['dim']:5d} {v['per_n'][str(NS[-1])]['s_ratio']:12.2f} "
-              f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f} "
-              f"{v['mean_norm']:9.3f}", flush=True)
-    print("\nreference (600k pool, real): ratio 2.37 @200k, trend +0.511, "
-          "G1 exp -0.168; controls flat near 1.2 with |trend| <= 0.13", flush=True)
+        print(
+            f"{k:10s} {v['dim']:5d} {v['per_n'][str(NS[-1])]['s_ratio']:12.2f} "
+            f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f} "
+            f"{v['mean_norm']:9.3f}",
+            flush=True,
+        )
+    print(
+        "\nreference (600k pool, real): ratio 2.37 @200k, trend +0.511, "
+        "G1 exp -0.168; controls flat near 1.2 with |trend| <= 0.13",
+        flush=True,
+    )
     save()
     print(f"wrote {OUT}", flush=True)
     print("F2_THREE_ARM_DONE", flush=True)

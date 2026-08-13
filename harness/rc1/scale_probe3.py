@@ -100,15 +100,31 @@ def main() -> int:
     g1s = [out[str(n)]["g1_twonn"] for n in NS]
     exp = float(np.polyfit(np.log(NS), np.log(g1s), 1)[0])
     anch = [ANCHORS[n] for n in NS if n in ANCHORS]
-    exp_anchor = float(np.polyfit(np.log([n for n in NS if n in ANCHORS]), np.log(anch), 1)[0])
-    print(f"measured G1 exponent {exp:+.3f}   registered anchor exponent {exp_anchor:+.3f}",
-          flush=True)
+    exp_anchor = float(
+        np.polyfit(np.log([n for n in NS if n in ANCHORS]), np.log(anch), 1)[0]
+    )
+    print(
+        f"measured G1 exponent {exp:+.3f}   registered anchor exponent {exp_anchor:+.3f}",
+        flush=True,
+    )
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"ns": NS, "nq": NQ, "cap": CAP, "kgrid": KGRID,
-                              "seed": SEED},
-                   "per_n": out,
-                   "g1_exponent": exp, "anchor_exponent": exp_anchor}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "cap": CAP,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                },
+                "per_n": out,
+                "g1_exponent": exp,
+                "anchor_exponent": exp_anchor,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("SCALE_PROBE3_DONE", flush=True)
     return 0

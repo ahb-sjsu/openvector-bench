@@ -135,7 +135,10 @@ def preconditions() -> dict:
         }
     out["estimator_domain"] = dom
     out["domain_ok"] = bool(
-        all(v["usable_mu_frac"] > 0.5 and np.isfinite(v["g1_smoke"]) for v in dom.values())
+        all(
+            v["usable_mu_frac"] > 0.5 and np.isfinite(v["g1_smoke"])
+            for v in dom.values()
+        )
     )
     return out
 
@@ -146,7 +149,9 @@ def main() -> int:
     pre = preconditions()
     for flag in ("bit_exact_repeat", "random_access", "seed_separation", "domain_ok"):
         print(f"  {flag}: {pre[flag]}", flush=True)
-    if not all(pre[f] for f in ("bit_exact_repeat", "random_access", "seed_separation")):
+    if not all(
+        pre[f] for f in ("bit_exact_repeat", "random_access", "seed_separation")
+    ):
         print("PRECONDITION FAILED - not measuring", flush=True)
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump({"preconditions": pre}, f, indent=2)
@@ -172,11 +177,17 @@ def main() -> int:
                 flush=True,
             )
         exps = [s["exp"] for s in per_seed]
-        mean_g1 = [float(np.mean([s["g1"][i] for s in per_seed])) for i in range(len(NS))]
+        mean_g1 = [
+            float(np.mean([s["g1"][i] for s in per_seed])) for i in range(len(NS))
+        ]
         # G1 ~ c * (L - log_B n): recover c, the truncation model's one constant.
         c = float(
-            np.mean([mean_g1[i] / max(depth - math.log(NS[i]) / LOG_B, 1e-9)
-                     for i in range(len(NS))])
+            np.mean(
+                [
+                    mean_g1[i] / max(depth - math.log(NS[i]) / LOG_B, 1e-9)
+                    for i in range(len(NS))
+                ]
+            )
         )
         arms.append(
             {
@@ -217,8 +228,7 @@ def main() -> int:
             shared
             and all(
                 abs(decayed[d]["exp_mean"] - null_arms[d]["exp_mean"])
-                < 2
-                * max(decayed[d]["exp_sd"], null_arms[d]["exp_sd"], 1e-3)
+                < 2 * max(decayed[d]["exp_sd"], null_arms[d]["exp_sd"], 1e-3)
                 for d in shared
             )
         ),
@@ -245,8 +255,15 @@ def main() -> int:
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(
             {
-                "config": {"dim": DIM, "ns": NS, "arms": ARMS, "seeds": SEEDS,
-                           "nq": NQ, "k": K, "real_g1": REAL_G1},
+                "config": {
+                    "dim": DIM,
+                    "ns": NS,
+                    "arms": ARMS,
+                    "seeds": SEEDS,
+                    "nq": NQ,
+                    "k": K,
+                    "real_g1": REAL_G1,
+                },
                 "preconditions": pre,
                 "arms": arms,
                 "verdict": verdict,

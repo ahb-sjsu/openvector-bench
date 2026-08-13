@@ -58,17 +58,18 @@ from .geometry import normalize, reproducible_matmul
 
 # (name, lo, hi, default) -- the search-space convention used across the project.
 TWOSCALE_PARAMS: tuple[tuple[str, float, float, float], ...] = (
-    ("group_size", 2.0, 400.0, 100.0),   # contiguous rows per group (R31: 10-100)
-    ("arr_dim", 4.0, 128.0, 26.0),       # cross-group intrinsic dim (R31: ~26)
-    ("fil_dim", 2.0, 64.0, 15.0),        # within-group intrinsic dim (R31: ~15)
-    ("fil_scale", 0.01, 1.0, 0.15),      # within extent vs centre spacing
-    ("log2_basis", 8.0, 16.0, 13.0),     # shared direction pool size
-    ("size_spread", 0.0, 1.5, 0.0),      # lognormal spread on group size
+    ("group_size", 2.0, 400.0, 100.0),  # contiguous rows per group (R31: 10-100)
+    ("arr_dim", 4.0, 128.0, 26.0),  # cross-group intrinsic dim (R31: ~26)
+    ("fil_dim", 2.0, 64.0, 15.0),  # within-group intrinsic dim (R31: ~15)
+    ("fil_scale", 0.01, 1.0, 0.15),  # within extent vs centre spacing
+    ("log2_basis", 8.0, 16.0, 13.0),  # shared direction pool size
+    ("size_spread", 0.0, 1.5, 0.0),  # lognormal spread on group size
 )
 
 
-def twoscale_corpus(p: dict[str, float], n: int, dim: int, seed: int,
-                    chunk: int = 50_000) -> np.ndarray:
+def twoscale_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int, chunk: int = 50_000
+) -> np.ndarray:
     """Emit ``n`` rows of ``dim`` with contiguous groups and two nested scales.
 
     Memory-bounded: centres are held as ``arr_dim`` coefficients and expanded per
@@ -87,24 +88,25 @@ def twoscale_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     # must contain proportionally fewer distinct groups.
     if spread <= 0:
         n_group = max(2, int(np.ceil(n / gs)))
-        bounds = np.minimum(np.arange(1, n_group + 1, dtype=np.int64)
-                            * int(round(gs)), n)
+        bounds = np.minimum(
+            np.arange(1, n_group + 1, dtype=np.int64) * int(round(gs)), n
+        )
     else:
         est = int(n / gs * 2.0) + 16
-        ln = rng.lognormal(np.log(gs) - 0.5 * spread ** 2, spread, est)
+        ln = rng.lognormal(np.log(gs) - 0.5 * spread**2, spread, est)
         bounds = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
         bounds = np.append(bounds[bounds < n], n)
         n_group = len(bounds)
 
     # All centres share ONE arr_dim-dimensional frame, so the centre cloud has
     # intrinsic dimension arr_dim rather than merely being parameterised by it.
-    basis_arr = np.linalg.qr(
-        rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
+    basis_arr = np.linalg.qr(rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
     coeffs = rng.standard_normal((n_group, arr_dim)).astype(np.float32)
     coeffs /= np.maximum(np.linalg.norm(coeffs, axis=1, keepdims=True), 1e-12)
 
-    basis_pool = (rng.standard_normal((n_basis, dim)).astype(np.float32)
-                  / np.sqrt(dim, dtype=np.float32))
+    basis_pool = rng.standard_normal((n_basis, dim)).astype(np.float32) / np.sqrt(
+        dim, dtype=np.float32
+    )
     group_dirs = rng.integers(0, n_basis, (n_group, fil_dim))
 
     inv = np.float32(1.0 / np.sqrt(fil_dim))
@@ -112,7 +114,8 @@ def twoscale_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     for s in range(0, n, chunk):
         e = min(s + chunk, n)
         own = np.minimum(
-            np.searchsorted(bounds, np.arange(s, e), side="right"), n_group - 1)
+            np.searchsorted(bounds, np.arange(s, e), side="right"), n_group - 1
+        )
         acc = reproducible_matmul(coeffs[own], basis_arr.T)
         u = rng.standard_normal((e - s, fil_dim)).astype(np.float32)
         sel = group_dirs[own]
@@ -138,7 +141,14 @@ def twoscale_corpus(p: dict[str, float], n: int, dim: int, seed: int,
 # real's by design, so that G1, the ratio and the §3b spans -- none of them
 # fitted -- become a genuine test.
 CASCADE_WEIGHTS: tuple[float, ...] = (
-    0.3336, 0.0548, 0.0807, 0.1018, 0.0876, 0.0537, 0.0305, 0.0218,
+    0.3336,
+    0.0548,
+    0.0807,
+    0.1018,
+    0.0876,
+    0.0537,
+    0.0305,
+    0.0218,
 )
 CASCADE_GLOBAL: float = 0.2355
 
@@ -163,8 +173,9 @@ CASCADE_GLOBAL: float = 0.2355
 CASCADE_LEVEL_DIMS: tuple[int, ...] = (9, 1, 5, 17, 5, 1, 1, 1)
 
 
-def cascade_corpus(p: dict[str, float], n: int, dim: int, seed: int,
-                   chunk: int = 50_000) -> np.ndarray:
+def cascade_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int, chunk: int = 50_000
+) -> np.ndarray:
     """A trajectory in embedding space indexed by row, not a bag of clusters.
 
     Row ``i`` is a weighted sum of components that change at doubling rates::
@@ -200,10 +211,12 @@ def cascade_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         slow_dim = min(max(2, int(round(p["slow_dim"]))), dim)
         fast_levels = max(0, int(round(p["fast_levels"])))
         dims = [fast_dim if s <= fast_levels else slow_dim for s in range(n_lev)]
-        basis_f = np.linalg.qr(
-            rng.standard_normal((dim, fast_dim)))[0].astype(np.float32)
-        basis_s = np.linalg.qr(
-            rng.standard_normal((dim, slow_dim)))[0].astype(np.float32)
+        basis_f = np.linalg.qr(rng.standard_normal((dim, fast_dim)))[0].astype(
+            np.float32
+        )
+        basis_s = np.linalg.qr(rng.standard_normal((dim, slow_dim)))[0].astype(
+            np.float32
+        )
         bases = [basis_f if s <= fast_levels else basis_s for s in range(n_lev)]
     else:
         dims = [max(1, int(round(v))) for v in raw][:n_lev]
@@ -215,11 +228,12 @@ def cascade_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         # difference vector across levels 0..L to span sum_{l<=L} d_l
         # independent directions; a shared basis collapses that sum, which is
         # why the legacy path above cannot produce a ramp.
-        frame = np.linalg.qr(
-            rng.standard_normal((dim, sum(dims))))[0].astype(np.float32)
+        frame = np.linalg.qr(rng.standard_normal((dim, sum(dims))))[0].astype(
+            np.float32
+        )
         bases, off = [], 0
         for s in range(n_lev):
-            bases.append(frame[:, off:off + dims[s]])
+            bases.append(frame[:, off : off + dims[s]])
             off += dims[s]
 
     m = rng.standard_normal(dim).astype(np.float32)
@@ -243,8 +257,7 @@ def cascade_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     return normalize(x)
 
 
-def centre_cloud(p: dict[str, float], n_group: int, dim: int,
-                 seed: int) -> np.ndarray:
+def centre_cloud(p: dict[str, float], n_group: int, dim: int, seed: int) -> np.ndarray:
     """The arrangement alone — one point per group, no within-group offset.
 
     Used to measure what ``arr_dim`` actually delivers. `R30` set the parameter
@@ -252,16 +265,15 @@ def centre_cloud(p: dict[str, float], n_group: int, dim: int,
     """
     rng = np.random.default_rng(seed)
     arr_dim = min(max(2, int(round(p["arr_dim"]))), dim)
-    basis_arr = np.linalg.qr(
-        rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
+    basis_arr = np.linalg.qr(rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
     coeffs = rng.standard_normal((n_group, arr_dim)).astype(np.float32)
     coeffs /= np.maximum(np.linalg.norm(coeffs, axis=1, keepdims=True), 1e-12)
     return normalize(reproducible_matmul(coeffs, basis_arr.T))
 
 
 CASCADE_PARAMS: tuple[tuple[str, float, float, float], ...] = (
-    ("fast_dim", 2.0, 64.0, 15.0),      # within-article manifold (R31: G1 ~15)
-    ("slow_dim", 8.0, 128.0, 26.0),     # cross-article arrangement (R31: G1 ~26)
-    ("fast_levels", 0.0, 6.0, 2.0),     # levels 0..this use fast_dim
-    ("global_scale", 0.0, 2.0, 1.0),    # the shared mean direction
+    ("fast_dim", 2.0, 64.0, 15.0),  # within-article manifold (R31: G1 ~15)
+    ("slow_dim", 8.0, 128.0, 26.0),  # cross-article arrangement (R31: G1 ~26)
+    ("fast_levels", 0.0, 6.0, 2.0),  # levels 0..this use fast_dim
+    ("global_scale", 0.0, 2.0, 1.0),  # the shared mean direction
 )

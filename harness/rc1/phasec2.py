@@ -20,7 +20,7 @@ import os
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 from hashgpu import hgauss_t, hidx_t, hunif_t, verify
 
@@ -33,10 +33,18 @@ KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
 MAXLEV = 8
 
 # R68 ten-block bands (mean +- 2 sd, n = 10; results/reband10.json)
-BANDS = {"g1": (14.44, 21.03), "g5": (1.362, 1.407), "g6": (1.702, 1.789),
-         "g3": (153.6, 196.5), "g4": (351.3, 362.7), "g8": (0.731, 0.743),
-         "trend": (0.390, 0.648), "g1exp": (-0.236, -0.112),
-         "rspan": (1.086, 2.938), "gspan": (-0.630, -0.261)}
+BANDS = {
+    "g1": (14.44, 21.03),
+    "g5": (1.362, 1.407),
+    "g6": (1.702, 1.789),
+    "g3": (153.6, 196.5),
+    "g4": (351.3, 362.7),
+    "g8": (0.731, 0.743),
+    "trend": (0.390, 0.648),
+    "g1exp": (-0.236, -0.112),
+    "rspan": (1.086, 2.938),
+    "gspan": (-0.630, -0.261),
+}
 
 
 def normalize_t(x):
@@ -54,40 +62,59 @@ def seg_of(a_t, pos_t, brk):
     return a_t * 1000003 + chosen * 7919 + (pos_t >> chosen)
 
 
-def build(brk=0.116, branch=64, d_glob=24, decay=0.50, mix=0.6, rho=0.3,
-          log2_pool=10, fil_dim=48, nlev=6, d_loc=64, w_loc=0.6,
-          fil_scale=1.0, arr_levels=3, size_spread=1.2, seed=41,
-          pool_alpha=0.0):
+def build(
+    brk=0.116,
+    branch=64,
+    d_glob=24,
+    decay=0.50,
+    mix=0.6,
+    rho=0.3,
+    log2_pool=10,
+    fil_dim=48,
+    nlev=6,
+    d_loc=64,
+    w_loc=0.6,
+    fil_scale=1.0,
+    arr_levels=3,
+    size_spread=1.2,
+    seed=41,
+    pool_alpha=0.0,
+):
     rng = np.random.default_rng(seed)
-    ln = rng.lognormal(np.log(ART_MEAN) - 0.5 * size_spread ** 2, size_spread,
-                       int(POOL / ART_MEAN * 2.5) + 16)
+    ln = rng.lognormal(
+        np.log(ART_MEAN) - 0.5 * size_spread**2,
+        size_spread,
+        int(POOL / ART_MEAN * 2.5) + 16,
+    )
     b = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
     b = np.append(b[b < POOL], POOL)
     n_art = len(b)
     starts = np.concatenate([[0], b[:-1]])
-    npool = int(2 ** log2_pool)
+    npool = int(2**log2_pool)
     pool = torch.from_numpy(
-        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)).to(DEV)
+        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)
+    ).to(DEV)
     if pool_alpha > 0.0:
         w = (1.0 + np.arange(npool, dtype=np.float64)) ** (-pool_alpha)
-        w /= np.sqrt((w ** 2).mean())
+        w /= np.sqrt((w**2).mean())
         pool = pool * torch.from_numpy(w.astype(np.float32)).to(DEV).unsqueeze(1)
     cen = torch.zeros((n_art, DIM), device=DEV)
-    lw = np.array([0.72 ** L for L in range(arr_levels)], dtype=np.float32)
+    lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
     cl0 = None
     for L in range(arr_levels):
-        ncl = max(2, int(round(n_art / (27 * branch ** L))))
+        ncl = max(2, int(round(n_art / (27 * branch**L))))
         cid = torch.from_numpy(rng.integers(0, ncl, n_art)).to(DEV)
         if L == 0:
             cl0 = cid.clone()
         cc = rng.standard_normal((ncl, d_glob)).astype(np.float32)
         cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
-        bgL = torch.from_numpy(np.linalg.qr(rng.standard_normal(
-            (DIM, d_glob)))[0].astype(np.float32)).to(DEV)
+        bgL = torch.from_numpy(
+            np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0].astype(np.float32)
+        ).to(DEV)
         cen += float(lw[L]) * (torch.from_numpy(cc).to(DEV)[cid] @ bgL.T)
 
-    plw = np.sqrt(np.array([decay ** i for i in range(nlev)], dtype=np.float32))
+    plw = np.sqrt(np.array([decay**i for i in range(nlev)], dtype=np.float32))
     plw /= np.linalg.norm(plw)
     a_of = np.repeat(np.arange(n_art), (b - starts))[:POOL]
     pos = np.arange(POOL) - starts[a_of]
@@ -109,8 +136,7 @@ def build(brk=0.116, branch=64, d_glob=24, decay=0.50, mix=0.6, rho=0.3,
         cl_row = cl0[a_t].long()
         acc = cen[a_t].clone()
         sid = seg_of(a_t, p_t, brk)
-        sdir = share(hidx_t(sid, d_loc, npool), cl_row, 17,
-                     a_t * 271 + 19, d_loc)
+        sdir = share(hidx_t(sid, d_loc, npool), cl_row, 17, a_t * 271 + 19, d_loc)
         sco = hgauss_t(sid, d_loc)
         sco = sco / sco.norm(dim=1, keepdim=True).clamp_min(1e-12)
         for j in range(d_loc):
@@ -118,15 +144,25 @@ def build(brk=0.116, branch=64, d_glob=24, decay=0.50, mix=0.6, rho=0.3,
         for L in range(nlev):
             key = sid * 31 + L * 7919 + (p_t >> L)
             c = hgauss_t(key, fil_dim)
-            dd = share(hidx_t(key, fil_dim, npool), cl_row, L * 7 + 23,
-                       a_t * 271 + L * 11 + 29, fil_dim)
+            dd = share(
+                hidx_t(key, fil_dim, npool),
+                cl_row,
+                L * 7 + 23,
+                a_t * 271 + L * 11 + 29,
+                fil_dim,
+            )
             amp = float(fil_scale * wp * plw[L] / np.sqrt(fil_dim))
             for j in range(fil_dim):
                 acc += (amp * c[:, j]).unsqueeze(1) * pool[dd[:, j]]
             del c, dd
         if wb > 0.0:
-            bdir = share(hidx_t(sid * 100003 + 7, fil_dim, npool), cl_row, 97,
-                         a_t * 271 + 41, fil_dim)
+            bdir = share(
+                hidx_t(sid * 100003 + 7, fil_dim, npool),
+                cl_row,
+                97,
+                a_t * 271 + 41,
+                fil_dim,
+            )
             bco = hgauss_t(sid * 1009 + (p_t + 1) * 500009 + 11, fil_dim)
             bamp = float(fil_scale * wb / np.sqrt(fil_dim))
             for j in range(fil_dim):
@@ -141,7 +177,7 @@ def build(brk=0.116, branch=64, d_glob=24, decay=0.50, mix=0.6, rho=0.3,
 def knn_t(base, q, k, bs=4096):
     od, oi = [], []
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -149,7 +185,7 @@ def knn_t(base, q, k, bs=4096):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -179,7 +215,7 @@ def eff_rank_t(v):
     xc = v - v.mean(0, keepdim=True)
     lam = torch.linalg.svdvals(xc) ** 2
     lam = lam[lam > 0].double()
-    return float(lam.sum() ** 2 / (lam ** 2).sum())
+    return float(lam.sum() ** 2 / (lam**2).sum())
 
 
 def spectrum_t(base_t):
@@ -187,9 +223,13 @@ def spectrum_t(base_t):
     lam = torch.linalg.svdvals(xc) ** 2 / max(xc.shape[0] - 1, 1)
     lam = lam[lam > 0].double()
     frac = torch.cumsum(lam, 0) / lam.sum()
-    eff = float(lam.sum() ** 2 / (lam ** 2).sum())
-    d90 = int(torch.searchsorted(
-        frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)).item() + 1)
+    eff = float(lam.sum() ** 2 / (lam**2).sum())
+    d90 = int(
+        torch.searchsorted(
+            frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)
+        ).item()
+        + 1
+    )
     return eff, d90
 
 
@@ -206,8 +246,7 @@ def g8_pca(x, bi, qi, nnn10):
     qp = normalize_t((qt - mu) @ p)
     _, idxp = knn_t(bp, qp, 10)
     idxp = idxp.cpu().numpy()
-    jac = [len(set(a) & set(b)) / len(set(a) | set(b))
-           for a, b in zip(nnn10, idxp)]
+    jac = [len(set(a) & set(b)) / len(set(a) | set(b)) for a, b in zip(nnn10, idxp)]
     del bt, qt, bp, qp
     return float(np.mean(jac))
 
@@ -228,24 +267,22 @@ BASE = dict()
 # Sweep 3 of the Phase B envelope: compose the two g4 levers (pool_alpha,
 # log2_pool ~9.5 per R64) at the C5/C1 pocket, and seed-check the anchors.
 VARIANTS = {
-    "D0_c5":        dict(pool_alpha=0.24, brk=0.128),
-    "D1_c5s137":    dict(pool_alpha=0.24, brk=0.128, seed=137),
-    "D2_c5s271":    dict(pool_alpha=0.24, brk=0.128, seed=271),
-    "D3_c1s137":    dict(pool_alpha=0.20, brk=0.122, seed=137),
-    "D4_a24lp95":   dict(pool_alpha=0.24, brk=0.128, log2_pool=9.5),
-    "D5_a18lp95":   dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5),
-    "D6_a12lp95":   dict(pool_alpha=0.12, brk=0.128, log2_pool=9.5),
-    "D7_a18lp90":   dict(pool_alpha=0.18, brk=0.125, log2_pool=9.0),
-    "D8_a12lp90":   dict(pool_alpha=0.12, brk=0.125, log2_pool=9.0),
-    "D9_a0lp95":    dict(pool_alpha=0.0, brk=0.128, log2_pool=9.5),
-    "D10_a18lp95m65": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5,
-                           mix=0.65),
-    "D11_a24wl55":  dict(pool_alpha=0.24, brk=0.125, w_loc=0.55),
-    "D12_a22b126":  dict(pool_alpha=0.22, brk=0.126),
+    "D0_c5": dict(pool_alpha=0.24, brk=0.128),
+    "D1_c5s137": dict(pool_alpha=0.24, brk=0.128, seed=137),
+    "D2_c5s271": dict(pool_alpha=0.24, brk=0.128, seed=271),
+    "D3_c1s137": dict(pool_alpha=0.20, brk=0.122, seed=137),
+    "D4_a24lp95": dict(pool_alpha=0.24, brk=0.128, log2_pool=9.5),
+    "D5_a18lp95": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5),
+    "D6_a12lp95": dict(pool_alpha=0.12, brk=0.128, log2_pool=9.5),
+    "D7_a18lp90": dict(pool_alpha=0.18, brk=0.125, log2_pool=9.0),
+    "D8_a12lp90": dict(pool_alpha=0.12, brk=0.125, log2_pool=9.0),
+    "D9_a0lp95": dict(pool_alpha=0.0, brk=0.128, log2_pool=9.5),
+    "D10_a18lp95m65": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5, mix=0.65),
+    "D11_a24wl55": dict(pool_alpha=0.24, brk=0.125, w_loc=0.55),
+    "D12_a22b126": dict(pool_alpha=0.22, brk=0.126),
     "D13_a22b126s137": dict(pool_alpha=0.22, brk=0.126, seed=137),
-    "D14_a18lp95dg36": dict(pool_alpha=0.18, brk=0.122, log2_pool=9.5,
-                            d_glob=36),
-    "D15_a24dg30":  dict(pool_alpha=0.24, brk=0.128, d_glob=30),
+    "D14_a18lp95dg36": dict(pool_alpha=0.18, brk=0.122, log2_pool=9.5, d_glob=36),
+    "D15_a24dg30": dict(pool_alpha=0.24, brk=0.128, d_glob=30),
 }
 ARMS = list(VARIANTS)
 _i = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
@@ -257,18 +294,20 @@ for name in mine:
     x, a_of = build(**kw)
     rec = {}
     bi, qi = exch(np.arange(210000), 200000, 10000, seed=31)
-    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
-                  x[torch.from_numpy(qi).to(DEV)], 500)
+    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)], x[torch.from_numpy(qi).to(DEV)], 500)
     dn, nnn = d.cpu().numpy(), nn.cpu().numpy()
     del d, nn
     rec["g1"] = id_twonn(dn)
     cnt = np.bincount(nnn[:, :10].ravel(), minlength=len(bi)).astype(np.float64)
-    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean()
-                      / max(cnt.std() ** 3, 1e-12))
+    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean() / max(cnt.std() ** 3, 1e-12))
     bt = x[torch.from_numpy(bi).to(DEV)]
     rr = torch.randperm(bt.shape[0], device=DEV)[:4096]
-    mean_d = float((2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)]
-                                 @ bt[rr].T)).clamp_min(0).sqrt().mean())
+    mean_d = float(
+        (2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)] @ bt[rr].T))
+        .clamp_min(0)
+        .sqrt()
+        .mean()
+    )
     rec["g5"] = mean_d / float(np.median(dn[:, 9]))
     rec["g3"], rec["g4"] = spectrum_t(bt[:50000])
     del bt
@@ -278,8 +317,11 @@ for name in mine:
     for n_r in (25000, 50000, 100000, 200000):
         rr2 = np.random.default_rng(10000 + n_r)
         sub = b6[rr2.choice(len(b6), n_r, replace=False)]
-        d5, _ = knn_t(x[torch.from_numpy(np.sort(sub)).to(DEV)],
-                      x[torch.from_numpy(q6).to(DEV)], 500)
+        d5, _ = knn_t(
+            x[torch.from_numpy(np.sort(sub)).to(DEV)],
+            x[torch.from_numpy(q6).to(DEV)],
+            500,
+        )
         d5n = d5.cpu().numpy()
         ratios.append(profile_ratio(d5n))
         g1s.append(id_twonn(d5n))
@@ -292,8 +334,9 @@ for name in mine:
         rg = np.random.default_rng(700 + Pn // 1000)
         sup = rg.choice(Pn, 35000, replace=False)
         b3, q3 = exch(sup, 25000, 10000, seed=31)
-        d3, _ = knn_t(x[torch.from_numpy(b3).to(DEV)],
-                      x[torch.from_numpy(q3).to(DEV)], 500)
+        d3, _ = knn_t(
+            x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500
+        )
         d3n = d3.cpu().numpy()
         vals[Pn] = {"ratio": profile_ratio(d3n), "g1": id_twonn(d3n)}
         del d3
@@ -302,19 +345,44 @@ for name in mine:
     rec["gspan"] = float(np.log(vals[50000]["g1"] / vals[600000]["g1"]))
     rec["rank_local"], rec["rank_global"] = rank_anatomy(x)
     fl = []
-    for k, v in (("g1", rec["g1"]), ("g5", rec["g5"]), ("g6", rec["g6"]),
-                 ("g3", rec["g3"]), ("g4", rec["g4"]), ("g8", rec["g8"]),
-                 ("trend", rec["s3_trend"]), ("g1exp", rec["s3_g1exp"]),
-                 ("rspan", rec["rspan"]), ("gspan", rec["gspan"])):
+    for k, v in (
+        ("g1", rec["g1"]),
+        ("g5", rec["g5"]),
+        ("g6", rec["g6"]),
+        ("g3", rec["g3"]),
+        ("g4", rec["g4"]),
+        ("g8", rec["g8"]),
+        ("trend", rec["s3_trend"]),
+        ("g1exp", rec["s3_g1exp"]),
+        ("rspan", rec["rspan"]),
+        ("gspan", rec["gspan"]),
+    ):
         lo, hi = BANDS[k]
         fl.append(k + ("+" if lo <= v <= hi else "-"))
-    print("%s | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
-          "trend %+.3f g1exp %+.3f | r50k %5.2f rspan %+6.3f gspan %+6.3f | "
-          "rank %5.1f/%5.1f | %s  (%.0fs)"
-          % (name, rec["g1"], rec["g3"], rec["g4"], rec["g5"], rec["g6"],
-             rec["g8"], rec["s3_trend"], rec["s3_g1exp"], rec["r50k"],
-             rec["rspan"], rec["gspan"], rec["rank_local"],
-             rec["rank_global"], " ".join(fl), time.time() - t0), flush=True)
+    print(
+        "%s | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
+        "trend %+.3f g1exp %+.3f | r50k %5.2f rspan %+6.3f gspan %+6.3f | "
+        "rank %5.1f/%5.1f | %s  (%.0fs)"
+        % (
+            name,
+            rec["g1"],
+            rec["g3"],
+            rec["g4"],
+            rec["g5"],
+            rec["g6"],
+            rec["g8"],
+            rec["s3_trend"],
+            rec["s3_g1exp"],
+            rec["r50k"],
+            rec["rspan"],
+            rec["gspan"],
+            rec["rank_local"],
+            rec["rank_global"],
+            " ".join(fl),
+            time.time() - t0,
+        ),
+        flush=True,
+    )
     print("RESULT_JSON " + json.dumps({name: rec}), flush=True)
 
 print("PHASEC2_DONE", flush=True)

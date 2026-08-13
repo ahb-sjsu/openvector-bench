@@ -51,7 +51,8 @@ NQ = int(os.environ.get("CL_NQ", "10000"))
 POOL = int(os.environ.get("CL_POOL", "600000"))
 BS = json.loads(os.environ.get("CL_BS", "[1,2,5,10,25,50,100,250,1000,5000]"))
 WINDOWS = json.loads(
-    os.environ.get("CL_WINDOWS", "[35000,50000,100000,200000,400000,600000]"))
+    os.environ.get("CL_WINDOWS", "[35000,50000,100000,200000,400000,600000]")
+)
 PARTS = os.environ.get("CL_PARTS", "/archive/tqp_real/wiki1024/part_*.npy")
 OUT = os.environ.get("CL_OUT", "results/clumpiness.json")
 NEED = N_FIX + NQ
@@ -63,8 +64,11 @@ def clumped_support(n_rows: int, need: int, b: int, rng) -> np.ndarray:
     starts = rng.choice(max(1, n_rows - b), size=nb, replace=False)
     idx = np.unique((starts[:, None] + np.arange(b)[None, :]).ravel())
     while len(idx) < need:
-        idx = np.unique(np.concatenate(
-            [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]))
+        idx = np.unique(
+            np.concatenate(
+                [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]
+            )
+        )
     return np.sort(rng.permutation(idx)[:need])
 
 
@@ -72,10 +76,13 @@ def measure(x: np.ndarray, bi: np.ndarray, qi: np.ndarray) -> dict:
     gaps = np.diff(bi)
     d, _ = knn(x[bi], x[qi], max(PROFILE_KGRID))
     mu = d[:, 1] / np.maximum(d[:, 0], 1e-12)
-    return {"ratio": profile_ratio(d), "g1": float(id_twonn(d)),
-            "mu_med": float(np.median(mu)),
-            "median_gap": float(np.median(gaps)),
-            "frac_gap1": float((gaps == 1).mean())}
+    return {
+        "ratio": profile_ratio(d),
+        "g1": float(id_twonn(d)),
+        "mu_med": float(np.median(mu)),
+        "median_gap": float(np.median(gaps)),
+        "frac_gap1": float((gaps == 1).mean()),
+    }
 
 
 def main() -> int:
@@ -94,8 +101,7 @@ def main() -> int:
     del acc
 
     out: dict[str, dict] = {}
-    print("CLUMPED: span FIXED at pool, n fixed; only block size varies",
-          flush=True)
+    print("CLUMPED: span FIXED at pool, n fixed; only block size varies", flush=True)
     rec: dict[str, dict] = {}
     for b in BS:
         rng = np.random.default_rng(20_000 + b)
@@ -104,25 +110,33 @@ def main() -> int:
         r = measure(full, bi, qi)
         r["block"] = b
         rec[str(b)] = r
-        print(f"  b {b:5d}  ratio {r['ratio']:.3f}  G1 {r['g1']:6.2f}  "
-              f"mu {r['mu_med']:.4f}  med_gap {r['median_gap']:5.1f}  "
-              f"gap1 {r['frac_gap1']:.3f}", flush=True)
+        print(
+            f"  b {b:5d}  ratio {r['ratio']:.3f}  G1 {r['g1']:6.2f}  "
+            f"mu {r['mu_med']:.4f}  med_gap {r['median_gap']:5.1f}  "
+            f"gap1 {r['frac_gap1']:.3f}",
+            flush=True,
+        )
     out["real_clumped"] = rec
 
-    print("\nWINDOW: the density ladder re-expressed, same split construction",
-          flush=True)
+    print(
+        "\nWINDOW: the density ladder re-expressed, same split construction", flush=True
+    )
     rec = {}
     for w in WINDOWS:
         rng = np.random.default_rng(700 + w // 1000)
         bi, qi = exchangeable_split(
-            rng.choice(w, NEED, replace=False), N_FIX, NQ, seed=31)
+            rng.choice(w, NEED, replace=False), N_FIX, NQ, seed=31
+        )
         r = measure(full, bi, qi)
         r["window"] = w
         r["mean_gap"] = w / NEED
         rec[str(w)] = r
-        print(f"  window {w:6d}  mean_gap {r['mean_gap']:5.1f}  "
-              f"ratio {r['ratio']:.3f}  G1 {r['g1']:6.2f}  "
-              f"mu {r['mu_med']:.4f}", flush=True)
+        print(
+            f"  window {w:6d}  mean_gap {r['mean_gap']:5.1f}  "
+            f"ratio {r['ratio']:.3f}  G1 {r['g1']:6.2f}  "
+            f"mu {r['mu_med']:.4f}",
+            flush=True,
+        )
     out["real_window"] = rec
 
     with open(OUT, "w", encoding="utf-8") as f:

@@ -239,7 +239,9 @@ def _emit(
     if noise > 0.0:
         # Integer-derived too, so the whole emission path stays bit-exact.
         with np.errstate(over="ignore"):
-            h = _sm64(nodes[:, -1][:, None] ^ (np.arange(dim, dtype=np.uint64) + _GAMMA))
+            h = _sm64(
+                nodes[:, -1][:, None] ^ (np.arange(dim, dtype=np.uint64) + _GAMMA)
+            )
         x += np.float32(noise) * (_unit(h).astype(np.float32) - np.float32(0.5))
     return x
 

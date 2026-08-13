@@ -27,24 +27,26 @@ import numpy as np
 BASEDIR = "/home/claude/ovb_scale"
 PKG = BASEDIR + "/ovbpkg/openvector_bench"
 os.makedirs(PKG, exist_ok=True)
-for src, dst in (("segment_gen.py", "segment_gen.py"),
-                 ("hashrng_pkg.py", "hashrng.py"),
-                 ("geometry.py", "geometry.py"),
-                 ("hubness.py", "hubness.py")):
+for src, dst in (
+    ("segment_gen.py", "segment_gen.py"),
+    ("hashrng_pkg.py", "hashrng.py"),
+    ("geometry.py", "geometry.py"),
+    ("hubness.py", "hubness.py"),
+):
     shutil.copy(BASEDIR + "/" + src, PKG + "/" + dst)
 open(PKG + "/__init__.py", "w").close()
 sys.path.insert(0, BASEDIR + "/ovbpkg")
 
-from openvector_bench.segment_gen import SEGMENT_PARAMS, segment_corpus
+from openvector_bench.segment_gen import SEGMENT_PARAMS, segment_corpus  # noqa: E402
 
 DIM, POOL = 1024, 600000
 P = {k: d for k, _, _, d in SEGMENT_PARAMS}
 OUT = BASEDIR + "/r73_verify.json"
 KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
 CANDS = {
-    "P_C5":  dict(pool_alpha=0.24, seg_break=0.128),
-    "P_C1":  dict(pool_alpha=0.20, seg_break=0.122),
-    "P_D5":  dict(pool_alpha=0.18, seg_break=0.128, log2_pool=9.5),
+    "P_C5": dict(pool_alpha=0.24, seg_break=0.128),
+    "P_C1": dict(pool_alpha=0.20, seg_break=0.122),
+    "P_D5": dict(pool_alpha=0.18, seg_break=0.128, log2_pool=9.5),
     "P_D12": dict(pool_alpha=0.22, seg_break=0.126),
 }
 REAL_PARTS = "/archive/tqp_real/wiki1024/part_%03d.npy"
@@ -54,16 +56,23 @@ _GENSEED = {"v": None}
 
 
 def _chunk(a):
-    return segment_corpus(P, 0, DIM, _GENSEED["v"],
-                          rows=np.arange(a, min(a + 50000, POOL),
-                                         dtype=np.int64))
+    return segment_corpus(
+        P,
+        0,
+        DIM,
+        _GENSEED["v"],
+        rows=np.arange(a, min(a + 50000, POOL), dtype=np.int64),
+    )
 
 
 def temps():
     try:
         s = subprocess.check_output(["sensors"]).decode()
-        return max(float(l.split("+")[1].split("\xb0")[0])
-                   for l in s.splitlines() if "Package id" in l)
+        return max(
+            float(ln.split("+")[1].split("\xb0")[0])
+            for ln in s.splitlines()
+            if "Package id" in ln
+        )
     except Exception:
         return 0.0
 
@@ -74,7 +83,7 @@ def guard():
         time.sleep(30)
 
 
-import torch
+import torch  # noqa: E402  (after generation: fork-clean CUDA)
 
 DEV = "cuda"
 assert torch.cuda.is_available()
@@ -87,7 +96,7 @@ def normalize_t(t):
 def knn_t(base, q, k, bs=4096):
     od, oi = [], []
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -95,7 +104,7 @@ def knn_t(base, q, k, bs=4096):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -125,7 +134,7 @@ def eff_rank_t(v):
     xc = v - v.mean(0, keepdim=True)
     lam = torch.linalg.svdvals(xc) ** 2
     lam = lam[lam > 0].double()
-    return float(lam.sum() ** 2 / (lam ** 2).sum())
+    return float(lam.sum() ** 2 / (lam**2).sum())
 
 
 def spectrum_t(base_t):
@@ -133,9 +142,13 @@ def spectrum_t(base_t):
     lam = torch.linalg.svdvals(xc) ** 2 / max(xc.shape[0] - 1, 1)
     lam = lam[lam > 0].double()
     frac = torch.cumsum(lam, 0) / lam.sum()
-    eff = float(lam.sum() ** 2 / (lam ** 2).sum())
-    d90 = int(torch.searchsorted(
-        frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)).item() + 1)
+    eff = float(lam.sum() ** 2 / (lam**2).sum())
+    d90 = int(
+        torch.searchsorted(
+            frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)
+        ).item()
+        + 1
+    )
     return eff, d90
 
 
@@ -152,8 +165,7 @@ def g8_pca(x, bi, qi, nnn10):
     qp = normalize_t((qt - mu) @ p)
     _, idxp = knn_t(bp, qp, 10)
     idxp = idxp.cpu().numpy()
-    jac = [len(set(a) & set(b)) / len(set(a) | set(b))
-           for a, b in zip(nnn10, idxp)]
+    jac = [len(set(a) & set(b)) / len(set(a) | set(b)) for a, b in zip(nnn10, idxp)]
     del bt, qt, bp, qp
     return float(np.mean(jac))
 
@@ -174,18 +186,20 @@ def rank_anatomy(x):
 def full_panel(x):
     rec = {}
     bi, qi = exch(np.arange(210000), 200000, 10000, seed=31)
-    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
-                  x[torch.from_numpy(qi).to(DEV)], 500)
+    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)], x[torch.from_numpy(qi).to(DEV)], 500)
     dn, nnn = d.cpu().numpy(), nn.cpu().numpy()
     del d, nn
     rec["g1"] = id_twonn(dn)
     cnt = np.bincount(nnn[:, :10].ravel(), minlength=len(bi)).astype(np.float64)
-    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean()
-                      / max(cnt.std() ** 3, 1e-12))
+    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean() / max(cnt.std() ** 3, 1e-12))
     bt = x[torch.from_numpy(bi).to(DEV)]
     rr = torch.randperm(bt.shape[0], device=DEV)[:4096]
-    mean_d = float((2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)]
-                                 @ bt[rr].T)).clamp_min(0).sqrt().mean())
+    mean_d = float(
+        (2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)] @ bt[rr].T))
+        .clamp_min(0)
+        .sqrt()
+        .mean()
+    )
     rec["g5"] = mean_d / float(np.median(dn[:, 9]))
     rec["g3"], rec["g4"] = spectrum_t(bt[:50000])
     del bt
@@ -195,8 +209,11 @@ def full_panel(x):
     for n_r in (25000, 50000, 100000, 200000):
         rr2 = np.random.default_rng(10000 + n_r)
         sub = b6[rr2.choice(len(b6), n_r, replace=False)]
-        d5, _ = knn_t(x[torch.from_numpy(np.sort(sub)).to(DEV)],
-                      x[torch.from_numpy(q6).to(DEV)], 500)
+        d5, _ = knn_t(
+            x[torch.from_numpy(np.sort(sub)).to(DEV)],
+            x[torch.from_numpy(q6).to(DEV)],
+            500,
+        )
         d5n = d5.cpu().numpy()
         ratios.append(profile_ratio(d5n))
         g1s.append(id_twonn(d5n))
@@ -211,8 +228,9 @@ def full_panel(x):
         rg = np.random.default_rng(700 + Pn // 1000)
         sup = rg.choice(Pn, 35000, replace=False)
         b3, q3 = exch(sup, 25000, 10000, seed=31)
-        d3, _ = knn_t(x[torch.from_numpy(b3).to(DEV)],
-                      x[torch.from_numpy(q3).to(DEV)], 500)
+        d3, _ = knn_t(
+            x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500
+        )
         d3n = d3.cpu().numpy()
         vals[Pn] = {"ratio": profile_ratio(d3n), "g1": id_twonn(d3n)}
         del d3
@@ -238,13 +256,28 @@ for name, ov in CANDS.items():
     del parts, xn
     rec = full_panel(x)
     out[name] = rec
-    print("%s | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
-          "trend %+.3f g1exp %+.3f | rspan %+6.3f gspan %+6.3f | "
-          "rank %5.1f/%5.1f  (%.0fs)"
-          % (name, rec["g1"], rec["g3"], rec["g4"], rec["g5"], rec["g6"],
-             rec["g8"], rec["s3_trend"], rec["s3_g1exp"], rec["rspan"],
-             rec["gspan"], rec["rank_local"], rec["rank_global"],
-             time.time() - t0), flush=True)
+    print(
+        "%s | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
+        "trend %+.3f g1exp %+.3f | rspan %+6.3f gspan %+6.3f | "
+        "rank %5.1f/%5.1f  (%.0fs)"
+        % (
+            name,
+            rec["g1"],
+            rec["g3"],
+            rec["g4"],
+            rec["g5"],
+            rec["g6"],
+            rec["g8"],
+            rec["s3_trend"],
+            rec["s3_g1exp"],
+            rec["rspan"],
+            rec["gspan"],
+            rec["rank_local"],
+            rec["rank_global"],
+            time.time() - t0,
+        ),
+        flush=True,
+    )
     del x
     torch.cuda.empty_cache()
     json.dump(out, open(OUT, "w"), indent=1)
@@ -252,8 +285,7 @@ for name, ov in CANDS.items():
 for off in ():
     part, rem = divmod(off, 1_000_000)
     a = np.load(REAL_PARTS % part, mmap_mode="r")
-    xr = torch.from_numpy(np.asarray(a[rem:rem + POOL],
-                                     dtype=np.float32)).to(DEV)
+    xr = torch.from_numpy(np.asarray(a[rem : rem + POOL], dtype=np.float32)).to(DEV)
     xr = normalize_t(xr)
     lo, gl = rank_anatomy(xr)
     out["real_%d" % off] = {"rank_local": lo, "rank_global": gl}

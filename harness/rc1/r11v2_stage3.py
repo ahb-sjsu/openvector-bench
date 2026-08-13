@@ -35,8 +35,8 @@ import numpy as np
 
 sys.path.insert(0, os.environ.get("TQP_PATH", "/home/claude/turboquant-pro"))
 
-from openvector_bench import geometry as G
-from openvector_bench.generator_search import (
+from openvector_bench import geometry as G  # noqa: E402
+from openvector_bench.generator_search import (  # noqa: E402
     QUERY_FRAC,
     hier_dupq_corpus,
     local_centers,

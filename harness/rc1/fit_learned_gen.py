@@ -70,7 +70,7 @@ import sys
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -113,15 +113,23 @@ def main() -> int:
     rungs = [n for n in RUNGS if str(n) in tg]
     target_rk = {n: torch.tensor(tg[str(n)]["r_k"], dtype=torch.float32) for n in rungs}
     print(f"dim={DIM} hidden={HIDDEN} rungs={rungs} nq={NQ} steps={STEPS}", flush=True)
-    print(f"emitter cost {flops_per_row(DIM, HIDDEN)/1e6:.3f} MFLOPs/row "
-          f"(bound ~4 MFLOPs for regeneration to beat a network fetch)", flush=True)
+    print(
+        f"emitter cost {flops_per_row(DIM, HIDDEN)/1e6:.3f} MFLOPs/row "
+        f"(bound ~4 MFLOPs for regeneration to beat a network fetch)",
+        flush=True,
+    )
     for n in rungs:
-        print(f"  target n={n:6d} ratio {tg[str(n)]['ratio']:.3f} "
-              f"G1 {tg[str(n)]['g1']:.2f}", flush=True)
+        print(
+            f"  target n={n:6d} ratio {tg[str(n)]['ratio']:.3f} "
+            f"G1 {tg[str(n)]['g1']:.2f}",
+            flush=True,
+        )
 
     p0 = init_params(DIM, HIDDEN, seed=SEED)
-    tp = {k: torch.tensor(np.asarray(v), dtype=torch.float32, requires_grad=True)
-          for k, v in p0.items()}
+    tp = {
+        k: torch.tensor(np.asarray(v), dtype=torch.float32, requires_grad=True)
+        for k, v in p0.items()
+    }
     opt = torch.optim.Adam(tp.values(), lr=LR)
 
     nmax = max(rungs)
@@ -166,12 +174,25 @@ def main() -> int:
                     lk = torch.log(torch.tensor([float(k) for k in kgrid]))
                     s = torch.gradient(lk, spacing=(torch.log(rk),))[0]
                     ratios.append(float(s[-1] / s[0]))
-                tr = float(np.polyfit(np.log(rungs), ratios, 1)[0]) if len(rungs) > 1 else float("nan")
-            hist.append({"step": step, "loss": float(loss.detach()), "ratios": ratios,
-                         "trend": tr})
-            print(f"  step {step:4d} loss {float(loss.detach()):.6f} "
-                  f"ratios {[round(r,3) for r in ratios]} trend {tr:+.3f} "
-                  f"({time.time()-t0:.0f}s)", flush=True)
+                tr = (
+                    float(np.polyfit(np.log(rungs), ratios, 1)[0])
+                    if len(rungs) > 1
+                    else float("nan")
+                )
+            hist.append(
+                {
+                    "step": step,
+                    "loss": float(loss.detach()),
+                    "ratios": ratios,
+                    "trend": tr,
+                }
+            )
+            print(
+                f"  step {step:4d} loss {float(loss.detach()):.6f} "
+                f"ratios {[round(r,3) for r in ratios]} trend {tr:+.3f} "
+                f"({time.time()-t0:.0f}s)",
+                flush=True,
+            )
 
     fitted = {k: v.detach().numpy() for k, v in tp.items()}
     fitted["alpha"] = np.float32(fitted["alpha"])
@@ -179,29 +200,54 @@ def main() -> int:
 
     # Independent check through the NUMPY deployment path, not the torch graph.
     zc = hash_noise(np.arange(2048), DIM, SEED)
-    agree = float(np.abs(forward_np(zc, fitted) - fwd(torch.tensor(zc)).detach().numpy()
-                         ).max())
+    agree = float(
+        np.abs(forward_np(zc, fitted) - fwd(torch.tensor(zc)).detach().numpy()).max()
+    )
     print(f"\nnumpy/torch forward agreement: max abs diff {agree:.2e}", flush=True)
 
-    target_trend = float(np.polyfit(
-        np.log(rungs), [tg[str(n)]["ratio"] for n in rungs], 1)[0])
+    target_trend = float(
+        np.polyfit(np.log(rungs), [tg[str(n)]["ratio"] for n in rungs], 1)[0]
+    )
     final = hist[-1]
-    print(f"target  ratios {[round(tg[str(n)]['ratio'],3) for n in rungs]} "
-          f"trend {target_trend:+.3f}", flush=True)
-    print(f"fitted  ratios {[round(r,3) for r in final['ratios']]} "
-          f"trend {final['trend']:+.3f}", flush=True)
-    verdict = ("MAP CAN PRODUCE A RISING RAMP" if final["trend"] > 0.15
-               else "MAP CANNOT — per-row maps of hash noise may be insufficient")
+    print(
+        f"target  ratios {[round(tg[str(n)]['ratio'],3) for n in rungs]} "
+        f"trend {target_trend:+.3f}",
+        flush=True,
+    )
+    print(
+        f"fitted  ratios {[round(r,3) for r in final['ratios']]} "
+        f"trend {final['trend']:+.3f}",
+        flush=True,
+    )
+    verdict = (
+        "MAP CAN PRODUCE A RISING RAMP"
+        if final["trend"] > 0.15
+        else "MAP CANNOT — per-row maps of hash noise may be insufficient"
+    )
     print(f"VERDICT: {verdict}", flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"dim": DIM, "hidden": HIDDEN, "rungs": rungs,
-                              "nq": NQ, "steps": STEPS, "lr": LR, "seed": SEED,
-                              "mflops_per_row": flops_per_row(DIM, HIDDEN) / 1e6},
-                   "target_trend": target_trend,
-                   "target_ratios": [tg[str(n)]["ratio"] for n in rungs],
-                   "history": hist, "numpy_torch_agreement": agree,
-                   "verdict": verdict}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "dim": DIM,
+                    "hidden": HIDDEN,
+                    "rungs": rungs,
+                    "nq": NQ,
+                    "steps": STEPS,
+                    "lr": LR,
+                    "seed": SEED,
+                    "mflops_per_row": flops_per_row(DIM, HIDDEN) / 1e6,
+                },
+                "target_trend": target_trend,
+                "target_ratios": [tg[str(n)]["ratio"] for n in rungs],
+                "history": hist,
+                "numpy_torch_agreement": agree,
+                "verdict": verdict,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("FIT_LEARNED_GEN_DONE", flush=True)
     return 0

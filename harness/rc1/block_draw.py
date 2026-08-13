@@ -80,7 +80,7 @@ def read_block(parts: list[str], start: int, count: int) -> np.ndarray:
             pos -= len(a)
             continue
         take = min(need, len(a) - pos)
-        out.append(np.asarray(a[pos:pos + take]))
+        out.append(np.asarray(a[pos : pos + take]))
         need -= take
         pos = 0
         if need <= 0:
@@ -104,16 +104,27 @@ def ladder(x: np.ndarray) -> dict:
         s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
         g1 = float(id_twonn(d))
         ratio = float(s[-1] / max(s[0], 1e-9))
-        per_n[str(n)] = {"g1": g1, "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                         "s_ratio": ratio, "r_lo": float(r[0]), "r_hi": float(r[-1])}
+        per_n[str(n)] = {
+            "g1": g1,
+            "s_lo": float(s[0]),
+            "s_hi": float(s[-1]),
+            "s_ratio": ratio,
+            "r_lo": float(r[0]),
+            "r_hi": float(r[-1]),
+        }
         g1s.append(g1)
         ratios.append(ratio)
-        print(f"    n={n:6d} G1={g1:6.2f} (anchor {ANCHORS.get(n)})  "
-              f"s {s[0]:5.1f}->{s[-1]:5.1f} ratio {ratio:.2f}", flush=True)
+        print(
+            f"    n={n:6d} G1={g1:6.2f} (anchor {ANCHORS.get(n)})  "
+            f"s {s[0]:5.1f}->{s[-1]:5.1f} ratio {ratio:.2f}",
+            flush=True,
+        )
     ln = np.log(NS)
-    return {"per_n": per_n,
-            "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
-            "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0])}
+    return {
+        "per_n": per_n,
+        "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
+        "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0]),
+    }
 
 
 def main() -> int:
@@ -124,8 +135,9 @@ def main() -> int:
     spec = os.environ.get("BD_OFFSETS", "random")
     if spec == "random":
         rng = np.random.default_rng(2026)
-        offsets = [0] + sorted(int(v) for v in
-                               rng.choice(total - CAP, size=3, replace=False))
+        offsets = [0] + sorted(
+            int(v) for v in rng.choice(total - CAP, size=3, replace=False)
+        )
     else:
         offsets = json.loads(spec)
 
@@ -136,22 +148,38 @@ def main() -> int:
         x = read_block(parts, off, CAP)
         results[tag] = ladder(x)
         results[tag]["offset"] = int(off)
-        print(f"  -> {tag}: G1 exponent {results[tag]['g1_exponent']:+.3f}, "
-              f"s_ratio trend {results[tag]['s_ratio_trend']:+.3f}", flush=True)
+        print(
+            f"  -> {tag}: G1 exponent {results[tag]['g1_exponent']:+.3f}, "
+            f"s_ratio trend {results[tag]['s_ratio_trend']:+.3f}",
+            flush=True,
+        )
         del x
 
     print("\n=== ladder across positions (density held fixed) ===", flush=True)
     print(f"{'block':16s} {'G1 exp':>8s} {'ratio trend':>12s}", flush=True)
     for k, v in results.items():
-        print(f"{k:16s} {v['g1_exponent']:+8.3f} {v['s_ratio_trend']:+12.3f}",
-              flush=True)
+        print(
+            f"{k:16s} {v['g1_exponent']:+8.3f} {v['s_ratio_trend']:+12.3f}", flush=True
+        )
     print("registered head pool: G1 exp -0.168, ratio trend +0.511", flush=True)
     print("uniform 1.5% draw:    G1 exp ~-0.02, ratio trend ~0.00", flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"cap": CAP, "ns": NS, "nq": NQ, "kmax": KMAX,
-                              "offsets": offsets, "total_rows": int(total)},
-                   "results": results}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "cap": CAP,
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "offsets": offsets,
+                    "total_rows": int(total),
+                },
+                "results": results,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("BLOCK_DRAW_DONE", flush=True)
     return 0

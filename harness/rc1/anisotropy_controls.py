@@ -135,7 +135,7 @@ def make_gaussian_exact(x: np.ndarray) -> np.ndarray:
     step = 50_000
     for i in range(0, len(x), step):
         z = rng.standard_normal((min(step, len(x) - i), len(scale))).astype(np.float32)
-        out[i:i + step] = mu + (z * scale) @ vt
+        out[i : i + step] = mu + (z * scale) @ vt
     return out
 
 
@@ -144,13 +144,14 @@ def make_whitened_topk(x: np.ndarray) -> np.ndarray:
     mu, lam, vt = eig_fit(x)
     frac = np.cumsum(lam) / lam.sum()
     k = int(np.searchsorted(frac, VAR_KEEP) + 1)
-    w = (vt[:k].T / np.sqrt(lam[:k]).astype(np.float32))  # (dim, k)
-    print(f"  whitened_topk: K={k} of {len(lam)} for {VAR_KEEP:.0%} variance",
-          flush=True)
+    w = vt[:k].T / np.sqrt(lam[:k]).astype(np.float32)  # (dim, k)
+    print(
+        f"  whitened_topk: K={k} of {len(lam)} for {VAR_KEEP:.0%} variance", flush=True
+    )
     out = np.empty((len(x), k), dtype=np.float32)
     step = 50_000
     for i in range(0, len(x), step):
-        out[i:i + step] = (x[i:i + step] - mu) @ w
+        out[i : i + step] = (x[i : i + step] - mu) @ w
     return out
 
 
@@ -161,8 +162,8 @@ def make_abtt(x: np.ndarray, d: int) -> np.ndarray:
     out = np.empty_like(x)
     step = 50_000
     for i in range(0, len(x), step):
-        c = x[i:i + step] - mu
-        out[i:i + step] = c - (c @ top.T) @ top
+        c = x[i : i + step] - mu
+        out[i : i + step] = c - (c @ top.T) @ top
     return out
 
 
@@ -184,20 +185,36 @@ def ladder(name: str, x: np.ndarray, results: dict) -> None:
         s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
         g1 = float(id_twonn(d))
         ratio = float(s[-1] / max(s[0], 1e-9))
-        per_n[str(n)] = {"g1": g1, "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                         "s_ratio": ratio, "r_lo": float(r[0]), "r_hi": float(r[-1])}
+        per_n[str(n)] = {
+            "g1": g1,
+            "s_lo": float(s[0]),
+            "s_hi": float(s[-1]),
+            "s_ratio": ratio,
+            "r_lo": float(r[0]),
+            "r_hi": float(r[-1]),
+        }
         g1s.append(g1)
         ratios.append(ratio)
-        print(f"    n={n:6d} G1={g1:7.2f} s {s[0]:6.1f}->{s[-1]:6.1f} "
-              f"ratio {ratio:.2f} r [{r[0]:.3f},{r[-1]:.3f}]", flush=True)
+        print(
+            f"    n={n:6d} G1={g1:7.2f} s {s[0]:6.1f}->{s[-1]:6.1f} "
+            f"ratio {ratio:.2f} r [{r[0]:.3f},{r[-1]:.3f}]",
+            flush=True,
+        )
     ln = np.log(NS)
-    results[name] = {"dim": int(x.shape[1]), "mean_norm": mnorm, "eff_rank": eff,
-                     "per_n": per_n,
-                     "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
-                     "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0])}
-    print(f"  -> {name}: G1 exp {results[name]['g1_exponent']:+.3f}, "
-          f"ratio trend {results[name]['s_ratio_trend']:+.3f}, "
-          f"||mean|| {mnorm:.3f}, eff_rank {eff:.0f}", flush=True)
+    results[name] = {
+        "dim": int(x.shape[1]),
+        "mean_norm": mnorm,
+        "eff_rank": eff,
+        "per_n": per_n,
+        "g1_exponent": float(np.polyfit(ln, np.log(g1s), 1)[0]),
+        "s_ratio_trend": float(np.polyfit(ln, ratios, 1)[0]),
+    }
+    print(
+        f"  -> {name}: G1 exp {results[name]['g1_exponent']:+.3f}, "
+        f"ratio trend {results[name]['s_ratio_trend']:+.3f}, "
+        f"||mean|| {mnorm:.3f}, eff_rank {eff:.0f}",
+        flush=True,
+    )
 
 
 def main() -> int:
@@ -208,8 +225,10 @@ def main() -> int:
     print("\n[real] reference", flush=True)
     ladder("real", real, results)
 
-    print("\n[gaussian_exact_cov] real's exact mean + covariance, nothing else",
-          flush=True)
+    print(
+        "\n[gaussian_exact_cov] real's exact mean + covariance, nothing else",
+        flush=True,
+    )
     ladder("gaussian_exact_cov", make_gaussian_exact(real), results)
 
     print(f"\n[whitened_topk] PCA-whitened, {VAR_KEEP:.0%} variance", flush=True)
@@ -219,28 +238,53 @@ def main() -> int:
     ladder(f"abtt_{ABTT_D}", make_abtt(real, ABTT_D), results)
 
     print("\n=== anisotropy controls ===", flush=True)
-    print(f"{'arm':20s} {'dim':>5s} {'G1 exp':>8s} {'ratio trend':>12s} "
-          f"{'||mean||':>9s} {'eff_rank':>9s}", flush=True)
+    print(
+        f"{'arm':20s} {'dim':>5s} {'G1 exp':>8s} {'ratio trend':>12s} "
+        f"{'||mean||':>9s} {'eff_rank':>9s}",
+        flush=True,
+    )
     for k, v in results.items():
-        print(f"{k:20s} {v['dim']:5d} {v['g1_exponent']:+8.3f} "
-              f"{v['s_ratio_trend']:+12.3f} {v['mean_norm']:9.3f} "
-              f"{v['eff_rank']:9.0f}", flush=True)
+        print(
+            f"{k:20s} {v['dim']:5d} {v['g1_exponent']:+8.3f} "
+            f"{v['s_ratio_trend']:+12.3f} {v['mean_norm']:9.3f} "
+            f"{v['eff_rank']:9.0f}",
+            flush=True,
+        )
 
     g = results["gaussian_exact_cov"]["s_ratio_trend"]
     w = results["whitened_topk"]["s_ratio_trend"]
     a = results[f"abtt_{ABTT_D}"]["s_ratio_trend"]
-    verdict = ("ANISOTROPY SUFFICES — withdraw the claim" if g > 0.25 else
-               "ANISOTROPY NOT THE CAUSE" if (w > 0.25 and a > 0.25) else
-               "MIXED — ramp partly carried by the anisotropic component")
+    verdict = (
+        "ANISOTROPY SUFFICES — withdraw the claim"
+        if g > 0.25
+        else (
+            "ANISOTROPY NOT THE CAUSE"
+            if (w > 0.25 and a > 0.25)
+            else "MIXED — ramp partly carried by the anisotropic component"
+        )
+    )
     print(f"\nVERDICT: {verdict}", flush=True)
-    print("(reference: real +0.511; synthetic controls |trend| <= 0.13)",
-          flush=True)
+    print("(reference: real +0.511; synthetic controls |trend| <= 0.13)", flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"cap": CAP, "ns": NS, "nq": NQ, "kmax": KMAX,
-                              "abtt_d": ABTT_D, "var_keep": VAR_KEEP,
-                              "fit_n": FIT_N, "kgrid": KGRID},
-                   "results": results, "verdict": verdict}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "cap": CAP,
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "abtt_d": ABTT_D,
+                    "var_keep": VAR_KEEP,
+                    "fit_n": FIT_N,
+                    "kgrid": KGRID,
+                },
+                "results": results,
+                "verdict": verdict,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("ANISOTROPY_CONTROLS_DONE", flush=True)
     return 0

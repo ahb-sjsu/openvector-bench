@@ -219,7 +219,10 @@ def gpg_program() -> str:
     try:
         out = subprocess.run(
             ["git", "config", "--get", "gpg.program"],
-            capture_output=True, text=True, check=False, timeout=10,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10,
         ).stdout.strip()
         if out:
             return out

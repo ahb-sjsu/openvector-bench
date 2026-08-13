@@ -67,9 +67,11 @@ def main() -> int:
             print("real reference (scale_probe4):", flush=True)
             for n in NS:
                 c = ref["per_n"][str(n)]
-                print(f"  real          n={n:6d} G1={c['g1_twonn']:7.2f} "
-                      f"s {c['s_lo']:6.1f} -> {c['s_hi']:6.1f} beta={c['beta']:+7.2f}",
-                      flush=True)
+                print(
+                    f"  real          n={n:6d} G1={c['g1_twonn']:7.2f} "
+                    f"s {c['s_lo']:6.1f} -> {c['s_hi']:6.1f} beta={c['beta']:+7.2f}",
+                    flush=True,
+                )
 
     results: dict[str, dict] = {}
     for label, fd, ad, fs, sp in ARMS:
@@ -86,35 +88,67 @@ def main() -> int:
             r = np.array([float(np.median(d[:, k - 1])) for k in KGRID])
             s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
             beta = float(np.log(s[-1] / max(s[0], 1e-9)) / np.log(r[-1] / r[0]))
-            per_n[str(n)] = {"g1_twonn": float(id_twonn(d)), "r": r.tolist(),
-                             "s": s.tolist(), "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                             "s_ratio": float(s[-1] / max(s[0], 1e-9)), "beta": beta}
-            print(f"{label:16s} n={n:6d} G1={per_n[str(n)]['g1_twonn']:7.2f} "
-                  f"s {s[0]:6.1f} -> {s[-1]:6.1f} (x{per_n[str(n)]['s_ratio']:.2f}) "
-                  f"beta={beta:+7.2f}  r {r[0]:.3f}..{r[-1]:.3f}", flush=True)
+            per_n[str(n)] = {
+                "g1_twonn": float(id_twonn(d)),
+                "r": r.tolist(),
+                "s": s.tolist(),
+                "s_lo": float(s[0]),
+                "s_hi": float(s[-1]),
+                "s_ratio": float(s[-1] / max(s[0], 1e-9)),
+                "beta": beta,
+            }
+            print(
+                f"{label:16s} n={n:6d} G1={per_n[str(n)]['g1_twonn']:7.2f} "
+                f"s {s[0]:6.1f} -> {s[-1]:6.1f} (x{per_n[str(n)]['s_ratio']:.2f}) "
+                f"beta={beta:+7.2f}  r {r[0]:.3f}..{r[-1]:.3f}",
+                flush=True,
+            )
         betas = [per_n[str(n)]["beta"] for n in NS]
         trend = float(np.polyfit(np.log(NS), betas, 1)[0])
-        results[label] = {"per_n": per_n, "beta_mean": float(np.mean(betas)),
-                          "beta_trend_per_ln_n": trend}
-        print(f"  -> {label}: beta_mean {np.mean(betas):+.2f} "
-              f"beta_trend {trend:+.2f} per ln n", flush=True)
+        results[label] = {
+            "per_n": per_n,
+            "beta_mean": float(np.mean(betas)),
+            "beta_trend_per_ln_n": trend,
+        }
+        print(
+            f"  -> {label}: beta_mean {np.mean(betas):+.2f} "
+            f"beta_trend {trend:+.2f} per ln n",
+            flush=True,
+        )
         del x, q, base_pool
         gc.collect()
 
     if ref:
         rb = [ref["per_n"][str(n)]["beta"] for n in NS]
         rtrend = float(np.polyfit(np.log(NS), rb, 1)[0])
-        print(f"\nreal beta_mean {np.mean(rb):+.2f} trend {rtrend:+.2f} per ln n",
-              flush=True)
+        print(
+            f"\nreal beta_mean {np.mean(rb):+.2f} trend {rtrend:+.2f} per ln n",
+            flush=True,
+        )
         for label in results:
             r_ = results[label]
-            print(f"  {label:16s} beta_mean {r_['beta_mean']:+.2f} "
-                  f"trend {r_['beta_trend_per_ln_n']:+.2f}", flush=True)
+            print(
+                f"  {label:16s} beta_mean {r_['beta_mean']:+.2f} "
+                f"trend {r_['beta_trend_per_ln_n']:+.2f}",
+                flush=True,
+            )
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"ns": NS, "nq": NQ, "cap": CAP, "kgrid": KGRID,
-                              "seed": SEED, "arms": ARMS}, "results": results}, f,
-                  indent=2)
+        json.dump(
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "cap": CAP,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                    "arms": ARMS,
+                },
+                "results": results,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("SCALE_PROBE5_DONE", flush=True)
     return 0

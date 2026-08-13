@@ -71,10 +71,19 @@ def main() -> int:
     print(f"G1 of the centre cloud: {id_twonn(d):.2f}")
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"k": kg, "r": [float(v) for v in r],
-                   "s": [float(v) for v in s], "peak_k": peak,
-                   "g1": float(id_twonn(d)), "n_centres": int(len(rc)),
-                   "article": ARTICLE}, f, indent=2)
+        json.dump(
+            {
+                "k": kg,
+                "r": [float(v) for v in r],
+                "s": [float(v) for v in s],
+                "peak_k": peak,
+                "g1": float(id_twonn(d)),
+                "n_centres": int(len(rc)),
+                "article": ARTICLE,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}")
     print("CENTREWIDEK_DONE")
     return 0

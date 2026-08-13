@@ -1665,16 +1665,41 @@ DENSITY_POOLS: tuple[int, ...] = (50_000, 100_000, 200_000, 400_000, 600_000)
 DENSITY_TARGET: dict = {
     "n_fixed": 25_000,
     "per_density": {
-        50_000: {"density": 0.5000, "ratio": 3.722, "ratio_sd": 0.074,
-                 "g1": 16.27, "g1_sd": 0.58},
-        100_000: {"density": 0.2500, "ratio": 2.582, "ratio_sd": 0.144,
-                  "g1": 17.08, "g1_sd": 0.39},
-        200_000: {"density": 0.1250, "ratio": 1.774, "ratio_sd": 0.068,
-                  "g1": 19.52, "g1_sd": 0.36},
-        400_000: {"density": 0.0625, "ratio": 1.464, "ratio_sd": 0.018,
-                  "g1": 23.62, "g1_sd": 0.24},
-        600_000: {"density": 0.0417, "ratio": 1.325, "ratio_sd": 0.026,
-                  "g1": 26.66, "g1_sd": 0.56},
+        50_000: {
+            "density": 0.5000,
+            "ratio": 3.722,
+            "ratio_sd": 0.074,
+            "g1": 16.27,
+            "g1_sd": 0.58,
+        },
+        100_000: {
+            "density": 0.2500,
+            "ratio": 2.582,
+            "ratio_sd": 0.144,
+            "g1": 17.08,
+            "g1_sd": 0.39,
+        },
+        200_000: {
+            "density": 0.1250,
+            "ratio": 1.774,
+            "ratio_sd": 0.068,
+            "g1": 19.52,
+            "g1_sd": 0.36,
+        },
+        400_000: {
+            "density": 0.0625,
+            "ratio": 1.464,
+            "ratio_sd": 0.018,
+            "g1": 23.62,
+            "g1_sd": 0.24,
+        },
+        600_000: {
+            "density": 0.0417,
+            "ratio": 1.325,
+            "ratio_sd": 0.026,
+            "g1": 26.66,
+            "g1_sd": 0.56,
+        },
     },
     "ratio_span": 2.397,
     "ratio_span_sd": 0.085,
@@ -1859,16 +1884,18 @@ def make_evaluate_fn(
                 # subsamples a dense pool, so a fresh draw per rung would be a
                 # different manifold and would measure cross-instance geometry.
                 rsub = np.random.default_rng(seed + nn)
-                bi = rsub.choice(len(body_p), size=min(nn, len(body_p)),
-                                 replace=False)
+                bi = rsub.choice(len(body_p), size=min(nn, len(body_p)), replace=False)
                 d_p, _ = knn(body_p[bi], q_p, profile_kmax)
                 ratio = profile_ratio(d_p)
                 ratios.append(ratio)
                 tgt = profile_target.get("ratios", {}).get(nn)
                 if tgt is not None:
                     mu_r, sd_r = tgt
-                    z = (nan_penalty if not np.isfinite(ratio)
-                         else (ratio - mu_r) / max(sd_r, 1e-9))
+                    z = (
+                        nan_penalty
+                        if not np.isfinite(ratio)
+                        else (ratio - mu_r) / max(sd_r, 1e-9)
+                    )
                     errors[f"ratio@n{nn}"] = float(z)
                     num += weight_mandatory * abs(z)
                     den += weight_mandatory
@@ -1934,8 +1961,8 @@ def make_evaluate_fn(
             # different quantity, not a noisier estimate of the same one.
             lo_p, hi_p = max(density_pools), min(density_pools)
             if lo_p in measured_pools and hi_p in measured_pools:
-                i_lo = measured_pools.index(lo_p)   # lowest density
-                i_hi = measured_pools.index(hi_p)   # highest density
+                i_lo = measured_pools.index(lo_p)  # lowest density
+                i_hi = measured_pools.index(hi_p)  # highest density
                 sp_r = d_ratios[i_hi] - d_ratios[i_lo]
                 sp_g = float(np.log(d_g1[i_hi] / d_g1[i_lo]))
                 z_r = (sp_r - density_target["ratio_span"]) / max(

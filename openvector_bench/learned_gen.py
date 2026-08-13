@@ -79,8 +79,9 @@ def hash_noise(rows: np.ndarray, dim: int, seed: int) -> np.ndarray:
     with np.errstate(over="ignore"):
         for t in range(UNIFORMS_PER_NORMAL):
             h = _sm64(base[:, None] ^ (cols + _U64(t) * _sm64(_U64(t) + _SALT_Z)))
-            out += ((h >> _U64(11)).astype(np.float64) * (1.0 / float(1 << 53))
-                    ).astype(np.float32)
+            out += ((h >> _U64(11)).astype(np.float64) * (1.0 / float(1 << 53))).astype(
+                np.float32
+            )
     return out - np.float32(UNIFORMS_PER_NORMAL / 2)
 
 
@@ -105,14 +106,15 @@ def forward_np(z: np.ndarray, p: dict) -> np.ndarray:
     return (x / n).astype(np.float32)
 
 
-def emit_rows(p: dict, rows: np.ndarray, dim: int, seed: int,
-              chunk: int = 8192) -> np.ndarray:
+def emit_rows(
+    p: dict, rows: np.ndarray, dim: int, seed: int, chunk: int = 8192
+) -> np.ndarray:
     """Random-access emission of an arbitrary set of rows, in any order."""
     rows = np.asarray(rows, dtype=np.int64)
     out = np.empty((len(rows), dim), dtype=np.float32)
     for s in range(0, len(rows), chunk):
-        sl = rows[s:s + chunk]
-        out[s:s + chunk] = forward_np(hash_noise(sl, dim, seed), p)
+        sl = rows[s : s + chunk]
+        out[s : s + chunk] = forward_np(hash_noise(sl, dim, seed), p)
     return out
 
 

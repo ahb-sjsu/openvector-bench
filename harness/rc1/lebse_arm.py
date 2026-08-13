@@ -42,14 +42,10 @@ SRC_V1 = "/archive/courtlistener/lebse"
 WORK = "/archive/experiments/lebse_fixed"
 
 REMAP = {
-    "sentence_transformers.base.modules.transformer.Transformer":
-        "sentence_transformers.models.Transformer",
-    "sentence_transformers.sentence_transformer.modules.pooling.Pooling":
-        "sentence_transformers.models.Pooling",
-    "sentence_transformers.base.modules.dense.Dense":
-        "sentence_transformers.models.Dense",
-    "sentence_transformers.sentence_transformer.modules.normalize.Normalize":
-        "sentence_transformers.models.Normalize",
+    "sentence_transformers.base.modules.transformer.Transformer": "sentence_transformers.models.Transformer",
+    "sentence_transformers.sentence_transformer.modules.pooling.Pooling": "sentence_transformers.models.Pooling",
+    "sentence_transformers.base.modules.dense.Dense": "sentence_transformers.models.Dense",
+    "sentence_transformers.sentence_transformer.modules.normalize.Normalize": "sentence_transformers.models.Normalize",
 }
 
 
@@ -104,15 +100,21 @@ def main() -> int:
         json.dump(report, f, indent=2)
 
     print("\n=== updated summary ===", flush=True)
-    print(f"{'arm':12s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
-          f"{'G1 exp':>8s} {'||mean||':>9s}", flush=True)
+    print(
+        f"{'arm':12s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
+        f"{'G1 exp':>8s} {'||mean||':>9s}",
+        flush=True,
+    )
     for k, v in report["results"].items():
         if "error" in v:
             continue
-        print(f"{k:12s} {v['dim']:5d} "
-              f"{v['per_n'][str(F.NS[-1])]['s_ratio']:12.2f} "
-              f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f} "
-              f"{v['mean_norm']:9.3f}", flush=True)
+        print(
+            f"{k:12s} {v['dim']:5d} "
+            f"{v['per_n'][str(F.NS[-1])]['s_ratio']:12.2f} "
+            f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f} "
+            f"{v['mean_norm']:9.3f}",
+            flush=True,
+        )
     print(f"wrote {F.OUT}", flush=True)
     print("LEBSE_ARM_DONE", flush=True)
     return 0

@@ -55,8 +55,13 @@ except Exception:  # pragma: no cover
 class ThermalGovernor:
     """Hold a workload at a temperature setpoint by varying its thread budget."""
 
-    def __init__(self, target_temp: float = 80.0, max_threads: int = 20,
-                 min_threads: int = 2, verbose: bool = False):
+    def __init__(
+        self,
+        target_temp: float = 80.0,
+        max_threads: int = 20,
+        min_threads: int = 2,
+        verbose: bool = False,
+    ):
         # max_threads 20 is the skill's cap: the Z840's coolers cannot sustain
         # more, and 40 threads took the CPUs to 99 C in an earlier incident.
         self.target_temp = target_temp
@@ -64,10 +69,12 @@ class ThermalGovernor:
         self.min_threads = min_threads
         self._ctrl = None
         if ThermalController is not None:
-            self._ctrl = ThermalController(target_temp=target_temp,
-                                           max_threads=max_threads,
-                                           min_threads=min_threads,
-                                           verbose=verbose)
+            self._ctrl = ThermalController(
+                target_temp=target_temp,
+                max_threads=max_threads,
+                min_threads=min_threads,
+                verbose=verbose,
+            )
 
     def __enter__(self) -> "ThermalGovernor":
         if self._ctrl is not None:

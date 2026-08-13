@@ -283,23 +283,32 @@ def rank_anatomy(x):
 
 
 BASE = dict(pool_alpha=0.22, brk=0.126)  # the frozen RC-3 D12 point
+# Phase B after both A-kills: (1) g4 via the D5 point (lp9.5) with the floor
+# pulling g8 back down; (2) g1exp via the article-length tail (size_spread) -
+# giant articles are the structure only large samples resolve.
 VARIANTS = {
-    "A0_d12": dict(),
-    "A1_ts50f10": dict(pool_alpha=0.50, pool_floor=0.10),
-    "A2_ts50f20": dict(pool_alpha=0.50, pool_floor=0.20),
-    "A3_ts80f10": dict(pool_alpha=0.80, pool_floor=0.10),
-    "A4_ts80f20": dict(pool_alpha=0.80, pool_floor=0.20),
-    "A5_ts80f30": dict(pool_alpha=0.80, pool_floor=0.30),
-    "A6_ts120f15": dict(pool_alpha=1.20, pool_floor=0.15),
-    "A7_ts35f10": dict(pool_alpha=0.35, pool_floor=0.10),
-    "A8_ch8w15": dict(chap_size=8, w_chap=0.15),
-    "A9_ch16w15": dict(chap_size=16, w_chap=0.15),
-    "A10_ch32w15": dict(chap_size=32, w_chap=0.15),
-    "A11_ch16w25": dict(chap_size=16, w_chap=0.25),
-    "A12_ch16w35": dict(chap_size=16, w_chap=0.35),
-    "A13_ch64w25": dict(chap_size=64, w_chap=0.25),
-    "A14_both": dict(pool_alpha=0.80, pool_floor=0.20, chap_size=16, w_chap=0.25),
-    "A15_both2": dict(pool_alpha=0.50, pool_floor=0.15, chap_size=16, w_chap=0.25),
+    "B0_d12": dict(),
+    "B1_d5": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5),
+    "B2_d5f15": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.15),
+    "B3_d5f25": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.25),
+    "B4_d5f35": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.35),
+    "B5_d5a12f25": dict(pool_alpha=0.12, brk=0.128, log2_pool=9.5, pool_floor=0.25),
+    "B6_d5a25f25": dict(pool_alpha=0.25, brk=0.128, log2_pool=9.5, pool_floor=0.25),
+    "B7_lp97f25": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.7, pool_floor=0.25),
+    "B8_ss14": dict(size_spread=1.4),
+    "B9_ss16": dict(size_spread=1.6),
+    "B10_ss18": dict(size_spread=1.8),
+    "B11_ss16b120": dict(size_spread=1.6, brk=0.120),
+    "B12_d5f25ss16": dict(
+        pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.25, size_spread=1.6
+    ),
+    "B13_d5f25ss14": dict(
+        pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.25, size_spread=1.4
+    ),
+    "B14_ss16s137": dict(size_spread=1.6, seed=137),
+    "B15_d5f25s137": dict(
+        pool_alpha=0.18, brk=0.128, log2_pool=9.5, pool_floor=0.25, seed=137
+    ),
 }
 ARMS = list(VARIANTS)
 _i = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
@@ -402,4 +411,4 @@ for name in mine:
     )
     print("RESULT_JSON " + json.dumps({name: rec}), flush=True)
 
-print("RC4A_DONE", flush=True)
+print("RC4B_DONE", flush=True)

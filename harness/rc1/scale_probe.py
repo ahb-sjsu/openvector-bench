@@ -104,7 +104,9 @@ def curve(base: np.ndarray, q: np.ndarray) -> dict:
         tk, tj = d[:, k - 1 : k], d[:, : k - 1]
         good = (tj > 0).all(1) & (tk[:, 0] > 0)
         lb.append(
-            float(np.median(1.0 / np.maximum(np.log(tk[good] / tj[good]).mean(1), 1e-12)))
+            float(
+                np.median(1.0 / np.maximum(np.log(tk[good] / tj[good]).mean(1), 1e-12))
+            )
         )
     return {
         "k": KGRID,
@@ -133,8 +135,14 @@ def main() -> int:
     print(f"effective rank {eff:.1f} -> null_lowrank rank {rank}", flush=True)
 
     bm = dict(zip([s[0] for s in BITMAP_PARAMS], [s[3] for s in BITMAP_PARAMS]))
-    bm.update(log2_branch=1.0, scale_decay=1.0, noise=0.0, m0_frac=0.015,
-              depth=60.0, dim_decay=0.0)
+    bm.update(
+        log2_branch=1.0,
+        scale_decay=1.0,
+        noise=0.0,
+        m0_frac=0.015,
+        depth=60.0,
+        dim_decay=0.0,
+    )
 
     variants: dict[str, np.ndarray] = {
         "real": real,
@@ -174,16 +182,28 @@ def main() -> int:
         st = np.std(np.vstack(curves), axis=0)
         mn = np.mean(np.vstack(curves), axis=0)
         collapse[name] = float(np.mean(st / np.maximum(np.abs(mn), 1e-9)))
-        print(f"collapse {name:14s} mean rel spread across n = {collapse[name]:.3f}",
-              flush=True)
+        print(
+            f"collapse {name:14s} mean rel spread across n = {collapse[name]:.3f}",
+            flush=True,
+        )
 
     os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(
-            {"config": {"ns": NS, "nq": NQ, "kmax": KMAX, "kgrid": KGRID,
-                        "seed": SEED, "target": TARGET},
-             "results": results, "collapse": collapse},
-            f, indent=2,
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                    "target": TARGET,
+                },
+                "results": results,
+                "collapse": collapse,
+            },
+            f,
+            indent=2,
         )
     print(f"wrote {OUT}", flush=True)
     print("SCALE_PROBE_DONE", flush=True)

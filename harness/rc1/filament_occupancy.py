@@ -108,12 +108,17 @@ def add_duplicates(x, rng, frac, cos_target):
     return x
 
 
-def build(n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale,
-          dup_frac=0.0, dup_cos=0.95):
+def build(
+    n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale, dup_frac=0.0, dup_cos=0.95
+):
     """Threads whose COUNT scales with n, so occupancy is the swept variable."""
     n_thread = max(2, int(round(n / max(per_thread, 1e-9))))
-    basis_a = np.linalg.qr(rng.standard_normal((dim, arrange_dim)))[0].astype(np.float32)
-    centres = rng.standard_normal((n_thread, arrange_dim)).astype(np.float32) @ basis_a.T
+    basis_a = np.linalg.qr(rng.standard_normal((dim, arrange_dim)))[0].astype(
+        np.float32
+    )
+    centres = (
+        rng.standard_normal((n_thread, arrange_dim)).astype(np.float32) @ basis_a.T
+    )
     centres /= np.maximum(np.linalg.norm(centres, axis=1, keepdims=True), 1e-12)
     owner = rng.integers(0, n_thread, n)
     # one low-dimensional direction set per thread, drawn on demand
@@ -132,14 +137,26 @@ def build(n, dim, rng, per_thread, fil_dim, arrange_dim, fil_scale,
     return add_duplicates(x, rng, dup_frac, dup_cos)
 
 
-def arm(per_thread, fil_dim, arrange_dim, fil_scale,
-        dup_frac=0.0, dup_cos=0.95) -> dict:
+def arm(
+    per_thread, fil_dim, arrange_dim, fil_scale, dup_frac=0.0, dup_cos=0.95
+) -> dict:
     trends, g1e, g1m, mus, mufr, slos, shis = [], [], [], [], [], [], []
     for sd in SEEDS:
         rng = np.random.default_rng(sd)
         nmax = max(NS)
-        x = normalize(build(nmax + NQ, DIM, rng, per_thread, fil_dim,
-                            arrange_dim, fil_scale, dup_frac, dup_cos))
+        x = normalize(
+            build(
+                nmax + NQ,
+                DIM,
+                rng,
+                per_thread,
+                fil_dim,
+                arrange_dim,
+                fil_scale,
+                dup_frac,
+                dup_cos,
+            )
+        )
         q = x[nmax:]
         ratios, g1s, s_lo, s_hi = [], [], [], []
         for n in NS:
@@ -149,6 +166,7 @@ def arm(per_thread, fil_dim, arrange_dim, fil_scale,
             ratios.append(profile_ratio(d))
             g1s.append(float(id_twonn(d)))
             from openvector_bench.geometry import growth_slope
+
             _, s = growth_slope(d)
             s_lo.append(float(s[0]))
             s_hi.append(float(s[-1]))
@@ -161,77 +179,121 @@ def arm(per_thread, fil_dim, arrange_dim, fil_scale,
         g1m.append(float(np.mean(g1s)))
         slos.append(s_lo)
         shis.append(s_hi)
-    return {"trend": float(np.mean(trends)), "g1_exp": float(np.mean(g1e)),
-            "g1_mean": float(np.mean(g1m)), "mu_med": float(np.mean(mus)),
-            "mu_frac": float(np.mean(mufr)),
-            "s_lo": [float(v) for v in np.mean(slos, axis=0)],
-            "s_hi": [float(v) for v in np.mean(shis, axis=0)]}
+    return {
+        "trend": float(np.mean(trends)),
+        "g1_exp": float(np.mean(g1e)),
+        "g1_mean": float(np.mean(g1m)),
+        "mu_med": float(np.mean(mus)),
+        "mu_frac": float(np.mean(mufr)),
+        "s_lo": [float(v) for v in np.mean(slos, axis=0)],
+        "s_hi": [float(v) for v in np.mean(shis, axis=0)],
+    }
 
 
 def main() -> int:
     tg = json.load(open(TARGETS))
     ns_ok = [n for n in NS if str(n) in tg]
-    t_trend = float(np.polyfit(np.log(ns_ok), [tg[str(n)]["ratio"] for n in ns_ok], 1)[0])
+    t_trend = float(
+        np.polyfit(np.log(ns_ok), [tg[str(n)]["ratio"] for n in ns_ok], 1)[0]
+    )
     t_g1 = [tg[str(n)]["g1"] for n in ns_ok]
     t_g1_exp = float(np.polyfit(np.log(ns_ok), np.log(t_g1), 1)[0])
     t_g1_mean = float(np.mean(t_g1))
-    print(f"TARGET trend {t_trend:+.3f}  G1 {t_g1_mean:.1f}  G1exp {t_g1_exp:+.3f}  "
-          f"mu {T_MU_MED:.3f}  mu>1.5 {T_MU_FRAC:.3f}\n", flush=True)
+    print(
+        f"TARGET trend {t_trend:+.3f}  G1 {t_g1_mean:.1f}  G1exp {t_g1_exp:+.3f}  "
+        f"mu {T_MU_MED:.3f}  mu>1.5 {T_MU_FRAC:.3f}\n",
+        flush=True,
+    )
 
     def score(v):
-        return (abs(v["trend"] - t_trend) / abs(t_trend)
-                + abs(np.log(max(v["g1_mean"], 1e-3) / t_g1_mean))
-                + abs(v["g1_exp"] - t_g1_exp) / 0.3
-                + abs(v["mu_med"] - T_MU_MED) / 0.05
-                + abs(v["mu_frac"] - T_MU_FRAC) / 0.05)
+        return (
+            abs(v["trend"] - t_trend) / abs(t_trend)
+            + abs(np.log(max(v["g1_mean"], 1e-3) / t_g1_mean))
+            + abs(v["g1_exp"] - t_g1_exp) / 0.3
+            + abs(v["mu_med"] - T_MU_MED) / 0.05
+            + abs(v["mu_frac"] - T_MU_FRAC) / 0.05
+        )
 
     res, t0 = {}, time.time()
-    print(f"{'arm':30s} {'trend':>7s} {'G1':>6s} {'G1exp':>7s} {'s_lo':>14s} "
-          f"{'mu':>6s} {'mu>1.5':>7s} {'score':>7s}", flush=True)
+    print(
+        f"{'arm':30s} {'trend':>7s} {'G1':>6s} {'G1exp':>7s} {'s_lo':>14s} "
+        f"{'mu':>6s} {'mu>1.5':>7s} {'score':>7s}",
+        flush=True,
+    )
     for per_thread in PT_GRID:
         for fil_dim in FD_GRID:
             for arrange_dim in AD_GRID:
                 for fil_scale in FS_GRID:
-                  for dupf in DUP_GRID:
-                   for dupc in DUPCOS_GRID:
-                    name = (f"pt{per_thread}_fd{fil_dim}_ad{arrange_dim}"
-                            f"_fs{fil_scale}_dup{dupf}c{dupc}")
-                    v = arm(per_thread, fil_dim, arrange_dim, fil_scale,
-                            dupf, dupc)
-                    v["score"] = score(v)
-                    res[name] = v
-                    slo = "/".join(f"{s:.0f}" for s in v["s_lo"])
-                    print(f"{name:30s} {v['trend']:+7.3f} {v['g1_mean']:6.1f} "
-                          f"{v['g1_exp']:+7.3f} {slo:>14s} {v['mu_med']:6.3f} "
-                          f"{v['mu_frac']:7.3f} {v['score']:7.2f}", flush=True)
+                    for dupf in DUP_GRID:
+                        for dupc in DUPCOS_GRID:
+                            name = (
+                                f"pt{per_thread}_fd{fil_dim}_ad{arrange_dim}"
+                                f"_fs{fil_scale}_dup{dupf}c{dupc}"
+                            )
+                            v = arm(
+                                per_thread, fil_dim, arrange_dim, fil_scale, dupf, dupc
+                            )
+                            v["score"] = score(v)
+                            res[name] = v
+                            slo = "/".join(f"{s:.0f}" for s in v["s_lo"])
+                            print(
+                                f"{name:30s} {v['trend']:+7.3f} {v['g1_mean']:6.1f} "
+                                f"{v['g1_exp']:+7.3f} {slo:>14s} {v['mu_med']:6.3f} "
+                                f"{v['mu_frac']:7.3f} {v['score']:7.2f}",
+                                flush=True,
+                            )
 
     best = min(res.items(), key=lambda kv: kv[1]["score"])
     b = best[1]
     print(f"\nbest: {best[0]}", flush=True)
-    print(f"  trend {b['trend']:+.3f} (t {t_trend:+.3f})  G1 {b['g1_mean']:.1f} "
-          f"(t {t_g1_mean:.1f})  G1exp {b['g1_exp']:+.3f} (t {t_g1_exp:+.3f})",
-          flush=True)
-    print(f"  mu {b['mu_med']:.3f} (t {T_MU_MED:.3f})  mu>1.5 {b['mu_frac']:.3f} "
-          f"(t {T_MU_FRAC:.3f})", flush=True)
+    print(
+        f"  trend {b['trend']:+.3f} (t {t_trend:+.3f})  G1 {b['g1_mean']:.1f} "
+        f"(t {t_g1_mean:.1f})  G1exp {b['g1_exp']:+.3f} (t {t_g1_exp:+.3f})",
+        flush=True,
+    )
+    print(
+        f"  mu {b['mu_med']:.3f} (t {T_MU_MED:.3f})  mu>1.5 {b['mu_frac']:.3f} "
+        f"(t {T_MU_FRAC:.3f})",
+        flush=True,
+    )
     # does s_lo FALL with n, as real's does? that is R21C's exclusion criterion
     falls = {k: v for k, v in res.items() if v["s_lo"][-1] < v["s_lo"][0]}
-    print(f"\narms where s_lo FALLS with n (real's direction): "
-          f"{len(falls)} of {len(res)}", flush=True)
+    print(
+        f"\narms where s_lo FALLS with n (real's direction): "
+        f"{len(falls)} of {len(res)}",
+        flush=True,
+    )
     if falls:
         for k, v in sorted(falls.items(), key=lambda kv: kv[1]["score"])[:4]:
-            print(f"   {k:28s} s_lo {'/'.join(f'{s:.1f}' for s in v['s_lo'])} "
-                  f"trend {v['trend']:+.3f} G1 {v['g1_mean']:.1f}", flush=True)
-    print(f"\nR21C's exclusion was a fixed-F artifact: "
-          f"{'SUPPORTED' if falls else 'NOT SUPPORTED — s_lo rises everywhere'}",
-          flush=True)
+            print(
+                f"   {k:28s} s_lo {'/'.join(f'{s:.1f}' for s in v['s_lo'])} "
+                f"trend {v['trend']:+.3f} G1 {v['g1_mean']:.1f}",
+                flush=True,
+            )
+    print(
+        f"\nR21C's exclusion was a fixed-F artifact: "
+        f"{'SUPPORTED' if falls else 'NOT SUPPORTED — s_lo rises everywhere'}",
+        flush=True,
+    )
     print(f"({time.time()-t0:.0f}s)", flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"target": {"trend": t_trend, "g1_mean": t_g1_mean,
-                              "g1_exp": t_g1_exp, "mu_med": T_MU_MED,
-                              "mu_frac": T_MU_FRAC},
-                   "arms": res, "best": best[0],
-                   "n_arms_slo_falls": len(falls)}, f, indent=2)
+        json.dump(
+            {
+                "target": {
+                    "trend": t_trend,
+                    "g1_mean": t_g1_mean,
+                    "g1_exp": t_g1_exp,
+                    "mu_med": T_MU_MED,
+                    "mu_frac": T_MU_FRAC,
+                },
+                "arms": res,
+                "best": best[0],
+                "n_arms_slo_falls": len(falls),
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("FILAMENT_OCCUPANCY_DONE", flush=True)
     return 0
