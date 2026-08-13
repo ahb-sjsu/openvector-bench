@@ -22,7 +22,7 @@ would differ, because a uint64 above 2**63 is negative as int64.
 """
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 U64 = np.uint64
 _MASK = U64(0xFFFFFFFFFFFFFFFF)
@@ -46,8 +46,11 @@ def sm64_np(x):
 
 
 def _base_np(key, salt, extra):
-    return sm64_np(sm64_np(np.asarray(key, dtype=np.int64).astype(U64))
-                   ^ U64(np.uint64(salt)) ^ U64(np.uint64(extra)))
+    return sm64_np(
+        sm64_np(np.asarray(key, dtype=np.int64).astype(U64))
+        ^ U64(np.uint64(salt))
+        ^ U64(np.uint64(extra))
+    )
 
 
 def hgauss_np(key, count, salt=0):
@@ -58,7 +61,9 @@ def hgauss_np(key, count, salt=0):
         for t in range(12):
             tt = U64(t)
             h = sm64_np(base[..., None] ^ (cols + tt * sm64_np(tt + U64(7))))
-            out += ((h >> U64(11)).astype(np.float64) / float(1 << 53)).astype(np.float32)
+            out += ((h >> U64(11)).astype(np.float64) / float(1 << 53)).astype(
+                np.float32
+            )
     return out - np.float32(6.0)
 
 
@@ -92,7 +97,9 @@ def sm64_t(x):
 
 
 def _base_t(key, salt, extra):
-    return sm64_t(sm64_t(key) ^ int(np.int64(np.uint64(salt))) ^ int(np.int64(np.uint64(extra))))
+    return sm64_t(
+        sm64_t(key) ^ int(np.int64(np.uint64(salt))) ^ int(np.int64(np.uint64(extra)))
+    )
 
 
 def hgauss_t(key, count, salt=0):
@@ -122,21 +129,24 @@ def hidx_t(key, count, modulus, salt=0):
 
 def verify(device):
     """Abort the run rather than trust an unverified hash path."""
-    key = np.array([0, 1, 7, 1000, 10 ** 7, 2 ** 31 - 1, 10 ** 12,
-                    -5, 123456789], dtype=np.int64)
+    key = np.array(
+        [0, 1, 7, 1000, 10**7, 2**31 - 1, 10**12, -5, 123456789], dtype=np.int64
+    )
     kt = torch.from_numpy(key).to(device)
     checks = [
-        ("sm64", sm64_np(key.astype(U64)).astype(np.int64),
-         sm64_t(kt).cpu().numpy()),
+        ("sm64", sm64_np(key.astype(U64)).astype(np.int64), sm64_t(kt).cpu().numpy()),
         ("hidx", hidx_np(key, 16, 8192), hidx_t(kt, 16, 8192).cpu().numpy()),
     ]
     for name, a, b in checks:
         if not np.array_equal(a, b):
             raise SystemExit("HASH MISMATCH in %s -- aborting (R48 guarantee)" % name)
-    for name, a, b in (("hgauss", hgauss_np(key, 16), hgauss_t(kt, 16).cpu().numpy()),
-                       ("hunif", hunif_np(key, 16), hunif_t(kt, 16).cpu().numpy())):
+    for name, a, b in (
+        ("hgauss", hgauss_np(key, 16), hgauss_t(kt, 16).cpu().numpy()),
+        ("hunif", hunif_np(key, 16), hunif_t(kt, 16).cpu().numpy()),
+    ):
         if not np.array_equal(a, b):
             d = np.abs(a - b).max()
             raise SystemExit("HASH MISMATCH in %s (max |d| %g) -- aborting" % (name, d))
-    print("hash verify: torch == numpy, bit-for-bit, on all four entry points",
-          flush=True)
+    print(
+        "hash verify: torch == numpy, bit-for-bit, on all four entry points", flush=True
+    )

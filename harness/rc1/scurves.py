@@ -50,16 +50,23 @@ def clumped_support(n_rows: int, need: int, b: int, rng) -> np.ndarray:
     st = rng.choice(max(1, n_rows - b), size=nb, replace=False)
     idx = np.unique((st[:, None] + np.arange(b)[None, :]).ravel())
     while len(idx) < need:
-        idx = np.unique(np.concatenate(
-            [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]))
+        idx = np.unique(
+            np.concatenate(
+                [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]
+            )
+        )
     return np.sort(rng.permutation(idx)[:need])
 
 
 def curve(x: np.ndarray, bi: np.ndarray, qi: np.ndarray) -> dict:
     d, _ = knn(x[bi], x[qi], max(PROFILE_KGRID))
     r, s = growth_slope(d)
-    return {"k": list(PROFILE_KGRID), "r": [float(v) for v in r],
-            "s": [float(v) for v in s], "g1": float(id_twonn(d))}
+    return {
+        "k": list(PROFILE_KGRID),
+        "r": [float(v) for v in r],
+        "s": [float(v) for v in s],
+        "g1": float(id_twonn(d)),
+    }
 
 
 def main() -> int:
@@ -81,19 +88,26 @@ def main() -> int:
     for b in BS:
         rng = np.random.default_rng(20_000 + b)
         bi, qi = exchangeable_split(
-            clumped_support(POOL, NEED, b, rng), N_FIX, NQ, seed=31)
+            clumped_support(POOL, NEED, b, rng), N_FIX, NQ, seed=31
+        )
         out[f"real_b{b}"] = curve(real, bi, qi)
 
-    print("   k |" + "".join(f"  r {n:>10s}" for n in out)
-          + " |" + "".join(f"  s {n:>10s}" for n in out))
+    print(
+        "   k |"
+        + "".join(f"  r {n:>10s}" for n in out)
+        + " |"
+        + "".join(f"  s {n:>10s}" for n in out)
+    )
     for i, k in enumerate(PROFILE_KGRID):
         rr = "".join(f"{out[n]['r'][i]:13.4f}" for n in out)
         ss = "".join(f"{out[n]['s'][i]:13.2f}" for n in out)
         print(f"{k:4d} |{rr} |{ss}")
     for n, v in out.items():
         s = v["s"]
-        print(f"{n:12s} s(4) {s[0]:6.2f}  s(500) {s[-1]:6.2f}  "
-              f"ratio {s[-1] / s[0]:6.3f}  G1 {v['g1']:6.2f}")
+        print(
+            f"{n:12s} s(4) {s[0]:6.2f}  s(500) {s[-1]:6.2f}  "
+            f"ratio {s[-1] / s[0]:6.3f}  G1 {v['g1']:6.2f}"
+        )
 
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)

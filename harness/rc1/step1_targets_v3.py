@@ -23,7 +23,7 @@ from dataclasses import asdict
 
 import numpy as np
 
-from openvector_bench import geometry as G
+from openvector_bench import geometry as G  # noqa: E402
 
 TARGET = os.environ.get("RC_TARGET", "/archive/tqp_real/wiki1024")
 OUT = os.environ.get("RC_OUT", "/home/claude/r9/rc1_targets_v3.json")

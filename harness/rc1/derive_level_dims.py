@@ -33,7 +33,7 @@ import sys
 
 import numpy as np
 
-from openvector_bench.twoscale_gen import CASCADE_WEIGHTS
+from openvector_bench.twoscale_gen import CASCADE_WEIGHTS  # noqa: E402
 
 SCURVES = os.environ.get("DLD_SCURVES", "results/scurves.json")
 ARM = os.environ.get("DLD_ARM", "real_b100")
@@ -59,8 +59,10 @@ def main() -> int:
     print("  L  R(L)     in-range  cumulative D   per-level d_L")
     for level in range(len(radius)):
         inside = rr[0] <= radius[level] <= rr[-1]
-        print(f"  {level}  {radius[level]:.4f}   {str(inside):5s}     "
-              f"{cum[level]:7.2f}       {per[level]:7.2f}")
+        print(
+            f"  {level}  {radius[level]:.4f}   {str(inside):5s}     "
+            f"{cum[level]:7.2f}       {per[level]:7.2f}"
+        )
     print("\nMeasured cascade s(k) is ~17-20 for every schedule (R33), so the")
     print("inversion above does not predict the built geometry. The weight-only")
     print("column does.")

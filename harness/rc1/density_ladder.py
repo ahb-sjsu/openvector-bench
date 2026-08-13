@@ -66,7 +66,7 @@ def main() -> int:
             a = np.load(p, mmap_mode="r")
             lo = max(0, pos - s)
             take = min(int(e - max(pos, s)), need)
-            out.append(np.asarray(a[lo:lo + take]))
+            out.append(np.asarray(a[lo : lo + take]))
             need -= take
             pos += take
             if need <= 0:
@@ -100,9 +100,12 @@ def main() -> int:
                 "mu_frac": float((mu > 1.5).mean()),
             }
             r_ = rec[str(pool_n)]
-            print(f"  block{bi} off {off:9d} pool {pool_n:6d} "
-                  f"dens {r_['density']:.4f}  ratio {r_['ratio']:.3f}  "
-                  f"G1 {r_['g1']:6.2f}  mu {r_['mu_med']:.4f}", flush=True)
+            print(
+                f"  block{bi} off {off:9d} pool {pool_n:6d} "
+                f"dens {r_['density']:.4f}  ratio {r_['ratio']:.3f}  "
+                f"G1 {r_['g1']:6.2f}  mu {r_['mu_med']:.4f}",
+                flush=True,
+            )
         blocks[str(off)] = rec
         print(f"block {bi} done ({time.time() - t0:.0f}s)", flush=True)
         del full
@@ -113,10 +116,14 @@ def main() -> int:
         rs = [blocks[b][k]["ratio"] for b in blocks]
         gs = [blocks[b][k]["g1"] for b in blocks]
         ms = [blocks[b][k]["mu_med"] for b in blocks]
-        agg[k] = {"density": N_FIX / pool_n,
-                  "ratio": float(np.mean(rs)), "ratio_sd": float(np.std(rs, ddof=1)),
-                  "g1": float(np.mean(gs)), "g1_sd": float(np.std(gs, ddof=1)),
-                  "mu_med": float(np.mean(ms))}
+        agg[k] = {
+            "density": N_FIX / pool_n,
+            "ratio": float(np.mean(rs)),
+            "ratio_sd": float(np.std(rs, ddof=1)),
+            "g1": float(np.mean(gs)),
+            "g1_sd": float(np.std(gs, ddof=1)),
+            "mu_med": float(np.mean(ms)),
+        }
 
     # Fixed-endpoint contrasts. NOT a fitted slope: the response is strongly
     # convex, so a slope would depend on which pools were chosen -- the span
@@ -124,23 +131,41 @@ def main() -> int:
     lo, hi = str(max(POOLS)), str(min(POOLS))
     rspan = [blocks[b][hi]["ratio"] - blocks[b][lo]["ratio"] for b in blocks]
     gspan = [float(np.log(blocks[b][hi]["g1"] / blocks[b][lo]["g1"])) for b in blocks]
-    res = {"n_fixed": N_FIX, "nq": NQ, "pools": POOLS, "offsets": OFFSETS,
-           "blocks": blocks, "per_density": agg,
-           "ratio_span": {"mean": float(np.mean(rspan)),
-                          "sd": float(np.std(rspan, ddof=1))},
-           "logg1_span": {"mean": float(np.mean(gspan)),
-                          "sd": float(np.std(gspan, ddof=1))}}
+    res = {
+        "n_fixed": N_FIX,
+        "nq": NQ,
+        "pools": POOLS,
+        "offsets": OFFSETS,
+        "blocks": blocks,
+        "per_density": agg,
+        "ratio_span": {
+            "mean": float(np.mean(rspan)),
+            "sd": float(np.std(rspan, ddof=1)),
+        },
+        "logg1_span": {
+            "mean": float(np.mean(gspan)),
+            "sd": float(np.std(gspan, ddof=1)),
+        },
+    }
 
     print("\nPER-DENSITY (mean +- sd over blocks)", flush=True)
     for pool_n in POOLS:
         a = agg[str(pool_n)]
-        print(f"  dens {a['density']:.4f}  ratio {a['ratio']:.3f} +- "
-              f"{a['ratio_sd']:.3f}   G1 {a['g1']:6.2f} +- {a['g1_sd']:.2f}",
-              flush=True)
-    print(f"\nratio span = {res['ratio_span']['mean']:+.3f} +- "
-          f"{res['ratio_span']['sd']:.3f}", flush=True)
-    print(f"logG1 span = {res['logg1_span']['mean']:+.3f} +- "
-          f"{res['logg1_span']['sd']:.3f}", flush=True)
+        print(
+            f"  dens {a['density']:.4f}  ratio {a['ratio']:.3f} +- "
+            f"{a['ratio_sd']:.3f}   G1 {a['g1']:6.2f} +- {a['g1_sd']:.2f}",
+            flush=True,
+        )
+    print(
+        f"\nratio span = {res['ratio_span']['mean']:+.3f} +- "
+        f"{res['ratio_span']['sd']:.3f}",
+        flush=True,
+    )
+    print(
+        f"logG1 span = {res['logg1_span']['mean']:+.3f} +- "
+        f"{res['logg1_span']['sd']:.3f}",
+        flush=True,
+    )
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(res, f, indent=2)
     print(f"wrote {OUT}", flush=True)

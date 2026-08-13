@@ -24,7 +24,7 @@ import os
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 from hashgpu import hgauss_t, hidx_t, hunif_t, verify
 
@@ -36,8 +36,26 @@ DIM, ART_MEAN, POOL = 1024, 23, 600000
 N_FIX, NQ = 25000, 10000
 NEED = N_FIX + NQ
 KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
-REAL_S = np.array([8.82, 9.43, 11.46, 14.02, 16.08, 20.11, 23.40, 26.01,
-                   28.88, 29.98, 31.29, 33.19, 34.02, 34.82, 35.53, 35.73])
+REAL_S = np.array(
+    [
+        8.82,
+        9.43,
+        11.46,
+        14.02,
+        16.08,
+        20.11,
+        23.40,
+        26.01,
+        28.88,
+        29.98,
+        31.29,
+        33.19,
+        34.02,
+        34.82,
+        35.53,
+        35.73,
+    ]
+)
 MAXLEV = 8
 
 
@@ -56,30 +74,47 @@ def seg_of(a_t, pos_t, brk):
     return a_t * 1000003 + chosen * 7919 + (pos_t >> chosen)
 
 
-def build(brk, branch, d_glob, fil_dim=48, nlev=6, d_loc=64, w_loc=0.6,
-          fil_scale=1.0, arr_levels=3, size_spread=1.2, log2_pool=13, seed=41):
+def build(
+    brk,
+    branch,
+    d_glob,
+    fil_dim=48,
+    nlev=6,
+    d_loc=64,
+    w_loc=0.6,
+    fil_scale=1.0,
+    arr_levels=3,
+    size_spread=1.2,
+    log2_pool=13,
+    seed=41,
+):
     rng = np.random.default_rng(seed)
-    ln = rng.lognormal(np.log(ART_MEAN) - 0.5 * size_spread ** 2, size_spread,
-                       int(POOL / ART_MEAN * 2.5) + 16)
+    ln = rng.lognormal(
+        np.log(ART_MEAN) - 0.5 * size_spread**2,
+        size_spread,
+        int(POOL / ART_MEAN * 2.5) + 16,
+    )
     b = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
     b = np.append(b[b < POOL], POOL)
     n_art = len(b)
     starts = np.concatenate([[0], b[:-1]])
-    npool = int(2 ** log2_pool)
+    npool = int(2**log2_pool)
     pool = torch.from_numpy(
-        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)).to(DEV)
-    bg = torch.from_numpy(np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0]
-                          .astype(np.float32)).to(DEV)
+        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)
+    ).to(DEV)
+    bg = torch.from_numpy(
+        np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0].astype(np.float32)
+    ).to(DEV)
     cen = torch.zeros((n_art, DIM), device=DEV)
-    lw = np.array([0.72 ** L for L in range(arr_levels)], dtype=np.float32)
+    lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
     for L in range(arr_levels):
-        ncl = max(2, int(round(n_art / (27 * branch ** L))))
+        ncl = max(2, int(round(n_art / (27 * branch**L))))
         cid = torch.from_numpy(rng.integers(0, ncl, n_art)).to(DEV)
         cc = rng.standard_normal((ncl, d_glob)).astype(np.float32)
         cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
         cen += float(lw[L]) * (torch.from_numpy(cc).to(DEV)[cid] @ bg.T)
-    plw = np.sqrt(np.array([0.45 * (0.72 ** i) for i in range(nlev)], dtype=np.float32))
+    plw = np.sqrt(np.array([0.45 * (0.72**i) for i in range(nlev)], dtype=np.float32))
     plw /= np.linalg.norm(plw)
     a_of = np.repeat(np.arange(n_art), (b - starts))[:POOL]
     pos = np.arange(POOL) - starts[a_of]
@@ -112,7 +147,7 @@ def build(brk, branch, d_glob, fil_dim=48, nlev=6, d_loc=64, w_loc=0.6,
 def knn_t(base, q, k, bs=6144):
     od, oi = [], []
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -120,7 +155,7 @@ def knn_t(base, q, k, bs=6144):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -129,8 +164,11 @@ def clumped(n_rows, need, bb, rng):
     st = rng.choice(max(1, n_rows - bb), size=nb, replace=False)
     idx = np.unique((st[:, None] + np.arange(bb)[None, :]).ravel())
     while len(idx) < need:
-        idx = np.unique(np.concatenate(
-            [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]))
+        idx = np.unique(
+            np.concatenate(
+                [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]
+            )
+        )
     return np.sort(rng.permutation(idx)[:need])
 
 
@@ -151,9 +189,13 @@ def spectrum_t(base_t):
     lam = torch.linalg.svdvals(xc) ** 2 / max(xc.shape[0] - 1, 1)
     lam = lam[lam > 0].double()
     frac = torch.cumsum(lam, 0) / lam.sum()
-    eff = float(lam.sum() ** 2 / (lam ** 2).sum())
-    d90 = int(torch.searchsorted(frac, torch.tensor(0.90, dtype=frac.dtype,
-                                                    device=frac.device)).item() + 1)
+    eff = float(lam.sum() ** 2 / (lam**2).sum())
+    d90 = int(
+        torch.searchsorted(
+            frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)
+        ).item()
+        + 1
+    )
     return eff, d90
 
 
@@ -193,7 +235,9 @@ for brk, branch, dg in mine:
     for P in (50000, 600000):
         rg = np.random.default_rng(700 + P // 1000)
         b3, q3 = exch(rg.choice(P, NEED, replace=False), N_FIX, NQ)
-        d3, _ = knn_t(x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500)
+        d3, _ = knn_t(
+            x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500
+        )
         d3n = d3.cpu().numpy()
         r3 = np.array([float(np.median(d3n[:, k - 1])) for k in KG])
         s3 = np.gradient(np.log(np.array(KG, float)), np.log(r3))
@@ -203,15 +247,26 @@ for brk, branch, dg in mine:
     gspan = float(np.log(sp[50000][1] / sp[600000][1]))
     del x
     out["brk%s_br%s_dg%s" % (brk, branch, dg)] = {
-        "g1": g1, "g3_eff_rank": g3, "g4_dims90": g4, "g5": g5, "g6": g6,
-        "rms": rms, "ratio_span": rspan, "logg1_span": gspan,
-        "s": [float(v) for v in s]}
-    print("br%-3d dg%-3d | g1 %6.2f  g3 %6.1f  g4 %4d  g5 %5.3f  g6 %5.3f | "
-          "rms %5.2f | span r %+6.3f g %+6.3f  (%.0fs)"
-          % (branch, dg, g1, g3, g4, g5, g6, rms, rspan, gspan, time.time() - t0),
-          flush=True)
+        "g1": g1,
+        "g3_eff_rank": g3,
+        "g4_dims90": g4,
+        "g5": g5,
+        "g6": g6,
+        "rms": rms,
+        "ratio_span": rspan,
+        "logg1_span": gspan,
+        "s": [float(v) for v in s],
+    }
+    print(
+        "br%-3d dg%-3d | g1 %6.2f  g3 %6.1f  g4 %4d  g5 %5.3f  g6 %5.3f | "
+        "rms %5.2f | span r %+6.3f g %+6.3f  (%.0fs)"
+        % (branch, dg, g1, g3, g4, g5, g6, rms, rspan, gspan, time.time() - t0),
+        flush=True,
+    )
     print("RESULT_JSON " + json.dumps(out), flush=True)
 
-print("real        | g1  17.23  g3  182.3  g4  359  g5 1.369  g6 1.696 | "
-      "rms  0.00 | span r +2.397 g -0.494")
+print(
+    "real        | g1  17.23  g3  182.3  g4  359  g5 1.369  g6 1.696 | "
+    "rms  0.00 | span r +2.397 g -0.494"
+)
 print("GATE_CHECK_DONE", flush=True)

@@ -42,8 +42,10 @@ import numpy as np  # noqa: E402
 
 import f2_three_arm as F  # noqa: E402
 
-ARMS = [("e5_base_768", "intfloat/multilingual-e5-base"),
-        ("e5_large_1024", "intfloat/multilingual-e5-large")]
+ARMS = [
+    ("e5_base_768", "intfloat/multilingual-e5-base"),
+    ("e5_large_1024", "intfloat/multilingual-e5-large"),
+]
 
 
 def main() -> int:
@@ -66,14 +68,20 @@ def main() -> int:
             json.dump(report, f, indent=2)
 
     print("\n=== dimension vs training ===", flush=True)
-    print(f"{'arm':14s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
-          f"{'G1 exp':>8s}", flush=True)
+    print(
+        f"{'arm':14s} {'dim':>5s} {'ratio@max_n':>12s} {'ratio trend':>12s} "
+        f"{'G1 exp':>8s}",
+        flush=True,
+    )
     for k, v in report["results"].items():
         if "error" in v:
             print(f"{k:14s} FAILED", flush=True)
             continue
-        print(f"{k:14s} {v['dim']:5d} {v['per_n'][str(F.NS[-1])]['s_ratio']:12.2f} "
-              f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f}", flush=True)
+        print(
+            f"{k:14s} {v['dim']:5d} {v['per_n'][str(F.NS[-1])]['s_ratio']:12.2f} "
+            f"{v['s_ratio_trend']:+12.3f} {v['g1_exponent']:+8.3f}",
+            flush=True,
+        )
     print("E5_DIM_ARM_DONE", flush=True)
     return 0
 

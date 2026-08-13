@@ -117,34 +117,71 @@ def main() -> int:
         s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
         g1 = float(id_twonn(d))
         ratio = float(s[-1] / max(s[0], 1e-9))
-        per_n[str(n)] = {"g1": g1, "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                         "s_ratio": ratio, "r_lo": float(r[0]), "r_hi": float(r[-1]),
-                         "r": r.tolist(), "s": s.tolist(),
-                         "anchor": ANCHORS.get(n), "contiguous": CONTIGUOUS.get(n)}
+        per_n[str(n)] = {
+            "g1": g1,
+            "s_lo": float(s[0]),
+            "s_hi": float(s[-1]),
+            "s_ratio": ratio,
+            "r_lo": float(r[0]),
+            "r_hi": float(r[-1]),
+            "r": r.tolist(),
+            "s": s.tolist(),
+            "anchor": ANCHORS.get(n),
+            "contiguous": CONTIGUOUS.get(n),
+        }
         g1s.append(g1)
         ratios.append(ratio)
-        print(f"n={n:6d} G1={g1:6.2f} (anchor {ANCHORS.get(n)}, contiguous "
-              f"{CONTIGUOUS.get(n)})  s {s[0]:5.1f}->{s[-1]:5.1f} ratio {ratio:.2f} "
-              f"r [{r[0]:.3f},{r[-1]:.3f}]", flush=True)
+        print(
+            f"n={n:6d} G1={g1:6.2f} (anchor {ANCHORS.get(n)}, contiguous "
+            f"{CONTIGUOUS.get(n)})  s {s[0]:5.1f}->{s[-1]:5.1f} ratio {ratio:.2f} "
+            f"r [{r[0]:.3f},{r[-1]:.3f}]",
+            flush=True,
+        )
 
     ln = np.log(NS)
     g1_exp = float(np.polyfit(ln, np.log(g1s), 1)[0])
     ratio_trend = float(np.polyfit(ln, ratios, 1)[0])
-    anchor_exp = float(np.polyfit(np.log([n for n in NS if n in ANCHORS]),
-                                  np.log([ANCHORS[n] for n in NS if n in ANCHORS]), 1)[0])
-    verdict = ("LADDER SURVIVES" if g1_exp < -0.10 else
-               "LADDER VANISHES" if g1_exp > -0.04 else "INTERMEDIATE")
-    print(f"\nG1 exponent {g1_exp:+.3f}  (registered anchors {anchor_exp:+.3f}, "
-          f"contiguous pool -0.168)", flush=True)
+    anchor_exp = float(
+        np.polyfit(
+            np.log([n for n in NS if n in ANCHORS]),
+            np.log([ANCHORS[n] for n in NS if n in ANCHORS]),
+            1,
+        )[0]
+    )
+    verdict = (
+        "LADDER SURVIVES"
+        if g1_exp < -0.10
+        else "LADDER VANISHES" if g1_exp > -0.04 else "INTERMEDIATE"
+    )
+    print(
+        f"\nG1 exponent {g1_exp:+.3f}  (registered anchors {anchor_exp:+.3f}, "
+        f"contiguous pool -0.168)",
+        flush=True,
+    )
     print(f"s_ratio trend {ratio_trend:+.3f}  (contiguous pool +0.511)", flush=True)
     print(f"VERDICT: {verdict}", flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"cap": CAP, "ns": NS, "nq": NQ, "kmax": KMAX,
-                              "kgrid": KGRID, "seed": SEED, "draw": "uniform-all-parts"},
-                   "per_n": per_n, "g1_exponent": g1_exp,
-                   "s_ratio_trend": ratio_trend, "anchor_exponent": anchor_exp,
-                   "verdict": verdict}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "cap": CAP,
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                    "draw": "uniform-all-parts",
+                },
+                "per_n": per_n,
+                "g1_exponent": g1_exp,
+                "s_ratio_trend": ratio_trend,
+                "anchor_exponent": anchor_exp,
+                "verdict": verdict,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("UNIFORM_DRAW_DONE", flush=True)
     return 0

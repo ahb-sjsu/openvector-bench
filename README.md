@@ -123,14 +123,17 @@ as produced:
 | **Geometry battery** (RC-1 instrument) | the battery tells real embeddings from wrong ones | ✅ **passed** | 3/3 frozen nulls rejected · [`RC1_ROUND1.md`](results/RC1_ROUND1.md) |
 | **§6 reconstruction** | a corpus regenerates **byte-identically** from a kB manifest | ✅ **passed** | 4/4 criteria · [experiment](harness/distribution/reconstruct_experiment.py) · [notebook](notebooks/reproduce.ipynb) |
 | **Distribution at scale** | regenerate-from-seed works at **10¹¹**, zero data movement | 🟡 **in progress** | sibling [turboquant-pro](https://github.com/ahb-sjsu/turboquant-pro) fleet build (systems evidence) |
-| **RC-1** — fitted generator | a generator **matches** real-embedding geometry across the grid | ⛔ **round-9 candidate not admitted** | second formal §5 run (v3 targets, seal closed): 0/24, **but the G6 growth exponents pass at k≤30 for the first time** and G3 reads 1.00 in 24/24 cells · verdicts + the sampling-operator diagnosis: [`ROUND9_RESULT.md`](results/ROUND9_RESULT.md) · prior runs: [`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md) |
-| **RC-2** — sealed prediction | that geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after RC-1 |
-| **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires RC-1 **and** RC-2 |
+| **Frozen generator** | a bit-exact, random-access, chunk-invariant family exists and is hashed | ✅ **shipped** | [`openvector_bench/segment_gen.py`](openvector_bench/segment_gen.py) — identity `e8423665…` (RC-3), prior `80d94f61…` recoverable · [`spec/RC3_FREEZE.md`](spec/RC3_FREEZE.md) |
+| **RC-2** — one-shot held-out geometry | the frozen family judged **once** on real blocks no round touched | ⛔ **excluded, as pre-stated** | mandatory trio failed on g6; the negative is registered and held-out · [`results/RC2_VERDICT.md`](results/RC2_VERDICT.md) · [`spec/RC2_FREEZE.md`](spec/RC2_FREEZE.md) |
+| **RC-3** — second campaign + one-shot | one new mechanism (pool spectrum) against honest 10-block bands | 🟡 **8/10 held-out — the mandatory trio passes** | first family ever to hold g1/g5/g6 on unseen data; misses g4 (+15%) and the G1-vs-n exponent, both pre-declared · [`results/RC3_VERDICT.md`](results/RC3_VERDICT.md) |
+| **RC-4** — the two named mechanisms | can the residual misses be fixed inside this family? | ⛔ **both refuted; frontier stands** | 48 arms, kills fired as registered; no freeze, no one-shot spent · [`results/RC4_VERDICT.md`](results/RC4_VERDICT.md) |
+| **RC-2 (sealed ANN prediction)** | geometry **predicts** ANN behaviour it never fit | 🔒 **sealed** | opens once, after full geometric admission — which no family has yet |
+| **Published tier** (T6–T12) | a usable benchmark above the real/procedural seam | ⛔ **gated** | requires full admission **and** the sealed prediction test |
 
 ```mermaid
 flowchart LR
     B["Geometry battery<br/>✅ discriminates"] --> R1{"RC-1<br/>generator matches<br/>real geometry?"}
-    R1 -->|"🟡 candidate found —<br/>grid admission pending"| FIT["Run §5 admission<br/>on the full grid"]
+    R1 -->|"🟡 frontier: 8/10 held-out,<br/>mandatory trio passes (RC-3);<br/>residuals proven family-level (RC-4)"| FIT["Architecture change<br/>(RC-5, if attempted)"]
     FIT --> R1
     R1 -->|pass| SEAL["Hash + seal<br/>the generator"]
     SEAL --> R2{"RC-2 (sealed,<br/>one shot):<br/>predicts ANN<br/>behaviour?"}
@@ -142,49 +145,40 @@ flowchart LR
     class R1,R2 block;
 ```
 
-### What's blocking RC-1 and RC-2
+### Where the seam stands after four campaigns
 
-**RC-1's blocker has moved from generator *design* to formal *admission*.** An
-eight-round pre-registered search campaign (every prediction, miss, and
-falsifier committed in [`results/`](results/)) produced a candidate:
-`hier_query_corpus` — a homogeneous coloured cluster hierarchy with an explicit
-**query-marginal model** — matches all six registered fitting gates within
-[0.5, 2.0]× *and* the base→base **hub anatomy** (skew/max-count within real's
-range) at n=8k, k=10, battery B, stably across seeds
-([`GEN_ROUND8_ANATOMY.md`](results/GEN_ROUND8_ANATOMY.md)). Two findings from
-the campaign now documented for reuse: real retrieval hubness lives
-substantially in the **query measure**, not the corpus
-([`spec/BOND_METRIC.md`](spec/BOND_METRIC.md)), and a scalar gate can be
-satisfied by the wrong mechanism — the registered anatomy falsifier caught the
-optimizer doing exactly that ([`GEN_ROUND7_QUERY.md`](results/GEN_ROUND7_QUERY.md)).
+The generator search ran four pre-registered campaigns in 2026 (every arm,
+miss, and kill committed in [`results/`](results/); ~340 configuration
+evaluations disclosed across [`spec/RC2_FREEZE.md`](spec/RC2_FREEZE.md) §4
+and [`spec/RC3_FREEZE.md`](spec/RC3_FREEZE.md) §4):
 
-**The formal §5 admission has now been run** (validation-stage: sealed rows
-excluded, seal never opened) — **the candidate is not admitted: 0/24 cells,
-with all six scaling-exponent failures on hubness growth**
-([`RC1_ROUND2_CANDIDATE.md`](results/RC1_ROUND2_CANDIDATE.md)). Reported per
-the binding falsification rule. The run converts the gap into a measured map:
+- **The deliverable exists**: a deterministic, bit-exact, chunk-invariant,
+  **random-access** generator ([`segment_gen.py`](openvector_bench/segment_gen.py))
+  whose geometry was judged on held-out real blocks under freeze-first
+  discipline — byte identity, expected outcome, and search budget declared
+  before any unseen data was touched, twice.
+- **RC-3's verdict is the frontier**: 8/10 registered criteria in band on
+  four untouched blocks, including the mandatory intrinsic-dimension /
+  contrast / hubness trio — the admission-critical result no prior family
+  reached on unseen data ([`results/RC3_VERDICT.md`](results/RC3_VERDICT.md)).
+- **The two residuals are precisely mapped, and RC-4 proved them
+  family-level** ([`results/RC4_VERDICT.md`](results/RC4_VERDICT.md)):
+  dims90 and PCA retention cannot jointly reach real under *any* reshaping
+  of the shared direction pool (four spectral forms refuted) — real keeps
+  neighbour-relevant variance partly outside its top PCA dimensions, which
+  a shared pool cannot express; and every g1exp lever tried slides along a
+  trend↔exponent trade curve instead of shifting it.
+- **A methodology finding with reach beyond this project**: real's own
+  block-to-block drift is comparable to several admission windows (its
+  density response varies 2.4× across corpus regions), so bands registered
+  from few blocks systematically over-exclude
+  ([`results/R68_REBAND10.md`](results/R68_REBAND10.md)).
 
-- **G5 passes 24/24** (and separates nothing, as §8 anticipated); **G2's centre
-  is right** (median 0.97 — the query-model ball-growth mechanism survives 25×
-  scale-up); G3/G4 are flat scale-independent colouring mis-tunes, not walls.
-- **Real's intrinsic dimension is n-flat (53–63 across 8× n); the candidate's
-  drifts** (64→76) — the n=8k fit does not transfer. Missing mechanism:
-  fine-scale near-duplicate structure that pins the two-NN reading.
-- **Hubness growth kills the mandatory gates**: a fixed query concentration
-  grows at +0.13/decade vs real's +0.22 (battery B), and battery A exposes a
-  protocol asymmetry now documented for a registered round-9 decision (real's
-  battery-A queries inherit Wikipedia's topical row ordering; the candidate's
-  held-out rows are exchangeable).
-- **Hash + seal** still follows any future validation pass; RC-2 unchanged.
-
-**RC-2 is blocked on RC-1.** It is a **sealed, single-use** test: hash one
-generator, open the sealed set **once**, and check whether matching the geometry
-predicts IVF recall curves, cell occupancy, margin distributions, and rerank
-depth *never used in fitting*. It cannot run until RC-1 yields a fitted, sealed
-generator — running it early burns the one shot.
-
-**Next:** (1) fit a generator on the train split, select on validation; (2) hash
-and seal it; (3) open RC-2 once. ([`spec/PREREG_RC1.md`](spec/PREREG_RC1.md) §5–§7.)
+**The sealed ANN-prediction test remains sealed.** Full geometric admission
+has not been reached; opening the seal early would burn the one shot.
+Successor work (RC-5, if attempted) requires an architecture change, not
+tuning: a generator whose fine-scale components have full amplitude in
+directions its global spectrum suppresses.
 
 ### Attacking the blocker: adversarial generator discovery
 
@@ -210,10 +204,13 @@ score, per_gate_errors = evaluate_fn(params)          # searcher minimises; fuzz
 
 Method, rationale, and the **binding integrity guardrails** (the seal stays
 sealed; search on train/validation only; report the budget):
-**[`spec/GENERATOR_SEARCH.md`](spec/GENERATOR_SEARCH.md)**. *Status: the 8-round
-campaign is closed with a fitting-stage candidate (rounds 0–8 in
-[`results/`](results/), each pre-registered, misses included); **no generator
-passes RC-1** — formal grid admission is the next step.*
+**[`spec/GENERATOR_SEARCH.md`](spec/GENERATOR_SEARCH.md)**. *Status: four
+campaigns closed (rounds through `R77` in [`results/`](results/), each
+pre-registered, misses included). The method delivered what it promised:
+mechanisms found by structured search, wrong mechanisms killed by
+registered falsifiers, and two one-shot held-out verdicts — one negative
+(RC-2), one 8/10 with the mandatory trio passing (RC-3). Full admission
+remains open; the residuals are proven family-level, not tuning gaps.*
 
 ### Why the 10¹¹ recall numbers aren't a tier
 

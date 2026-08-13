@@ -64,19 +64,25 @@ def main() -> int:
     print("k     median|di|   frac|di|<=128   frac|di|<=1000")
     for k in KS:
         g = gap[:, :k]
-        print(f"{k:4d}   {np.median(g):9.0f}   {float((g <= 128).mean()):13.3f}   "
-              f"{float((g <= 1000).mean()):14.3f}")
+        print(
+            f"{k:4d}   {np.median(g):9.0f}   {float((g <= 128).mean()):13.3f}   "
+            f"{float((g <= 1000).mean()):14.3f}"
+        )
     print()
     for k in (4, 100, 500):
         g = gap[:, :k]
-        print(f"k={k:3d}: mean count with |di|<=128 = "
-              f"{float((g <= 128).sum(1).mean()):7.2f} of {k}   "
-              f"(an index-ordered construction would give {min(k, 128)})")
+        print(
+            f"k={k:3d}: mean count with |di|<=128 = "
+            f"{float((g <= 128).sum(1).mean()):7.2f} of {k}   "
+            f"(an index-ordered construction would give {min(k, 128)})"
+        )
 
-    res = {"k": list(KS),
-           "median_gap": [float(np.median(gap[:, :k])) for k in KS],
-           "frac_le128": [float((gap[:, :k] <= 128).mean()) for k in KS],
-           "frac_le1000": [float((gap[:, :k] <= 1000).mean()) for k in KS]}
+    res = {
+        "k": list(KS),
+        "median_gap": [float(np.median(gap[:, :k])) for k in KS],
+        "frac_le128": [float((gap[:, :k] <= 128).mean()) for k in KS],
+        "frac_le1000": [float((gap[:, :k] <= 1000).mean()) for k in KS],
+    }
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(res, f, indent=2)
     print(f"wrote {OUT}")

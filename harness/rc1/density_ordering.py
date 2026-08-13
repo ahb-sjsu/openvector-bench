@@ -56,7 +56,7 @@ FILDIM = json.loads(os.environ.get("DO_FILDIM", "[48]"))
 ARRDIM = int(os.environ.get("DO_ARRDIM", "40"))
 SIZES = json.loads(os.environ.get("DO_SIZES", '["fixed"]'))
 PMAX = max(POOLS)
-TGT_R, TGT_G = 2.397, -0.494          # PROFILE.md §3b
+TGT_R, TGT_G = 2.397, -0.494  # PROFILE.md §3b
 
 
 def ladder(full: np.ndarray, tag: str) -> dict:
@@ -68,11 +68,14 @@ def ladder(full: np.ndarray, tag: str) -> dict:
         m[hr.choice(pool_n, NQ, replace=False)] = True
         q, body = pool[m], pool[~m]
         r2 = np.random.default_rng(10_000 + N_FIX)
-        d, _ = knn(body[r2.choice(len(body), N_FIX, replace=False)], q,
-                   max(PROFILE_KGRID))
-        rec[str(pool_n)] = {"density": N_FIX / pool_n,
-                            "ratio": profile_ratio(d),
-                            "g1": float(id_twonn(d))}
+        d, _ = knn(
+            body[r2.choice(len(body), N_FIX, replace=False)], q, max(PROFILE_KGRID)
+        )
+        rec[str(pool_n)] = {
+            "density": N_FIX / pool_n,
+            "ratio": profile_ratio(d),
+            "g1": float(id_twonn(d)),
+        }
     rs = [rec[str(p)]["ratio"] for p in POOLS]
     gs = [rec[str(p)]["g1"] for p in POOLS]
     sp = rs[0] - rs[-1]
@@ -80,14 +83,27 @@ def ladder(full: np.ndarray, tag: str) -> dict:
     mono = all(rs[i] >= rs[i + 1] for i in range(len(rs) - 1))
     print(f"  {tag:22s} ratios {[round(v, 2) for v in rs]}", flush=True)
     print(f"  {tag:22s} G1     {[round(v, 1) for v in gs]}", flush=True)
-    print(f"  {tag:22s} SPAN r {sp:+.3f} (tgt {TGT_R:+.3f})  g {gsp:+.3f} "
-          f"(tgt {TGT_G:+.3f})  monotone={mono}\n", flush=True)
-    return {"per_density": rec, "ratio_span": sp, "logg1_span": gsp,
-            "monotone": mono}
+    print(
+        f"  {tag:22s} SPAN r {sp:+.3f} (tgt {TGT_R:+.3f})  g {gsp:+.3f} "
+        f"(tgt {TGT_G:+.3f})  monotone={mono}\n",
+        flush=True,
+    )
+    return {"per_density": rec, "ratio_span": sp, "logg1_span": gsp, "monotone": mono}
 
 
-def filament_ordered(ppt, fil_dim, arr_dim, fs, n, dim, seed, sizes="fixed",
-                     log2_basis=13.0, chunk=50_000, size_sd=0.8) -> np.ndarray:
+def filament_ordered(
+    ppt,
+    fil_dim,
+    arr_dim,
+    fs,
+    n,
+    dim,
+    seed,
+    sizes="fixed",
+    log2_basis=13.0,
+    chunk=50_000,
+    size_sd=0.8,
+) -> np.ndarray:
     """Filaments with CONTIGUOUS group ownership.
 
     ``sizes='fixed'`` gives hard blocks of ``ppt`` rows; ``'lognorm'`` gives
@@ -102,22 +118,24 @@ def filament_ordered(ppt, fil_dim, arr_dim, fs, n, dim, seed, sizes="fixed",
         bounds = np.arange(1, n_thread + 1, dtype=np.int64) * int(round(ppt))
     else:
         est = int(n / ppt * 1.6) + 16
-        ln = rng.lognormal(np.log(ppt) - 0.5 * size_sd ** 2, size_sd, est)
+        ln = rng.lognormal(np.log(ppt) - 0.5 * size_sd**2, size_sd, est)
         bounds = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
         bounds = np.append(bounds[bounds < n], n)
         n_thread = len(bounds)
-    n_basis = max(fil_dim * 2, int(round(2 ** log2_basis)))
+    n_basis = max(fil_dim * 2, int(round(2**log2_basis)))
     basis_a = np.linalg.qr(rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
     cc = rng.standard_normal((n_thread, arr_dim)).astype(np.float32)
     cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
-    basis_pool = (rng.standard_normal((n_basis, dim)).astype(np.float32)
-                  / np.sqrt(dim, dtype=np.float32))
+    basis_pool = rng.standard_normal((n_basis, dim)).astype(np.float32) / np.sqrt(
+        dim, dtype=np.float32
+    )
     thread_idx = rng.integers(0, n_basis, (n_thread, fil_dim))
     x = np.empty((n, dim), dtype=np.float32)
     for s in range(0, n, chunk):
         e = min(s + chunk, n)
         own = np.minimum(
-            np.searchsorted(bounds, np.arange(s, e), side="right"), n_thread - 1)
+            np.searchsorted(bounds, np.arange(s, e), side="right"), n_thread - 1
+        )
         acc = cc[own] @ basis_a.T
         u = rng.standard_normal((e - s, fil_dim)).astype(np.float32)
         sel = thread_idx[own]
@@ -147,15 +165,21 @@ def main() -> int:
         i = rr.integers(0, PMAX, 200_000)
         j = rr.integers(0, PMAX, 200_000)
         rnd = float(np.mean(np.sum(real[i] * real[j], axis=1)))
-        reach = {str(g): float(np.mean(
-            np.sum(real[:100_000] * real[g:100_000 + g], axis=1)))
-            for g in (1, 2, 4, 8, 16, 32, 64, 128)}
-        print(f"REAL ORDERING: adjacent cos {adj:.4f}   random cos {rnd:.4f}",
-              flush=True)
-        print("  cos by gap:", {k: round(v, 4) for k, v in reach.items()},
-              flush=True)
-        out["real_ordering"] = {"adjacent_cos": adj, "random_cos": rnd,
-                                "cos_by_gap": reach}
+        reach = {
+            str(g): float(
+                np.mean(np.sum(real[:100_000] * real[g : 100_000 + g], axis=1))
+            )
+            for g in (1, 2, 4, 8, 16, 32, 64, 128)
+        }
+        print(
+            f"REAL ORDERING: adjacent cos {adj:.4f}   random cos {rnd:.4f}", flush=True
+        )
+        print("  cos by gap:", {k: round(v, 4) for k, v in reach.items()}, flush=True)
+        out["real_ordering"] = {
+            "adjacent_cos": adj,
+            "random_cos": rnd,
+            "cos_by_gap": reach,
+        }
         del real
 
     # (2) The §3b ladder under contiguous ownership.
@@ -169,8 +193,11 @@ def main() -> int:
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump(out, f, indent=2)
 
-    print(f"REAL TARGET      RATIO SPAN {TGT_R:+.3f} +- 0.085   "
-          f"logG1 SPAN {TGT_G:+.3f} +- 0.054", flush=True)
+    print(
+        f"REAL TARGET      RATIO SPAN {TGT_R:+.3f} +- 0.085   "
+        f"logG1 SPAN {TGT_G:+.3f} +- 0.054",
+        flush=True,
+    )
     print(f"wrote {OUT}", flush=True)
     print("DENSITY_ORDERING_DONE", flush=True)
     return 0

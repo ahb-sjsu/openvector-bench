@@ -148,10 +148,20 @@ def main() -> int:
     os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(
-            {"config": {"ns": NS, "nq": NQ, "kmax": KMAX, "kgrid": KGRID, "seed": SEED,
-                        "arms": ARMS},
-             "results": results, "shape": shape},
-            f, indent=2,
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                    "arms": ARMS,
+                },
+                "results": results,
+                "shape": shape,
+            },
+            f,
+            indent=2,
         )
     print(f"wrote {OUT}", flush=True)
     print("SCALE_PROBE2_DONE", flush=True)

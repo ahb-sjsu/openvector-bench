@@ -29,7 +29,7 @@ import sys
 
 import numpy as np
 
-from openvector_bench.geometry import normalize, reproducible_matmul
+from openvector_bench.geometry import normalize, reproducible_matmul  # noqa: E402
 
 
 def _h(a: np.ndarray) -> str:
@@ -42,9 +42,11 @@ def probe() -> dict:
     b = rng.standard_normal((64, 128)).astype(np.float32)
 
     out = {
-        "toolchain": {"platform": platform.platform(),
-                      "python": platform.python_version(),
-                      "numpy": np.__version__},
+        "toolchain": {
+            "platform": platform.platform(),
+            "python": platform.python_version(),
+            "numpy": np.__version__,
+        },
         "rng_inputs": {"a": _h(a), "b": _h(b)},
         "matmul_f32": _h(a @ b),
         "matmul_f64": _h(a.astype(np.float64) @ b.astype(np.float64)),

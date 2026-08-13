@@ -35,18 +35,37 @@ from openvector_bench.generators import philox_u8
 PARAMS = {"rows": 4096, "dim": 128, "salt": "ovb-xtool-test"}
 # Spread across the index space, including past 2**31 and 2**32 where a
 # careless implementation would wrap.
-SHARDS = [0, 1, 2, 3, 7, 15, 63, 255, 1000, 4095, 65535, 1_000_000,
-          10 ** 7, 2 ** 31 - 1, 2 ** 32 + 17, 10 ** 12]
+SHARDS = [
+    0,
+    1,
+    2,
+    3,
+    7,
+    15,
+    63,
+    255,
+    1000,
+    4095,
+    65535,
+    1_000_000,
+    10**7,
+    2**31 - 1,
+    2**32 + 17,
+    10**12,
+]
 
 
 def fingerprint() -> dict:
     return {
-        "toolchain": {"platform": platform.platform(),
-                      "python": platform.python_version(),
-                      "numpy": numpy.__version__},
+        "toolchain": {
+            "platform": platform.platform(),
+            "python": platform.python_version(),
+            "numpy": numpy.__version__,
+        },
         "params": PARAMS,
-        "sha256": {str(s): hashlib.sha256(philox_u8(s, PARAMS)).hexdigest()
-                   for s in SHARDS},
+        "sha256": {
+            str(s): hashlib.sha256(philox_u8(s, PARAMS)).hexdigest() for s in SHARDS
+        },
     }
 
 
@@ -58,12 +77,16 @@ def compare(path_a: str, path_b: str) -> int:
         print(f"{tag}: {t['platform']}  python {t['python']}  numpy {t['numpy']}")
     keys = sorted(a["sha256"], key=int)
     match = [k for k in keys if a["sha256"][k] == b["sha256"].get(k)]
-    print(f"\ncross-toolchain regeneration: {len(match)}/{len(keys)} byte-identical "
-          f"({100.0 * len(match) / len(keys):.1f}%)")
+    print(
+        f"\ncross-toolchain regeneration: {len(match)}/{len(keys)} byte-identical "
+        f"({100.0 * len(match) / len(keys):.1f}%)"
+    )
     for k in keys:
         if a["sha256"][k] != b["sha256"].get(k):
-            print(f"  MISMATCH shard {k}: {a['sha256'][k][:16]} vs "
-                  f"{str(b['sha256'].get(k))[:16]}")
+            print(
+                f"  MISMATCH shard {k}: {a['sha256'][k][:16]} vs "
+                f"{str(b['sha256'].get(k))[:16]}"
+            )
     return 0 if len(match) == len(keys) else 1
 
 

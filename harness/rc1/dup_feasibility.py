@@ -93,10 +93,14 @@ def depth_stats(n_total: int, n_roots: int, samples: int) -> dict:
         cur[alive] = s
         alive[alive] = s >= n_roots
         steps += 1
-    return {"n_total": int(n_total), "mean": float(depth.mean()),
-            "p50": float(np.percentile(depth, 50)),
-            "p99": float(np.percentile(depth, 99)),
-            "max": int(depth.max()), "ln_n": float(np.log(n_total))}
+    return {
+        "n_total": int(n_total),
+        "mean": float(depth.mean()),
+        "p50": float(np.percentile(depth, 50)),
+        "p99": float(np.percentile(depth, 99)),
+        "max": int(depth.max()),
+        "ln_n": float(np.log(n_total)),
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -111,8 +115,9 @@ def build(n: int, dim: int, rng, base_dim: int, frac: float, sigma: float):
     while filled < n:
         take = min(block, n - filled)
         src = rng.integers(0, filled, take)
-        x[filled:filled + take] = x[src] + np.float32(sigma) * rng.standard_normal(
-            (take, dim)).astype(np.float32)
+        x[filled : filled + take] = x[src] + np.float32(sigma) * rng.standard_normal(
+            (take, dim)
+        ).astype(np.float32)
         filled += take
     return x
 
@@ -135,14 +140,22 @@ def arm(name: str, base_dim: int, frac: float, sigma: float) -> dict:
         trends.append(tr)
         g1means.append(float(np.mean(g1s)))
         per_seed.append({"seed": sd, "ratios": ratios, "trend": tr, "g1": g1s})
-        print(f"  {name} seed {sd}: ratios {[round(r,3) for r in ratios]} "
-              f"trend {tr:+.3f} G1 {[round(g,1) for g in g1s]}", flush=True)
-    out = {"per_seed": per_seed,
-           "trend_mean": float(np.mean(trends)),
-           "trend_sd": float(np.std(trends, ddof=1)) if len(trends) > 1 else 0.0,
-           "g1_mean": float(np.mean(g1means))}
-    print(f"  -> {name}: trend {out['trend_mean']:+.3f} +/- {out['trend_sd']:.3f}, "
-          f"mean G1 {out['g1_mean']:.1f}", flush=True)
+        print(
+            f"  {name} seed {sd}: ratios {[round(r,3) for r in ratios]} "
+            f"trend {tr:+.3f} G1 {[round(g,1) for g in g1s]}",
+            flush=True,
+        )
+    out = {
+        "per_seed": per_seed,
+        "trend_mean": float(np.mean(trends)),
+        "trend_sd": float(np.std(trends, ddof=1)) if len(trends) > 1 else 0.0,
+        "g1_mean": float(np.mean(g1means)),
+    }
+    print(
+        f"  -> {name}: trend {out['trend_mean']:+.3f} +/- {out['trend_sd']:.3f}, "
+        f"mean G1 {out['g1_mean']:.1f}",
+        flush=True,
+    )
     return out
 
 
@@ -154,20 +167,27 @@ def main() -> int:
     for n_total in (10**6, 10**9, 10**12):
         d = depth_stats(n_total, n_roots=1000, samples=SAMPLES)
         depths[str(n_total)] = d
-        print(f"  n=1e{int(np.log10(n_total)):2d}  mean depth {d['mean']:6.2f}  "
-              f"p50 {d['p50']:4.0f}  p99 {d['p99']:5.0f}  max {d['max']:5d}  "
-              f"(ln n = {d['ln_n']:.1f})", flush=True)
+        print(
+            f"  n=1e{int(np.log10(n_total)):2d}  mean depth {d['mean']:6.2f}  "
+            f"p50 {d['p50']:4.0f}  p99 {d['p99']:5.0f}  max {d['max']:5d}  "
+            f"(ln n = {d['ln_n']:.1f})",
+            flush=True,
+        )
     res["depth"] = depths
 
     d12 = depths[str(10**12)]
-    ops = d12["p99"] * DIM          # accumulate ops per row at the tail
-    bmp = 1200                       # bitmap_gen coordinate writes per row
-    rows_per_s = 1e9 / max(ops, 1)   # ~1e9 simple ops/s/core
+    ops = d12["p99"] * DIM  # accumulate ops per row at the tail
+    bmp = 1200  # bitmap_gen coordinate writes per row
+    rows_per_s = 1e9 / max(ops, 1)  # ~1e9 simple ops/s/core
     mb_s = rows_per_s * DIM * 4 / 1e6
-    print(f"\n  cost at p99 depth: {ops:.0f} ops/row vs bitmap_gen ~{bmp} "
-          f"-> ~{rows_per_s:,.0f} rows/s/core = {mb_s:.0f} MB/s/core", flush=True)
-    print(f"  bound is ~10 MB/s/core (below it, fetching beats regeneration)",
-          flush=True)
+    print(
+        f"\n  cost at p99 depth: {ops:.0f} ops/row vs bitmap_gen ~{bmp} "
+        f"-> ~{rows_per_s:,.0f} rows/s/core = {mb_s:.0f} MB/s/core",
+        flush=True,
+    )
+    print(
+        "  bound is ~10 MB/s/core (below it, fetching beats regeneration)", flush=True
+    )
     ok = mb_s > 10.0
     print(f"  RANDOM ACCESS: {'VIABLE' if ok else 'NOT VIABLE'}", flush=True)
     res["random_access_viable"] = bool(ok)
@@ -178,8 +198,11 @@ def main() -> int:
     t_ratios = [tg[str(n)]["ratio"] for n in NS if str(n) in tg]
     t_trend = float(np.polyfit(np.log([n for n in NS if str(n) in tg]), t_ratios, 1)[0])
     t_g1 = float(np.mean([tg[str(n)]["g1"] for n in NS if str(n) in tg]))
-    print(f"target trend {t_trend:+.3f}, mean G1 {t_g1:.1f} "
-          f"(real's own block-to-block trend sd is 0.099)\n", flush=True)
+    print(
+        f"target trend {t_trend:+.3f}, mean G1 {t_g1:.1f} "
+        f"(real's own block-to-block trend sd is 0.099)\n",
+        flush=True,
+    )
     t0 = time.time()
     res["arms"] = {
         "lowdim20_f0.6_s0.15": arm("lowdim20 f0.6 s0.15", 20, 0.6, 0.15),

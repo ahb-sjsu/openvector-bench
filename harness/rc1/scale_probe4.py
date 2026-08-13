@@ -86,8 +86,14 @@ def load_real(path: str, cap: int) -> np.ndarray:
 
 def bitmap_params(depth: float) -> dict:
     p = dict(zip([s[0] for s in BITMAP_PARAMS], [s[3] for s in BITMAP_PARAMS]))
-    p.update(log2_branch=1.0, scale_decay=1.0, noise=0.0, m0_frac=0.015,
-             depth=depth, dim_decay=0.0)
+    p.update(
+        log2_branch=1.0,
+        scale_decay=1.0,
+        noise=0.0,
+        m0_frac=0.015,
+        depth=depth,
+        dim_decay=0.0,
+    )
     return p
 
 
@@ -114,12 +120,19 @@ def main() -> int:
         if name.startswith("bitmap_L"):
             return bitmap_corpus(bitmap_params(float(name[8:])), CAP, DIM, SEED)
         if name == "strat_as_built":
-            return stratified_corpus(decode(np.array([]), STRATIFIED_PARAMS),
-                                     CAP, DIM, SEED)
+            return stratified_corpus(
+                decode(np.array([]), STRATIFIED_PARAMS), CAP, DIM, SEED
+            )
         raise ValueError(name)
 
-    names = ["real", "null_gaussian", "null_lowrank", "bitmap_L60", "bitmap_L90",
-             "strat_as_built"]
+    names = [
+        "real",
+        "null_gaussian",
+        "null_lowrank",
+        "bitmap_L60",
+        "bitmap_L90",
+        "strat_as_built",
+    ]
     results: dict[str, dict] = {}
 
     for name in names:
@@ -134,26 +147,47 @@ def main() -> int:
             r = np.array([float(np.median(d[:, k - 1])) for k in KGRID])
             s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
             beta = float(np.log(s[-1] / max(s[0], 1e-9)) / np.log(r[-1] / r[0]))
-            per_n[str(n)] = {"g1_twonn": float(id_twonn(d)), "r": r.tolist(),
-                             "s": s.tolist(), "s_lo": float(s[0]), "s_hi": float(s[-1]),
-                             "s_ratio": float(s[-1] / max(s[0], 1e-9)), "beta": beta}
-            print(f"{name:15s} n={n:6d} G1={per_n[str(n)]['g1_twonn']:7.2f} "
-                  f"s {s[0]:6.1f} -> {s[-1]:6.1f} (x{per_n[str(n)]['s_ratio']:.2f}) "
-                  f"beta={beta:+7.2f}  r {r[0]:.3f}..{r[-1]:.3f}", flush=True)
+            per_n[str(n)] = {
+                "g1_twonn": float(id_twonn(d)),
+                "r": r.tolist(),
+                "s": s.tolist(),
+                "s_lo": float(s[0]),
+                "s_hi": float(s[-1]),
+                "s_ratio": float(s[-1] / max(s[0], 1e-9)),
+                "beta": beta,
+            }
+            print(
+                f"{name:15s} n={n:6d} G1={per_n[str(n)]['g1_twonn']:7.2f} "
+                f"s {s[0]:6.1f} -> {s[-1]:6.1f} (x{per_n[str(n)]['s_ratio']:.2f}) "
+                f"beta={beta:+7.2f}  r {r[0]:.3f}..{r[-1]:.3f}",
+                flush=True,
+            )
         # collapse across n on the shared log-r window
         lo = max(np.log(per_n[str(n)]["r"][0]) for n in NS)
         hi = min(np.log(per_n[str(n)]["r"][-1]) for n in NS)
         if hi > lo:
             g = np.linspace(lo, hi, 12)
-            M = np.vstack([np.interp(g, np.log(per_n[str(n)]["r"]), per_n[str(n)]["s"])
-                           for n in NS])
-            coll = float(np.mean(np.std(M, 0) / np.maximum(np.abs(np.mean(M, 0)), 1e-9)))
+            M = np.vstack(
+                [
+                    np.interp(g, np.log(per_n[str(n)]["r"]), per_n[str(n)]["s"])
+                    for n in NS
+                ]
+            )
+            coll = float(
+                np.mean(np.std(M, 0) / np.maximum(np.abs(np.mean(M, 0)), 1e-9))
+            )
         else:
             coll = float("nan")
-        results[name] = {"per_n": per_n, "collapse": coll,
-                         "beta_mean": float(np.mean([per_n[str(n)]["beta"] for n in NS]))}
-        print(f"  -> {name}: beta_mean {results[name]['beta_mean']:+.2f} "
-              f"collapse {coll:.4f}", flush=True)
+        results[name] = {
+            "per_n": per_n,
+            "collapse": coll,
+            "beta_mean": float(np.mean([per_n[str(n)]["beta"] for n in NS])),
+        }
+        print(
+            f"  -> {name}: beta_mean {results[name]['beta_mean']:+.2f} "
+            f"collapse {coll:.4f}",
+            flush=True,
+        )
         del x, q, base_pool
         gc.collect()
 
@@ -161,13 +195,29 @@ def main() -> int:
     print("\n=== normalized scale dependence (beta = dlog s / dlog r) ===", flush=True)
     for name in names:
         b = results[name]["beta_mean"]
-        print(f"  {name:15s} beta={b:+7.2f}   real/{name} = "
-              f"{(rb / b if abs(b) > 1e-9 else float('nan')):+.2f}", flush=True)
+        print(
+            f"  {name:15s} beta={b:+7.2f}   real/{name} = "
+            f"{(rb / b if abs(b) > 1e-9 else float('nan')):+.2f}",
+            flush=True,
+        )
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"ns": NS, "nq": NQ, "cap": CAP, "kgrid": KGRID,
-                              "seed": SEED, "rank": rank, "anchors": ANCHORS},
-                   "results": results}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "cap": CAP,
+                    "kgrid": KGRID,
+                    "seed": SEED,
+                    "rank": rank,
+                    "anchors": ANCHORS,
+                },
+                "results": results,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("SCALE_PROBE4_DONE", flush=True)
     return 0

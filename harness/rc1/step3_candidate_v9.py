@@ -20,8 +20,8 @@ from dataclasses import asdict
 
 import numpy as np
 
-from openvector_bench import geometry as G
-from openvector_bench.generator_search import hier_dupq_corpus
+from openvector_bench import geometry as G  # noqa: E402
+from openvector_bench.generator_search import hier_dupq_corpus  # noqa: E402
 
 TARGETS = os.environ.get("RC_TARGETS", "/home/claude/r9/rc1_targets_v3.json")
 PARAMS_PATH = os.environ.get("RC_PARAMS", "/home/claude/r9/fit_v9_result.json")

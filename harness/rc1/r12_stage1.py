@@ -37,8 +37,8 @@ import time
 
 import numpy as np
 
-from openvector_bench import geometry as G
-from openvector_bench.generator_search import (
+from openvector_bench import geometry as G  # noqa: E402
+from openvector_bench.generator_search import (  # noqa: E402
     QUERY_FRAC,
     hier_r12_corpus,
     set_spectrum_target,

@@ -98,32 +98,38 @@ def main() -> int:
         gap = np.abs(bi[nn] - qi[:, None])
         print("real article-centre cloud: are its neighbours article-index-local?")
         for k in (1, 4, 16, 64, 200):
-            print(f"  k={k:3d}  median |d article| {np.median(gap[:, :k]):8.0f} "
-                  f"of {len(rc)}   frac<=10 {float((gap[:, :k] <= 10).mean()):.3f}")
+            print(
+                f"  k={k:3d}  median |d article| {np.median(gap[:, :k]):8.0f} "
+                f"of {len(rc)}   frac<=10 {float((gap[:, :k] <= 10).mean()):.3f}"
+            )
         out["real_centre_gaps"] = {
-            str(k): float(np.median(gap[:, :k])) for k in (1, 4, 16, 64, 200)}
+            str(k): float(np.median(gap[:, :k])) for k in (1, 4, 16, 64, 200)
+        }
         del real, rc
 
     print("\nper_super d_loc d_glob w_loc |  s(4)   s(500)  ratio    G1     err")
     best = None
     for per, dl, dg, wl in itertools.product(
-            (200, 600, 2000), (40, 52, 64), (80, 110), (0.4, 0.7)):
+        (200, 600, 2000), (40, 52, 64), (80, 110), (0.4, 0.7)
+    ):
         c = hier_centres(NA, DIM, per, dl, dg, wl)
         s4, s5, rat, g1 = profile(c)
         del c
-        err = (abs(s4 - T_S4) / T_S4 + abs(s5 - T_S500) / T_S500
-               + abs(g1 - T_G1) / T_G1)
+        err = abs(s4 - T_S4) / T_S4 + abs(s5 - T_S500) / T_S500 + abs(g1 - T_G1) / T_G1
         key = f"p{per}_dl{dl}_dg{dg}_w{wl}"
         out[key] = {"s4": s4, "s500": s5, "ratio": rat, "g1": g1, "err": err}
         if best is None or err < best[0]:
             best = (err, key)
-        print(f"  {per:5d}   {dl:3d}   {dg:4d}  {wl:.1f} | {s4:6.2f} {s5:7.2f} "
-              f"{rat:6.3f} {g1:7.2f} {err:7.3f}")
-    print(f"\nTARGET (real b=1)             | {T_S4:6.2f} {T_S500:7.2f} "
-          f"{T_S500 / T_S4:6.3f} {T_G1:7.2f}")
+        print(
+            f"  {per:5d}   {dl:3d}   {dg:4d}  {wl:.1f} | {s4:6.2f} {s5:7.2f} "
+            f"{rat:6.3f} {g1:7.2f} {err:7.3f}"
+        )
+    print(
+        f"\nTARGET (real b=1)             | {T_S4:6.2f} {T_S500:7.2f} "
+        f"{T_S500 / T_S4:6.3f} {T_G1:7.2f}"
+    )
     print(f"closest by combined error: {best[1]}")
-    ok = sum(1 for v in out.values()
-             if isinstance(v, dict) and v.get("s500", 0) > 20)
+    ok = sum(1 for v in out.values() if isinstance(v, dict) and v.get("s500", 0) > 20)
     print(f"{ok} arms gave a non-collapsed s(500) -- the working region is narrow")
 
     with open(OUT, "w", encoding="utf-8") as f:

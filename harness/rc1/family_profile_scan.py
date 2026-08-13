@@ -79,21 +79,31 @@ def scan(name, spec, gen) -> dict:
         ratios.append(profile_ratio(d))
     trend = float(np.polyfit(np.log(NS), ratios, 1)[0])
     z = (trend - TREND) / TREND_SD
-    return {"ratios": [round(r, 3) for r in ratios], "trend": trend,
-            "z": float(z), "seconds": time.time() - t0}
+    return {
+        "ratios": [round(r, 3) for r in ratios],
+        "trend": trend,
+        "z": float(z),
+        "seconds": time.time() - t0,
+    }
 
 
 def main() -> int:
     print(f"dim={DIM} rungs={NS} nq={NQ}", flush=True)
-    print(f"registered target: trend {TREND:+.3f} +/- {TREND_SD:.3f} "
-          f"(band [{TREND-2*TREND_SD:+.3f}, {TREND+2*TREND_SD:+.3f}])\n", flush=True)
+    print(
+        f"registered target: trend {TREND:+.3f} +/- {TREND_SD:.3f} "
+        f"(band [{TREND-2*TREND_SD:+.3f}, {TREND+2*TREND_SD:+.3f}])\n",
+        flush=True,
+    )
     out = {}
     for name, spec, gen in FAMILIES:
         try:
             r = scan(name, spec, gen)
             out[name] = r
-            print(f"{name:20s} ratios {str(r['ratios']):22s} trend {r['trend']:+.3f} "
-                  f"z {r['z']:+7.2f}  ({r['seconds']:.0f}s)", flush=True)
+            print(
+                f"{name:20s} ratios {str(r['ratios']):22s} trend {r['trend']:+.3f} "
+                f"z {r['z']:+7.2f}  ({r['seconds']:.0f}s)",
+                flush=True,
+            )
         except Exception as e:
             out[name] = {"error": f"{type(e).__name__}: {e}"}
             print(f"{name:20s} FAILED {type(e).__name__}: {e}", flush=True)
@@ -103,12 +113,26 @@ def main() -> int:
         best = min(ok.items(), key=lambda kv: abs(kv[1]["z"]))
         print(f"\nclosest family: {best[0]} at z {best[1]['z']:+.2f}", flush=True)
         rising = [k for k, v in ok.items() if v["trend"] > 0.1]
-        print(f"families with a meaningfully rising profile: {rising or 'NONE'}",
-              flush=True)
+        print(
+            f"families with a meaningfully rising profile: {rising or 'NONE'}",
+            flush=True,
+        )
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"dim": DIM, "ns": NS, "nq": NQ, "seed": SEED,
-                              "target_trend": TREND, "target_sd": TREND_SD},
-                   "families": out}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "dim": DIM,
+                    "ns": NS,
+                    "nq": NQ,
+                    "seed": SEED,
+                    "target_trend": TREND,
+                    "target_sd": TREND_SD,
+                },
+                "families": out,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("FAMILY_SCAN_DONE", flush=True)
     return 0

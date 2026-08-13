@@ -26,7 +26,7 @@ import os
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 from hashgpu import hgauss_t, hidx_t, hunif_t, verify
 
@@ -37,16 +37,36 @@ from hashgpu import hgauss_t, hidx_t, hunif_t, verify
 probe = None
 
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
-print("device=" + DEV + " " + (torch.cuda.get_device_name(0) if DEV == "cuda" else ""),
-      flush=True)
+print(
+    "device=" + DEV + " " + (torch.cuda.get_device_name(0) if DEV == "cuda" else ""),
+    flush=True,
+)
 verify(DEV)
 
 DIM, ART_MEAN, POOL = 1024, 23, 600000
 N_FIX, NQ = 25000, 10000
 NEED = N_FIX + NQ
 KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
-REAL_S = np.array([8.82, 9.43, 11.46, 14.02, 16.08, 20.11, 23.40, 26.01,
-                   28.88, 29.98, 31.29, 33.19, 34.02, 34.82, 35.53, 35.73])
+REAL_S = np.array(
+    [
+        8.82,
+        9.43,
+        11.46,
+        14.02,
+        16.08,
+        20.11,
+        23.40,
+        26.01,
+        28.88,
+        29.98,
+        31.29,
+        33.19,
+        34.02,
+        34.82,
+        35.53,
+        35.73,
+    ]
+)
 MAXLEV = 8
 
 
@@ -74,34 +94,50 @@ def seg_of(a_t, pos_t, brk):
     return a_t * 1000003 + chosen * 7919 + (pos_t >> chosen)
 
 
-def build(brk=0.35, fil_dim=48, nlev=6, d_loc=64, d_glob=57, w_loc=0.6,
-          fil_scale=1.0, arr_levels=3, branch=8, size_spread=1.2,
-          log2_pool=13, seed=41):
+def build(
+    brk=0.35,
+    fil_dim=48,
+    nlev=6,
+    d_loc=64,
+    d_glob=57,
+    w_loc=0.6,
+    fil_scale=1.0,
+    arr_levels=3,
+    branch=8,
+    size_spread=1.2,
+    log2_pool=13,
+    seed=41,
+):
     rng = np.random.default_rng(seed)
-    ln = rng.lognormal(np.log(ART_MEAN) - 0.5 * size_spread ** 2, size_spread,
-                       int(POOL / ART_MEAN * 2.5) + 16)
+    ln = rng.lognormal(
+        np.log(ART_MEAN) - 0.5 * size_spread**2,
+        size_spread,
+        int(POOL / ART_MEAN * 2.5) + 16,
+    )
     b = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
     b = np.append(b[b < POOL], POOL)
     n_art = len(b)
     starts = np.concatenate([[0], b[:-1]])
-    npool = int(2 ** log2_pool)
+    npool = int(2**log2_pool)
     pool = torch.from_numpy(
-        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)).to(DEV)
-    bg = torch.from_numpy(np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0]
-                          .astype(np.float32)).to(DEV)
+        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)
+    ).to(DEV)
+    bg = torch.from_numpy(
+        np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0].astype(np.float32)
+    ).to(DEV)
 
     # arrangement: nested clustering over ARTICLES (R49)
     cen = torch.zeros((n_art, DIM), device=DEV)
-    lw = np.array([0.72 ** L for L in range(arr_levels)], dtype=np.float32)
+    lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
     for L in range(arr_levels):
-        ncl = max(2, int(round(n_art / (27 * branch ** L))))
+        ncl = max(2, int(round(n_art / (27 * branch**L))))
         cid = torch.from_numpy(rng.integers(0, ncl, n_art)).to(DEV)
         cc = rng.standard_normal((ncl, d_glob)).astype(np.float32)
         cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
         cen += float(lw[L]) * (torch.from_numpy(cc).to(DEV)[cid] @ bg.T)
 
-    plw = np.sqrt(np.array([0.45 * (0.72 ** i) for i in range(nlev)], dtype=np.float32))
+    plw = np.sqrt(np.array([0.45 * (0.72**i) for i in range(nlev)], dtype=np.float32))
     plw /= np.linalg.norm(plw)
     a_of = np.repeat(np.arange(n_art), (b - starts))[:POOL]
     pos = np.arange(POOL) - starts[a_of]
@@ -152,7 +188,7 @@ def knn_batch(base, q, k):
     bs = 1024
     while bs * 2 <= q.shape[0]:
         try:
-            sim = q[:bs * 2] @ base.T
+            sim = q[: bs * 2] @ base.T
             torch.topk(sim, k, dim=1)
             del sim
             if DEV == "cuda":
@@ -162,7 +198,7 @@ def knn_batch(base, q, k):
             if DEV == "cuda":
                 torch.cuda.empty_cache()
             break
-    bs = max(1024, int(bs * 0.75))          # headroom
+    bs = max(1024, int(bs * 0.75))  # headroom
     print("  sized k-NN batch %d (was a hand-guessed 2048)" % bs, flush=True)
     _KNN_BS[0] = bs
     return bs
@@ -172,7 +208,7 @@ def knn_t(base, q, k):
     od, oi = [], []
     bs = knn_batch(base, q, k)
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -180,7 +216,7 @@ def knn_t(base, q, k):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -189,8 +225,11 @@ def clumped(n_rows, need, bb, rng):
     st = rng.choice(max(1, n_rows - bb), size=nb, replace=False)
     idx = np.unique((st[:, None] + np.arange(bb)[None, :]).ravel())
     while len(idx) < need:
-        idx = np.unique(np.concatenate(
-            [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]))
+        idx = np.unique(
+            np.concatenate(
+                [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]
+            )
+        )
     return np.sort(rng.permutation(idx)[:need])
 
 
@@ -199,16 +238,18 @@ _idx = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
 MY_ARMS = (ARMS[_idx],) if _idx < len(ARMS) else ()
 BRK = 0.143
 print("pod index %d -> branch %s at brk %.3f" % (_idx, MY_ARMS, BRK), flush=True)
-print("br   | ratio  rms |   g6   | s(4) s(14) s(53) s(500) | D_art OVERLAP",
-      flush=True)
+print(
+    "br   | ratio  rms |   g6   | s(4) s(14) s(53) s(500) | D_art OVERLAP", flush=True
+)
 out = {}
 for branch in MY_ARMS:
     t0 = time.time()
     x, a_of = build(brk=BRK, branch=branch)
     rng = np.random.default_rng(20_100)
     bi, qi = exch(clumped(POOL, NEED, 100, rng), N_FIX, NQ)
-    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
-                  x[torch.from_numpy(qi).to(DEV)], max(KG))
+    d, nn = knn_t(
+        x[torch.from_numpy(bi).to(DEV)], x[torch.from_numpy(qi).to(DEV)], max(KG)
+    )
     dn = d.cpu().numpy()
     nnn = nn.cpu().numpy()
     del x, d, nn
@@ -226,14 +267,23 @@ for branch in MY_ARMS:
     din, dout = dn[same], dn[~same]
     D = float(np.percentile(din, 90) / max(np.percentile(din, 10), 1e-9))
     ovl = float((dout < np.percentile(din, 90)).mean())
-    out["branch%s" % branch] = {"ratio": ratio, "rms": rms, "g1": g1, "g6": g6,
-                          "s500": float(s[-1]), "D_article": D,
-                          "d50_same": float(np.median(din)),
-                          "d50_cross": float(np.median(dout)), "overlap": ovl,
-                          "s": [float(v) for v in s]}
-    print("%4d | %5.3f %5.2f | %6.3f | %5.1f %5.1f %5.1f %5.1f | %5.2f  %.4f   (%.0fs)"
-          % (branch, ratio, rms, g6, s[0], s[4], s[8], s[-1], D, ovl,
-             time.time() - t0), flush=True)
+    out["branch%s" % branch] = {
+        "ratio": ratio,
+        "rms": rms,
+        "g1": g1,
+        "g6": g6,
+        "s500": float(s[-1]),
+        "D_article": D,
+        "d50_same": float(np.median(din)),
+        "d50_cross": float(np.median(dout)),
+        "overlap": ovl,
+        "s": [float(v) for v in s],
+    }
+    print(
+        "%4d | %5.3f %5.2f | %6.3f | %5.1f %5.1f %5.1f %5.1f | %5.2f  %.4f   (%.0fs)"
+        % (branch, ratio, rms, g6, s[0], s[4], s[8], s[-1], D, ovl, time.time() - t0),
+        flush=True,
+    )
 
     print("RESULT_JSON " + json.dumps(out), flush=True)
 

@@ -83,54 +83,303 @@ from .hashrng import hash_gaussian, hash_index, hash_uniform, mix_keys
 # 80d94f61..., spec/RC2_FREEZE.md). Do not retune; the freeze is the point.
 SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     ("arr_window", 1e4, 1e7, 600000.0),  # arrangement correlation length (rows)
-    ("seg_break", 0.0, 0.5, 0.126),     # segment break rate (R71-R74: the D12 pocket)
-    ("branch", 2.0, 512.0, 64.0),       # articles per cluster grow as 27*branch**L
-    ("arr_levels", 1.0, 5.0, 3.0),      # nested arrangement scales
-    ("d_glob", 8.0, 256.0, 24.0),       # arrangement subspace dim (per level)
-    ("d_loc", 4.0, 256.0, 64.0),        # segment-centre subspace dimension
-    ("w_loc", 0.05, 3.0, 0.60),         # segment centre vs arrangement weight
-    ("fil_dim", 2.0, 256.0, 48.0),      # within-segment manifold dimension
-    ("fil_scale", 0.05, 3.0, 1.0),      # within-segment extent
-    ("nlev", 1.0, 10.0, 6.0),           # within-segment path levels
-    ("log2_pool", 8.0, 18.0, 10.0),     # shared direction pool (R64: the g4 lever)
-    ("path_decay", 0.05, 1.0, 0.50),    # path level-variance decay (R62: the g1 lever)
-    ("path_mix", 0.0, 1.0, 0.60),       # path fraction; 1-path_mix is the ball
-    ("rho", 0.0, 1.0, 0.30),            # cluster-shared direction fraction (R64: g6)
-    ("level_frames", 0.0, 1.0, 1.0),    # 1: one frame per arrangement level (R66)
-    ("pool_alpha", 0.0, 1.0, 0.22),     # pool amplitude power law (R70-R74: g8/rspan lever)
+    ("seg_break", 0.0, 0.5, 0.126),  # segment break rate (R71-R74: the D12 pocket)
+    ("branch", 2.0, 512.0, 64.0),  # articles per cluster grow as 27*branch**L
+    ("arr_levels", 1.0, 5.0, 3.0),  # nested arrangement scales
+    ("d_glob", 8.0, 256.0, 24.0),  # arrangement subspace dim (per level)
+    ("d_loc", 4.0, 256.0, 64.0),  # segment-centre subspace dimension
+    ("w_loc", 0.05, 3.0, 0.60),  # segment centre vs arrangement weight
+    ("fil_dim", 2.0, 256.0, 48.0),  # within-segment manifold dimension
+    ("fil_scale", 0.05, 3.0, 1.0),  # within-segment extent
+    ("nlev", 1.0, 10.0, 6.0),  # within-segment path levels
+    ("log2_pool", 8.0, 18.0, 10.0),  # shared direction pool (R64: the g4 lever)
+    ("path_decay", 0.05, 1.0, 0.50),  # path level-variance decay (R62: the g1 lever)
+    ("path_mix", 0.0, 1.0, 0.60),  # path fraction; 1-path_mix is the ball
+    ("rho", 0.0, 1.0, 0.30),  # cluster-shared direction fraction (R64: g6)
+    ("level_frames", 0.0, 1.0, 1.0),  # 1: one frame per arrangement level (R66)
+    (
+        "pool_alpha",
+        0.0,
+        1.0,
+        0.22,
+    ),  # pool amplitude power law (R70-R74: g8/rspan lever)
 )
 
 _MAXLEV = 8
-_SB_BITS = 12                      # superblock = 4096 rows
+_SB_BITS = 12  # superblock = 4096 rows
 _SB = 1 << _SB_BITS
-_ART_MEAN = 23.0                   # mean of the frozen length law, for cluster counts
+_ART_MEAN = 23.0  # mean of the frozen length law, for cluster counts
 
 # Frozen 256-quantile table of round(lognormal(ln 23 - 0.5*1.2**2, 1.2)) at
 # midpoints (m + 0.5)/256, clipped >= 1 — the article-length law the harness
 # audits used (`R53` tail), with no transcendental in the generation path.
 # Mean 22.73, max 357. Regenerate only by editing this comment's formula.
-_ART_LEN = np.array((
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4,
-    4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5,
-    5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-    6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8,
-    8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9,
-    9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11,
-    11, 11, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13,
-    14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16,
-    17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20,
-    20, 21, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25,
-    25, 26, 26, 27, 27, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 32,
-    33, 33, 34, 35, 35, 36, 37, 37, 38, 39, 40, 40, 41, 42, 43, 44,
-    45, 46, 47, 48, 50, 51, 52, 54, 55, 57, 59, 60, 62, 64, 67, 69,
-    72, 75, 78, 82, 86, 90, 95, 101, 108, 117, 127, 140, 158, 185, 230, 357),
-    dtype=np.int64)
+_ART_LEN = np.array(
+    (
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        15,
+        15,
+        15,
+        15,
+        15,
+        16,
+        16,
+        16,
+        16,
+        16,
+        17,
+        17,
+        17,
+        17,
+        17,
+        18,
+        18,
+        18,
+        18,
+        18,
+        19,
+        19,
+        19,
+        19,
+        20,
+        20,
+        20,
+        21,
+        21,
+        21,
+        21,
+        22,
+        22,
+        22,
+        23,
+        23,
+        23,
+        24,
+        24,
+        24,
+        25,
+        25,
+        25,
+        26,
+        26,
+        27,
+        27,
+        27,
+        28,
+        28,
+        29,
+        29,
+        30,
+        30,
+        31,
+        31,
+        32,
+        32,
+        33,
+        33,
+        34,
+        35,
+        35,
+        36,
+        37,
+        37,
+        38,
+        39,
+        40,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50,
+        51,
+        52,
+        54,
+        55,
+        57,
+        59,
+        60,
+        62,
+        64,
+        67,
+        69,
+        72,
+        75,
+        78,
+        82,
+        86,
+        90,
+        95,
+        101,
+        108,
+        117,
+        127,
+        140,
+        158,
+        185,
+        230,
+        357,
+    ),
+    dtype=np.int64,
+)
 
 
-def _hier_block(keys: np.ndarray, pos: np.ndarray, rate: float,
-                salt: int) -> np.ndarray:
+def _hier_block(
+    keys: np.ndarray, pos: np.ndarray, rate: float, salt: int
+) -> np.ndarray:
     """Hierarchical block id: ``pos >> k`` for the first level whose bit fires.
 
     Pure function of ``pos``, so it needs no scan over predecessors. Block
@@ -142,8 +391,10 @@ def _hier_block(keys: np.ndarray, pos: np.ndarray, rate: float,
     found = np.zeros(pos.shape, dtype=bool)
     for j in range(_MAXLEV):
         blk = pos >> np.int64(j)
-        bit = hash_uniform(keys, np.full_like(pos, j), blk,
-                           count=1, salt=salt)[..., 0] < rate
+        bit = (
+            hash_uniform(keys, np.full_like(pos, j), blk, count=1, salt=salt)[..., 0]
+            < rate
+        )
         take = bit & (~found)
         chosen = np.where(take, j, chosen)
         found |= bit
@@ -162,7 +413,7 @@ def _articles(idx: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     r = idx & np.int64(_SB - 1)
     u_sb, sb_inv = np.unique(sb, return_inverse=True)
     lens = _ART_LEN[hash_index(u_sb, count=_SB, modulus=256, salt=7)]
-    ends = np.cumsum(lens, axis=1)                    # (n_sb, 4096), ends[-1] >= 4096
+    ends = np.cumsum(lens, axis=1)  # (n_sb, 4096), ends[-1] >= 4096
     art = np.empty(idx.shape, dtype=np.int64)
     pos = np.empty(idx.shape, dtype=np.int64)
     start = np.empty(idx.shape, dtype=np.int64)
@@ -176,9 +427,14 @@ def _articles(idx: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     return art, pos, start
 
 
-def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
-                   chunk: int = 50_000,
-                   rows: np.ndarray | None = None) -> np.ndarray:
+def segment_corpus(
+    p: dict[str, float],
+    n: int,
+    dim: int,
+    seed: int,
+    chunk: int = 50_000,
+    rows: np.ndarray | None = None,
+) -> np.ndarray:
     """Emit rows of ``dim``. Bit-exact, chunk-invariant, random-access.
 
     ``rows`` emits an arbitrary set of row indices instead of ``0..n-1``. This
@@ -207,32 +463,37 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
 
     # clusters per level within one window, matching the audited pool-relative
     # construction: n_articles / (27 * branch**L), never below 2
-    ncl = [max(2, int(round((arr_window / _ART_MEAN) / (27 * branch ** L))))
-           for L in range(arr_levels)]
+    ncl = [
+        max(2, int(round((arr_window / _ART_MEAN) / (27 * branch**L))))
+        for L in range(arr_levels)
+    ]
 
     rng = np.random.default_rng(seed)
-    pool = (rng.standard_normal((n_pool, dim)).astype(np.float32)
-            / np.sqrt(dim, dtype=np.float32))
+    pool = rng.standard_normal((n_pool, dim)).astype(np.float32) / np.sqrt(
+        dim, dtype=np.float32
+    )
     if pool_alpha > 0.0:
         # power-law amplitude profile over pool slots (R70): shapes the PCA
         # tail (g4, g8) without touching any mechanism. Unit mean square, so
         # overall variance is preserved; a no-op at alpha = 0 by branch.
         w = (1.0 + np.arange(n_pool, dtype=np.float64)) ** (-pool_alpha)
-        w /= np.sqrt((w ** 2).mean())
+        w /= np.sqrt((w**2).mean())
         pool *= w.astype(np.float32)[:, None]
     # One orthonormal frame per arrangement level (R66), or one shared frame.
     # Drawn up front, in level order, so the emission is chunk-invariant.
     if level_frames:
-        frames = [np.linalg.qr(rng.standard_normal((dim, d_glob)))[0]
-                  .astype(np.float32) for _ in range(arr_levels)]
+        frames = [
+            np.linalg.qr(rng.standard_normal((dim, d_glob)))[0].astype(np.float32)
+            for _ in range(arr_levels)
+        ]
     else:
-        frames = [np.linalg.qr(rng.standard_normal((dim, d_glob)))[0]
-                  .astype(np.float32)] * arr_levels
+        frames = [
+            np.linalg.qr(rng.standard_normal((dim, d_glob)))[0].astype(np.float32)
+        ] * arr_levels
 
-    lw = np.array([0.72 ** L for L in range(arr_levels)], dtype=np.float32)
+    lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
-    plw = np.sqrt(np.array([path_decay ** i for i in range(nlev)],
-                           dtype=np.float32))
+    plw = np.sqrt(np.array([path_decay**i for i in range(nlev)], dtype=np.float32))
     plw /= np.linalg.norm(plw)
     inv = np.float32(fil_scale / np.sqrt(fil_dim))
     wp = np.float32(np.sqrt(path_mix))
@@ -248,8 +509,11 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         gt = hash_uniform(art, extra, count=count, salt=salt_gate) < rho
         return np.where(gt, sh, priv)
 
-    want = (np.arange(n, dtype=np.int64) if rows is None
-            else np.asarray(rows, dtype=np.int64))
+    want = (
+        np.arange(n, dtype=np.int64)
+        if rows is None
+        else np.asarray(rows, dtype=np.int64)
+    )
     out = np.empty((len(want), dim), dtype=np.float32)
     for cs in range(0, len(want), chunk):
         ce = min(cs + chunk, len(want))
@@ -266,11 +530,13 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         # segment, so this is a large constant factor. Random access means a row
         # is computable *from* its index, not that shared work must be repeated:
         # the output is bit-identical either way (asserted in the tests).
-        u_art, art_first, art_inv = np.unique(art, return_index=True,
-                                              return_inverse=True)
+        u_art, art_first, art_inv = np.unique(
+            art, return_index=True, return_inverse=True
+        )
         u_win = win[art_first]
-        u_sid, sid_first, sid_inv = np.unique(sid, return_index=True,
-                                              return_inverse=True)
+        u_sid, sid_first, sid_inv = np.unique(
+            sid, return_index=True, return_inverse=True
+        )
 
         # arrangement: keyed-random nested clustering over articles within the
         # window, one frame per level (R66; R67 first evaluation showed why
@@ -278,21 +544,30 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         acc = np.zeros((ce - cs, dim), dtype=np.float32)
         cl0 = None
         for L in range(arr_levels):
-            cid = hash_index(u_art, np.full_like(u_art, L),
-                             count=1, modulus=ncl[L], salt=41)[..., 0]
+            cid = hash_index(
+                u_art, np.full_like(u_art, L), count=1, modulus=ncl[L], salt=41
+            )[..., 0]
             if L == 0:
                 cl0 = u_win * np.int64(1_000_003) + cid
-            coef = hash_gaussian(u_win, np.full_like(u_art, L), cid,
-                                 count=d_glob, salt=43)
+            coef = hash_gaussian(
+                u_win, np.full_like(u_art, L), cid, count=d_glob, salt=43
+            )
             coef /= np.maximum(np.linalg.norm(coef, axis=1, keepdims=True), 1e-12)
             acc += float(lw[L]) * reproducible_matmul(coef, frames[L].T)[art_inv]
         row_cl0 = cl0[art_inv]
-        u_cl = row_cl0[sid_first]    # outermost cluster of each unique segment
-        u_sart = art[sid_first]      # article of each unique segment
+        u_cl = row_cl0[sid_first]  # outermost cluster of each unique segment
+        u_sart = art[sid_first]  # article of each unique segment
 
         # segment centre: the shared component a break resets
-        sdir = _share(hash_index(u_sid, count=d_loc, modulus=n_pool, salt=53),
-                      u_cl, u_sart, np.zeros_like(u_cl), d_loc, 97, 101)
+        sdir = _share(
+            hash_index(u_sid, count=d_loc, modulus=n_pool, salt=53),
+            u_cl,
+            u_sart,
+            np.zeros_like(u_cl),
+            d_loc,
+            97,
+            101,
+        )
         sco = hash_gaussian(u_sid, count=d_loc, salt=57)
         sco /= np.maximum(np.linalg.norm(sco, axis=1, keepdims=True), 1e-12)
         cen = np.zeros((len(u_sid), dim), dtype=np.float32)
@@ -306,10 +581,15 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
             key = sid * np.int64(31) + L
             blk = pos >> np.int64(L)
             c = hash_gaussian(key, blk, count=fil_dim, salt=61)
-            dd = _share(hash_index(key, blk, count=fil_dim, modulus=n_pool,
-                                   salt=67),
-                        row_cl0, art, np.full_like(row_cl0, L), fil_dim,
-                        107, 109)
+            dd = _share(
+                hash_index(key, blk, count=fil_dim, modulus=n_pool, salt=67),
+                row_cl0,
+                art,
+                np.full_like(row_cl0, L),
+                fil_dim,
+                107,
+                109,
+            )
             amp = inv * wp * plw[L]
             for j in range(fil_dim):
                 acc += (amp * c[:, j])[:, None] * pool[dd[:, j]]
@@ -319,9 +599,15 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
         # directions are the segment's (shareable under rho); the coefficients
         # are the row's own.
         if wb > 0.0:
-            bdir = _share(hash_index(u_sid, count=fil_dim, modulus=n_pool,
-                                     salt=71),
-                          u_cl, u_sart, np.zeros_like(u_cl), fil_dim, 113, 127)
+            bdir = _share(
+                hash_index(u_sid, count=fil_dim, modulus=n_pool, salt=71),
+                u_cl,
+                u_sart,
+                np.zeros_like(u_cl),
+                fil_dim,
+                113,
+                127,
+            )
             bdir = bdir[sid_inv]
             bco = hash_gaussian(sid, pos + np.int64(1), count=fil_dim, salt=79)
             bamp = inv * wb

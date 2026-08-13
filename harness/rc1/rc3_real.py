@@ -12,12 +12,11 @@ between heavy stages while CPU Package > 80 C or GPU > 80 C.
 """
 
 import json
-import os
 import subprocess
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402  (after generation: fork-clean CUDA)
 
 DEV = "cuda"
 assert torch.cuda.is_available()
@@ -31,15 +30,26 @@ KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
 
 def temps():
     try:
-        g = int(subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=temperature.gpu",
-             "--format=csv,noheader", "-i", "1"]).split()[0])
+        g = int(
+            subprocess.check_output(
+                [
+                    "nvidia-smi",
+                    "--query-gpu=temperature.gpu",
+                    "--format=csv,noheader",
+                    "-i",
+                    "1",
+                ]
+            ).split()[0]
+        )
     except Exception:
         g = 0
     try:
         s = subprocess.check_output(["sensors"]).decode()
-        c = max(float(l.split("+")[1].split("\xb0")[0])
-                for l in s.splitlines() if "Package id" in l)
+        c = max(
+            float(ln.split("+")[1].split("\xb0")[0])
+            for ln in s.splitlines()
+            if "Package id" in ln
+        )
     except Exception:
         c = 0.0
     return c, g
@@ -58,12 +68,15 @@ def load_block(off):
     part, rem = divmod(off, 1_000_000)
     a = np.load(PARTS % part, mmap_mode="r")
     if rem + POOL <= len(a):
-        x = np.asarray(a[rem:rem + POOL], dtype=np.float32)
+        x = np.asarray(a[rem : rem + POOL], dtype=np.float32)
     else:
         b = np.load(PARTS % (part + 1), mmap_mode="r")
-        x = np.concatenate([np.asarray(a[rem:], dtype=np.float32),
-                            np.asarray(b[:rem + POOL - len(a)],
-                                       dtype=np.float32)])
+        x = np.concatenate(
+            [
+                np.asarray(a[rem:], dtype=np.float32),
+                np.asarray(b[: rem + POOL - len(a)], dtype=np.float32),
+            ]
+        )
     x = torch.from_numpy(x).to(DEV)
     return x / x.norm(dim=1, keepdim=True).clamp_min(1e-12)
 
@@ -75,7 +88,7 @@ def normalize_t(x):
 def knn_t(base, q, k, bs=4096):
     od, oi = [], []
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -83,7 +96,7 @@ def knn_t(base, q, k, bs=4096):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -114,9 +127,13 @@ def spectrum_t(base_t):
     lam = torch.linalg.svdvals(xc) ** 2 / max(xc.shape[0] - 1, 1)
     lam = lam[lam > 0].double()
     frac = torch.cumsum(lam, 0) / lam.sum()
-    eff = float(lam.sum() ** 2 / (lam ** 2).sum())
-    d90 = int(torch.searchsorted(
-        frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)).item() + 1)
+    eff = float(lam.sum() ** 2 / (lam**2).sum())
+    d90 = int(
+        torch.searchsorted(
+            frac, torch.tensor(0.90, dtype=frac.dtype, device=frac.device)
+        ).item()
+        + 1
+    )
     return eff, d90
 
 
@@ -133,8 +150,7 @@ def g8_pca(x, bi, qi, nnn10):
     qp = normalize_t((qt - mu) @ p)
     _, idxp = knn_t(bp, qp, 10)
     idxp = idxp.cpu().numpy()
-    jac = [len(set(a) & set(b)) / len(set(a) | set(b))
-           for a, b in zip(nnn10, idxp)]
+    jac = [len(set(a) & set(b)) / len(set(a) | set(b)) for a, b in zip(nnn10, idxp)]
     del bt, qt, bp, qp
     return float(np.mean(jac))
 
@@ -148,18 +164,20 @@ for off in OFFSETS:
 
     # half A: gates + section 3 four-rung ladder
     bi, qi = exch(np.arange(210000), 200000, 10000, seed=31)
-    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
-                  x[torch.from_numpy(qi).to(DEV)], 500)
+    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)], x[torch.from_numpy(qi).to(DEV)], 500)
     dn, nnn = d.cpu().numpy(), nn.cpu().numpy()
     del d, nn
     rec["g1"] = id_twonn(dn)
     cnt = np.bincount(nnn[:, :10].ravel(), minlength=len(bi)).astype(np.float64)
-    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean()
-                      / max(cnt.std() ** 3, 1e-12))
+    rec["g6"] = float(((cnt - cnt.mean()) ** 3).mean() / max(cnt.std() ** 3, 1e-12))
     bt = x[torch.from_numpy(bi).to(DEV)]
     rr = torch.randperm(bt.shape[0], device=DEV)[:4096]
-    mean_d = float((2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)]
-                                 @ bt[rr].T)).clamp_min(0).sqrt().mean())
+    mean_d = float(
+        (2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)] @ bt[rr].T))
+        .clamp_min(0)
+        .sqrt()
+        .mean()
+    )
     rec["g5"] = mean_d / float(np.median(dn[:, 9]))
     rec["g3"], rec["g4"] = spectrum_t(bt[:50000])
     del bt
@@ -170,8 +188,11 @@ for off in OFFSETS:
     for n_r in (25000, 50000, 100000, 200000):
         rr2 = np.random.default_rng(10000 + n_r)
         sub = b6[rr2.choice(len(b6), n_r, replace=False)]
-        d5, _ = knn_t(x[torch.from_numpy(np.sort(sub)).to(DEV)],
-                      x[torch.from_numpy(q6).to(DEV)], 500)
+        d5, _ = knn_t(
+            x[torch.from_numpy(np.sort(sub)).to(DEV)],
+            x[torch.from_numpy(q6).to(DEV)],
+            500,
+        )
         d5n = d5.cpu().numpy()
         ratios.append(profile_ratio(d5n))
         g1s.append(id_twonn(d5n))
@@ -189,8 +210,9 @@ for off in OFFSETS:
         rg = np.random.default_rng(700 + Pn // 1000)
         sup = rg.choice(Pn, 35000, replace=False)
         b3, q3 = exch(sup, 25000, 10000, seed=31)
-        d3, _ = knn_t(x[torch.from_numpy(b3).to(DEV)],
-                      x[torch.from_numpy(q3).to(DEV)], 500)
+        d3, _ = knn_t(
+            x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500
+        )
         d3n = d3.cpu().numpy()
         vals[Pn] = {"ratio": profile_ratio(d3n), "g1": id_twonn(d3n)}
         del d3
@@ -201,11 +223,25 @@ for off in OFFSETS:
     rec["s_uniform"] = [float(v) for v in s]
 
     results[str(off)] = rec
-    print("off %8d | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
-          "trend %+.3f g1exp %+.3f | rspan %+6.3f gspan %+6.3f  (%.0fs)"
-          % (off, rec["g1"], rec["g3"], rec["g4"], rec["g5"], rec["g6"],
-             rec["g8"], rec["s3_trend"], rec["s3_g1exp"], rec["rspan"],
-             rec["gspan"], time.time() - t0), flush=True)
+    print(
+        "off %8d | g1 %5.2f g3 %5.1f g4 %4d g5 %5.3f g6 %5.3f g8 %5.3f | "
+        "trend %+.3f g1exp %+.3f | rspan %+6.3f gspan %+6.3f  (%.0fs)"
+        % (
+            off,
+            rec["g1"],
+            rec["g3"],
+            rec["g4"],
+            rec["g5"],
+            rec["g6"],
+            rec["g8"],
+            rec["s3_trend"],
+            rec["s3_g1exp"],
+            rec["rspan"],
+            rec["gspan"],
+            time.time() - t0,
+        ),
+        flush=True,
+    )
     del x
     torch.cuda.empty_cache()
     json.dump(results, open(OUT, "w"), indent=1)
@@ -213,23 +249,38 @@ for off in OFFSETS:
 # held-out bands: mean +- 2 sd across the four blocks, mirroring how the
 # registered bands were derived from block variance
 bands = {}
-for stat in ("g1", "g3", "g4", "g5", "g6", "g8", "s3_trend", "s3_g1exp",
-             "rspan", "gspan"):
+for stat in (
+    "g1",
+    "g3",
+    "g4",
+    "g5",
+    "g6",
+    "g8",
+    "s3_trend",
+    "s3_g1exp",
+    "rspan",
+    "gspan",
+):
     v = np.array([results[str(o)][stat] for o in OFFSETS], dtype=float)
-    bands[stat] = {"mean": float(v.mean()), "sd": float(v.std(ddof=1)),
-                   "lo": float(v.mean() - 2 * v.std(ddof=1)),
-                   "hi": float(v.mean() + 2 * v.std(ddof=1))}
+    bands[stat] = {
+        "mean": float(v.mean()),
+        "sd": float(v.std(ddof=1)),
+        "lo": float(v.mean() - 2 * v.std(ddof=1)),
+        "hi": float(v.mean() + 2 * v.std(ddof=1)),
+    }
 for i, n_r in enumerate((25000, 50000, 100000, 200000)):
     v = np.array([results[str(o)]["s3_rung_ratios"][i] for o in OFFSETS])
     bands["rung_ratio_%d" % n_r] = {
         "lo": float(v.mean() - 2 * v.std(ddof=1)),
-        "hi": float(v.mean() + 2 * v.std(ddof=1))}
+        "hi": float(v.mean() + 2 * v.std(ddof=1)),
+    }
 for Pn in (50000, 100000, 200000, 400000, 600000):
     for f in ("ratio", "g1"):
         v = np.array([results[str(o)]["s3b"][str(Pn)][f] for o in OFFSETS])
         bands["s3b_%s_%d" % (f, Pn)] = {
             "lo": float(v.mean() - 2 * v.std(ddof=1)),
-            "hi": float(v.mean() + 2 * v.std(ddof=1))}
+            "hi": float(v.mean() + 2 * v.std(ddof=1)),
+        }
 results["heldout_bands"] = bands
 json.dump(results, open(OUT, "w"), indent=1)
 print("RC3_REAL_DONE", flush=True)

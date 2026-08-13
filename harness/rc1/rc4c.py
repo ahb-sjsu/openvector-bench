@@ -82,6 +82,7 @@ def build(
     pool_floor=0.0,
     chap_size=0,
     w_chap=0.0,
+    fine_lo=0.0,
 ):
     rng = np.random.default_rng(seed)
     ln = rng.lognormal(
@@ -141,12 +142,22 @@ def build(
     wp = float(np.sqrt(mix))
     wb = float(np.sqrt(max(0.0, 1.0 - mix)))
 
-    def share(priv, cl_row, comp_salt, gate_keys, count):
+    lo_slot = int(fine_lo * npool)
+    nfine = max(1, npool - lo_slot)
+
+    def share(priv, cl_row, comp_salt, gate_keys, count, fine=False):
+        # fine=True draws stay in the weak tail slots (RC4: pool partition -
+        # neighbour-carrying components never touch the strong head, so
+        # concentration shapes the spectrum without creating hubs)
         if rho <= 0.0:
             return priv
-        sh = hidx_t(cl_row * 131 + comp_salt, count, npool)
+        mod, off = (nfine, lo_slot) if fine else (npool, 0)
+        sh = hidx_t(cl_row * 131 + comp_salt, count, mod) + off
         gt = hunif_t(gate_keys, count) < rho
         return torch.where(gt, sh, priv)
+
+    def hidx_fine(key, count):
+        return hidx_t(key, count, nfine) + lo_slot
 
     for st in range(0, POOL, 50000):
         en = min(st + 50000, POOL)
@@ -164,11 +175,12 @@ def build(
             key = sid * 31 + L * 7919 + (p_t >> L)
             c = hgauss_t(key, fil_dim)
             dd = share(
-                hidx_t(key, fil_dim, npool),
+                hidx_fine(key, fil_dim),
                 cl_row,
                 L * 7 + 23,
                 a_t * 271 + L * 11 + 29,
                 fil_dim,
+                fine=True,
             )
             amp = float(fil_scale * wp * plw[L] / np.sqrt(fil_dim))
             for j in range(fil_dim):
@@ -176,11 +188,12 @@ def build(
             del c, dd
         if wb > 0.0:
             bdir = share(
-                hidx_t(sid * 100003 + 7, fil_dim, npool),
+                hidx_fine(sid * 100003 + 7, fil_dim),
                 cl_row,
                 97,
                 a_t * 271 + 41,
                 fil_dim,
+                fine=True,
             )
             bco = hgauss_t(sid * 1009 + (p_t + 1) * 500009 + 11, fil_dim)
             bamp = float(fil_scale * wb / np.sqrt(fil_dim))
@@ -283,23 +296,28 @@ def rank_anatomy(x):
 
 
 BASE = dict(pool_alpha=0.22, brk=0.126)  # the frozen RC-3 D12 point
+# Final envelope sweep: (P) partitioned pool - fine components draw from the
+# weak tail, alpha raised for g4 without hub penalty; (S) the ss1.4 g1exp
+# mechanism with brk/rho re-centring; two combos.
 VARIANTS = {
-    "A0_d12": dict(),
-    "A1_ts50f10": dict(pool_alpha=0.50, pool_floor=0.10),
-    "A2_ts50f20": dict(pool_alpha=0.50, pool_floor=0.20),
-    "A3_ts80f10": dict(pool_alpha=0.80, pool_floor=0.10),
-    "A4_ts80f20": dict(pool_alpha=0.80, pool_floor=0.20),
-    "A5_ts80f30": dict(pool_alpha=0.80, pool_floor=0.30),
-    "A6_ts120f15": dict(pool_alpha=1.20, pool_floor=0.15),
-    "A7_ts35f10": dict(pool_alpha=0.35, pool_floor=0.10),
-    "A8_ch8w15": dict(chap_size=8, w_chap=0.15),
-    "A9_ch16w15": dict(chap_size=16, w_chap=0.15),
-    "A10_ch32w15": dict(chap_size=32, w_chap=0.15),
-    "A11_ch16w25": dict(chap_size=16, w_chap=0.25),
-    "A12_ch16w35": dict(chap_size=16, w_chap=0.35),
-    "A13_ch64w25": dict(chap_size=64, w_chap=0.25),
-    "A14_both": dict(pool_alpha=0.80, pool_floor=0.20, chap_size=16, w_chap=0.25),
-    "A15_both2": dict(pool_alpha=0.50, pool_floor=0.15, chap_size=16, w_chap=0.25),
+    "P0_d12": dict(),
+    "P1_a35lo25": dict(pool_alpha=0.35, fine_lo=0.25),
+    "P2_a50lo25": dict(pool_alpha=0.50, fine_lo=0.25),
+    "P3_a50lo50": dict(pool_alpha=0.50, fine_lo=0.50),
+    "P4_a80lo50": dict(pool_alpha=0.80, fine_lo=0.50),
+    "P5_a35lo50": dict(pool_alpha=0.35, fine_lo=0.50),
+    "P6_a50lo25lp97": dict(pool_alpha=0.50, fine_lo=0.25, log2_pool=9.7),
+    "P7_a80lo25": dict(pool_alpha=0.80, fine_lo=0.25),
+    "S8_ss14b105": dict(size_spread=1.4, brk=0.105),
+    "S9_ss14b110": dict(size_spread=1.4, brk=0.110),
+    "S10_ss14b110r35": dict(size_spread=1.4, brk=0.110, rho=0.35),
+    "S11_ss14b115r35": dict(size_spread=1.4, brk=0.115, rho=0.35),
+    "S12_ss13b118": dict(size_spread=1.3, brk=0.118),
+    "S13_ss13b118r35": dict(size_spread=1.3, brk=0.118, rho=0.35),
+    "S14_combo": dict(pool_alpha=0.50, fine_lo=0.25, size_spread=1.3, brk=0.118),
+    "S15_combo137": dict(
+        pool_alpha=0.50, fine_lo=0.25, size_spread=1.3, brk=0.118, seed=137
+    ),
 }
 ARMS = list(VARIANTS)
 _i = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
@@ -402,4 +420,4 @@ for name in mine:
     )
     print("RESULT_JSON " + json.dumps({name: rec}), flush=True)
 
-print("RC4A_DONE", flush=True)
+print("RC4C_DONE", flush=True)

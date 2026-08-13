@@ -100,8 +100,9 @@ FILAMENT_POOL_PARAMS: tuple[tuple[str, float, float, float], ...] = (
 )
 
 
-def filament_pool_corpus(p: dict[str, float], n: int, dim: int, seed: int,
-                         chunk: int = 50_000) -> np.ndarray:
+def filament_pool_corpus(
+    p: dict[str, float], n: int, dim: int, seed: int, chunk: int = 50_000
+) -> np.ndarray:
     """Occupancy-parameterised filaments over a shared basis pool.
 
     Memory-bounded: centres live as `arrange_dim` coefficients and are expanded
@@ -119,8 +120,9 @@ def filament_pool_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     basis_a = np.linalg.qr(rng.standard_normal((dim, arr_dim)))[0].astype(np.float32)
     cc = rng.standard_normal((n_thread, arr_dim)).astype(np.float32)
     cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
-    basis_pool = (rng.standard_normal((n_basis, dim)).astype(np.float32)
-                  / np.sqrt(dim, dtype=np.float32))
+    basis_pool = rng.standard_normal((n_basis, dim)).astype(np.float32) / np.sqrt(
+        dim, dtype=np.float32
+    )
     thread_idx = rng.integers(0, n_basis, (n_thread, fil_dim))
 
     owner = rng.integers(0, n_thread, n)

@@ -35,7 +35,7 @@ import os
 import time
 
 import numpy as np
-import torch
+import torch  # noqa: E402
 
 from hashgpu import hgauss_t, hidx_t, hunif_t, verify
 
@@ -47,8 +47,26 @@ DIM, ART_MEAN, POOL = 1024, 23, 600000
 N_FIX, NQ = 25000, 10000
 NEED = N_FIX + NQ
 KG = sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
-REAL_S = np.array([8.82, 9.43, 11.46, 14.02, 16.08, 20.11, 23.40, 26.01,
-                   28.88, 29.98, 31.29, 33.19, 34.02, 34.82, 35.53, 35.73])
+REAL_S = np.array(
+    [
+        8.82,
+        9.43,
+        11.46,
+        14.02,
+        16.08,
+        20.11,
+        23.40,
+        26.01,
+        28.88,
+        29.98,
+        31.29,
+        33.19,
+        34.02,
+        34.82,
+        35.53,
+        35.73,
+    ]
+)
 MAXLEV = 8
 
 
@@ -67,26 +85,44 @@ def seg_of(a_t, pos_t, brk):
     return a_t * 1000003 + chosen * 7919 + (pos_t >> chosen)
 
 
-def build(brk, branch, d_glob, decay, mix, fil_dim=48, nlev=6, d_loc=64,
-          w_loc=0.6, fil_scale=1.0, arr_levels=3, size_spread=1.2,
-          log2_pool=13, seed=41):
+def build(
+    brk,
+    branch,
+    d_glob,
+    decay,
+    mix,
+    fil_dim=48,
+    nlev=6,
+    d_loc=64,
+    w_loc=0.6,
+    fil_scale=1.0,
+    arr_levels=3,
+    size_spread=1.2,
+    log2_pool=13,
+    seed=41,
+):
     rng = np.random.default_rng(seed)
-    ln = rng.lognormal(np.log(ART_MEAN) - 0.5 * size_spread ** 2, size_spread,
-                       int(POOL / ART_MEAN * 2.5) + 16)
+    ln = rng.lognormal(
+        np.log(ART_MEAN) - 0.5 * size_spread**2,
+        size_spread,
+        int(POOL / ART_MEAN * 2.5) + 16,
+    )
     b = np.cumsum(np.maximum(1, np.round(ln)).astype(np.int64))
     b = np.append(b[b < POOL], POOL)
     n_art = len(b)
     starts = np.concatenate([[0], b[:-1]])
-    npool = int(2 ** log2_pool)
+    npool = int(2**log2_pool)
     pool = torch.from_numpy(
-        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)).to(DEV)
-    bg = torch.from_numpy(np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0]
-                          .astype(np.float32)).to(DEV)
+        (rng.standard_normal((npool, DIM)) / np.sqrt(DIM)).astype(np.float32)
+    ).to(DEV)
+    bg = torch.from_numpy(
+        np.linalg.qr(rng.standard_normal((DIM, d_glob)))[0].astype(np.float32)
+    ).to(DEV)
     cen = torch.zeros((n_art, DIM), device=DEV)
-    lw = np.array([0.72 ** L for L in range(arr_levels)], dtype=np.float32)
+    lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
     for L in range(arr_levels):
-        ncl = max(2, int(round(n_art / (27 * branch ** L))))
+        ncl = max(2, int(round(n_art / (27 * branch**L))))
         cid = torch.from_numpy(rng.integers(0, ncl, n_art)).to(DEV)
         cc = rng.standard_normal((ncl, d_glob)).astype(np.float32)
         cc /= np.maximum(np.linalg.norm(cc, axis=1, keepdims=True), 1e-12)
@@ -95,7 +131,7 @@ def build(brk, branch, d_glob, decay, mix, fil_dim=48, nlev=6, d_loc=64,
     # Path level weights: variance ratio `decay` per level. At decay 0.72 this
     # is EXACTLY the R49-R61 schedule (the 0.45 constant normalizes out), so the
     # baseline arm reproduces the prior lineage bit-comparably.
-    plw = np.sqrt(np.array([decay ** i for i in range(nlev)], dtype=np.float32))
+    plw = np.sqrt(np.array([decay**i for i in range(nlev)], dtype=np.float32))
     plw /= np.linalg.norm(plw)
 
     a_of = np.repeat(np.arange(n_art), (b - starts))[:POOL]
@@ -142,7 +178,7 @@ def build(brk, branch, d_glob, decay, mix, fil_dim=48, nlev=6, d_loc=64,
 def knn_t(base, q, k, bs=6144):
     od, oi = [], []
     for s in range(0, q.shape[0], bs):
-        sim = q[s:s + bs] @ base.T
+        sim = q[s : s + bs] @ base.T
         dv, iv = torch.topk(sim, k, dim=1)
         od.append((2.0 - 2.0 * dv).clamp_min(0).sqrt())
         oi.append(iv)
@@ -150,7 +186,7 @@ def knn_t(base, q, k, bs=6144):
 
 
 def exch(sup, nb, nq, seed=31):
-    p = np.random.default_rng(seed).permutation(np.asarray(sup))[:nb + nq]
+    p = np.random.default_rng(seed).permutation(np.asarray(sup))[: nb + nq]
     return np.sort(p[:nb]), np.sort(p[nb:])
 
 
@@ -159,8 +195,11 @@ def clumped(n_rows, need, bb, rng):
     st = rng.choice(max(1, n_rows - bb), size=nb, replace=False)
     idx = np.unique((st[:, None] + np.arange(bb)[None, :]).ravel())
     while len(idx) < need:
-        idx = np.unique(np.concatenate(
-            [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]))
+        idx = np.unique(
+            np.concatenate(
+                [idx, rng.choice(n_rows, need - len(idx) + 64, replace=False)]
+            )
+        )
     return np.sort(rng.permutation(idx)[:need])
 
 
@@ -176,8 +215,16 @@ def id_twonn(d):
     return float(len(mu) / np.sum(np.log(mu)))
 
 
-ARMS = [(0.72, 0.6), (0.72, 0.5), (0.60, 0.6), (0.60, 0.5),
-        (0.50, 0.6), (0.50, 0.5), (0.40, 0.5), (0.40, 0.45)]
+ARMS = [
+    (0.72, 0.6),
+    (0.72, 0.5),
+    (0.60, 0.6),
+    (0.60, 0.5),
+    (0.50, 0.6),
+    (0.50, 0.5),
+    (0.40, 0.5),
+    (0.40, 0.45),
+]
 _i = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
 mine = [ARMS[_i]] if _i < len(ARMS) else []
 out = {}
@@ -186,13 +233,14 @@ for decay, mix in mine:
     x, a_of = build(0.030, 64, 30, decay, mix)
 
     # autocorrelation (real: 0.598, 0.530, 0.449, 0.367, 0.304)
-    ac = [round(float((x[:100000] * x[g:100000 + g]).sum(1).mean().item()), 3)
-          for g in (1, 2, 4, 8, 16)]
+    ac = [
+        round(float((x[:100000] * x[g : 100000 + g]).sum(1).mean().item()), 3)
+        for g in (1, 2, 4, 8, 16)
+    ]
 
     # gates protocol: 200k base + 10k queries, exchangeable
     bi, qi = exch(np.arange(210000), 200000, 10000, seed=31)
-    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
-                  x[torch.from_numpy(qi).to(DEV)], 100)
+    d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)], x[torch.from_numpy(qi).to(DEV)], 100)
     dn, nnn = d.cpu().numpy(), nn.cpu().numpy()
     del d, nn
     g1 = id_twonn(dn)
@@ -201,16 +249,21 @@ for decay, mix in mine:
     g6 = float(((cnt - cnt.mean()) ** 3).mean() / max(cnt.std() ** 3, 1e-12))
     bt = x[torch.from_numpy(bi).to(DEV)]
     rr = torch.randperm(bt.shape[0], device=DEV)[:4096]
-    mean_d = float((2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)]
-                                 @ bt[rr].T)).clamp_min(0).sqrt().mean())
+    mean_d = float(
+        (2.0 - 2.0 * (x[torch.from_numpy(qi[:512]).to(DEV)] @ bt[rr].T))
+        .clamp_min(0)
+        .sqrt()
+        .mean()
+    )
     g5 = mean_d / float(np.median(dn[:, 9]))
     del bt
 
     # clumped-protocol s(k) + anatomy
     rng = np.random.default_rng(20_100)
     b2, q2 = exch(clumped(POOL, NEED, 100, rng), N_FIX, NQ)
-    d2, n2 = knn_t(x[torch.from_numpy(b2).to(DEV)],
-                   x[torch.from_numpy(q2).to(DEV)], 500)
+    d2, n2 = knn_t(
+        x[torch.from_numpy(b2).to(DEV)], x[torch.from_numpy(q2).to(DEV)], 500
+    )
     dm, nm = d2.cpu().numpy(), n2.cpu().numpy()
     del d2, n2
     r = np.array([float(np.median(dm[:, k - 1])) for k in KG])
@@ -226,8 +279,9 @@ for decay, mix in mine:
     for P in (50000, 600000):
         rg = np.random.default_rng(700 + P // 1000)
         b3, q3 = exch(rg.choice(P, NEED, replace=False), N_FIX, NQ)
-        d3, _ = knn_t(x[torch.from_numpy(b3).to(DEV)],
-                      x[torch.from_numpy(q3).to(DEV)], 500)
+        d3, _ = knn_t(
+            x[torch.from_numpy(b3).to(DEV)], x[torch.from_numpy(q3).to(DEV)], 500
+        )
         d3n = d3.cpu().numpy()
         r3 = np.array([float(np.median(d3n[:, k - 1])) for k in KG])
         s3 = np.gradient(np.log(np.array(KG, float)), np.log(r3))
@@ -238,17 +292,42 @@ for decay, mix in mine:
     del x
 
     out["decay%s_mix%s" % (decay, mix)] = {
-        "g1": g1, "nn_gap": nn_gap, "g5": g5, "g6": g6, "rms": rms,
-        "autocorr": ac, "s": [float(v) for v in s],
-        "D_article": D, "overlap": ovl,
-        "ratio_span": rspan, "logg1_span": gspan}
-    print("decay %.3f mix %.1f | g1 %6.2f  NNgap %4.0f | g5 %5.3f g6 %5.3f | "
-          "rms %5.2f s14 %5.1f | ac %s | span r %+6.3f g %+6.3f  (%.0fs)"
-          % (decay, mix, g1, nn_gap, g5, g6, rms, s[4], ac, rspan, gspan,
-             time.time() - t0), flush=True)
+        "g1": g1,
+        "nn_gap": nn_gap,
+        "g5": g5,
+        "g6": g6,
+        "rms": rms,
+        "autocorr": ac,
+        "s": [float(v) for v in s],
+        "D_article": D,
+        "overlap": ovl,
+        "ratio_span": rspan,
+        "logg1_span": gspan,
+    }
+    print(
+        "decay %.3f mix %.1f | g1 %6.2f  NNgap %4.0f | g5 %5.3f g6 %5.3f | "
+        "rms %5.2f s14 %5.1f | ac %s | span r %+6.3f g %+6.3f  (%.0fs)"
+        % (
+            decay,
+            mix,
+            g1,
+            nn_gap,
+            g5,
+            g6,
+            rms,
+            s[4],
+            ac,
+            rspan,
+            gspan,
+            time.time() - t0,
+        ),
+        flush=True,
+    )
     print("RESULT_JSON " + json.dumps(out), flush=True)
 
-print("real              | g1  17.23  NNgap    3 | g5 1.369 g6 1.696 | "
-      "rms  0.00 s14  16.1 | ac [0.598, 0.53, 0.449, 0.367, 0.304] | "
-      "span r +2.397 g -0.494")
+print(
+    "real              | g1  17.23  NNgap    3 | g5 1.369 g6 1.696 | "
+    "rms  0.00 s14  16.1 | ac [0.598, 0.53, 0.449, 0.367, 0.304] | "
+    "span r +2.397 g -0.494"
+)
 print("PHASEA_DONE", flush=True)

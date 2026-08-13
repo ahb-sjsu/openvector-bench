@@ -71,10 +71,18 @@ DIM = 1024
 
 
 def params(pt, fd, ad, fs):
-    p = dict(zip([s[0] for s in FILAMENT_POOL_PARAMS],
-                 [s[3] for s in FILAMENT_POOL_PARAMS]))
-    p.update(points_per_thread=pt, fil_dim=fd, arrange_dim=ad, fil_scale=fs,
-             log2_basis=13.0, dup_frac=0.01, dup_cos=0.95)
+    p = dict(
+        zip([s[0] for s in FILAMENT_POOL_PARAMS], [s[3] for s in FILAMENT_POOL_PARAMS])
+    )
+    p.update(
+        points_per_thread=pt,
+        fil_dim=fd,
+        arrange_dim=ad,
+        fil_scale=fs,
+        log2_basis=13.0,
+        dup_frac=0.01,
+        dup_cos=0.95,
+    )
     return p
 
 
@@ -98,11 +106,16 @@ def evaluate(x) -> dict:
         mus.append(float(np.median(mu)))
         mufr.append(float((mu > 1.5).mean()))
     ln = np.log(NS)
-    return {"ratios": ratios, "g1": g1s, "s_lo": slo,
-            "trend": float(np.polyfit(ln, ratios, 1)[0]),
-            "g1_exp": float(np.polyfit(ln, np.log(g1s), 1)[0]),
-            "g1_mean": float(np.mean(g1s)),
-            "mu_med": float(np.mean(mus)), "mu_frac": float(np.mean(mufr))}
+    return {
+        "ratios": ratios,
+        "g1": g1s,
+        "s_lo": slo,
+        "trend": float(np.polyfit(ln, ratios, 1)[0]),
+        "g1_exp": float(np.polyfit(ln, np.log(g1s), 1)[0]),
+        "g1_mean": float(np.mean(g1s)),
+        "mu_med": float(np.mean(mus)),
+        "mu_frac": float(np.mean(mufr)),
+    }
 
 
 def main() -> int:
@@ -111,23 +124,29 @@ def main() -> int:
     t_ratios = [tg[str(n)]["ratio"] for n in ns_ok]
     t_g1 = [tg[str(n)]["g1"] for n in ns_ok]
     ln = np.log(ns_ok)
-    T = {"trend": float(np.polyfit(ln, t_ratios, 1)[0]),
-         "g1_mean": float(np.mean(t_g1)),
-         "g1_exp": float(np.polyfit(ln, np.log(t_g1), 1)[0]),
-         "mu_med": float(np.mean([tg[str(n)]["mu_med"] for n in ns_ok])),
-         "mu_frac": float(np.mean([tg[str(n)]["mu_frac"] for n in ns_ok]))}
-    print(f"REGISTERED TARGET  trend {T['trend']:+.3f}  G1 {T['g1_mean']:.1f}  "
-          f"G1exp {T['g1_exp']:+.3f}  mu {T['mu_med']:.4f}  "
-          f"mu>1.5 {T['mu_frac']:.4f}", flush=True)
-    print(f"pool {CAP}, rungs {NS}, nq {NQ} — density matches registered\n",
-          flush=True)
+    T = {
+        "trend": float(np.polyfit(ln, t_ratios, 1)[0]),
+        "g1_mean": float(np.mean(t_g1)),
+        "g1_exp": float(np.polyfit(ln, np.log(t_g1), 1)[0]),
+        "mu_med": float(np.mean([tg[str(n)]["mu_med"] for n in ns_ok])),
+        "mu_frac": float(np.mean([tg[str(n)]["mu_frac"] for n in ns_ok])),
+    }
+    print(
+        f"REGISTERED TARGET  trend {T['trend']:+.3f}  G1 {T['g1_mean']:.1f}  "
+        f"G1exp {T['g1_exp']:+.3f}  mu {T['mu_med']:.4f}  "
+        f"mu>1.5 {T['mu_frac']:.4f}",
+        flush=True,
+    )
+    print(f"pool {CAP}, rungs {NS}, nq {NQ} — density matches registered\n", flush=True)
 
     def score(v):
-        return (abs(v["trend"] - T["trend"]) / abs(T["trend"])
-                + abs(np.log(max(v["g1_mean"], 1e-3) / T["g1_mean"]))
-                + abs(v["g1_exp"] - T["g1_exp"]) / 0.3
-                + abs(v["mu_med"] - T["mu_med"]) / 0.05
-                + abs(v["mu_frac"] - T["mu_frac"]) / 0.05)
+        return (
+            abs(v["trend"] - T["trend"]) / abs(T["trend"])
+            + abs(np.log(max(v["g1_mean"], 1e-3) / T["g1_mean"]))
+            + abs(v["g1_exp"] - T["g1_exp"]) / 0.3
+            + abs(v["mu_med"] - T["mu_med"]) / 0.05
+            + abs(v["mu_frac"] - T["mu_frac"]) / 0.05
+        )
 
     res = {}
     for pt in PT:
@@ -136,30 +155,45 @@ def main() -> int:
                 for fs in FS:
                     name = f"pt{pt}_fd{fd}_ad{ad}_fs{fs}"
                     t0 = time.time()
-                    x = filament_pool_corpus(params(pt, fd, ad, fs),
-                                             CAP, DIM, SEED)
+                    x = filament_pool_corpus(params(pt, fd, ad, fs), CAP, DIM, SEED)
                     tg_ = time.time() - t0
                     v = evaluate(x)
                     v["score"] = score(v)
                     res[name] = v
                     del x
-                    print(f"{name:26s} trend {v['trend']:+7.3f}  "
-                          f"G1 {v['g1_mean']:6.2f}  G1exp {v['g1_exp']:+7.3f}  "
-                          f"mu {v['mu_med']:.4f}  mu>1.5 {v['mu_frac']:.4f}  "
-                          f"score {v['score']:6.2f}  ({tg_:.0f}s gen, "
-                          f"{time.time()-t0:.0f}s total)", flush=True)
+                    print(
+                        f"{name:26s} trend {v['trend']:+7.3f}  "
+                        f"G1 {v['g1_mean']:6.2f}  G1exp {v['g1_exp']:+7.3f}  "
+                        f"mu {v['mu_med']:.4f}  mu>1.5 {v['mu_frac']:.4f}  "
+                        f"score {v['score']:6.2f}  ({tg_:.0f}s gen, "
+                        f"{time.time()-t0:.0f}s total)",
+                        flush=True,
+                    )
 
     best = min(res.items(), key=lambda kv: kv[1]["score"])
     print(f"\nbest: {best[0]}  score {best[1]['score']:.2f}", flush=True)
-    print(f"  ratios {[round(r,3) for r in best[1]['ratios']]} "
-          f"(target {[round(r,3) for r in t_ratios]})", flush=True)
-    print(f"  G1     {[round(g,2) for g in best[1]['g1']]} "
-          f"(target {[round(g,2) for g in t_g1]})", flush=True)
+    print(
+        f"  ratios {[round(r,3) for r in best[1]['ratios']]} "
+        f"(target {[round(r,3) for r in t_ratios]})",
+        flush=True,
+    )
+    print(
+        f"  G1     {[round(g,2) for g in best[1]['g1']]} "
+        f"(target {[round(g,2) for g in t_g1]})",
+        flush=True,
+    )
 
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"target": T, "config": {"cap": CAP, "ns": NS, "nq": NQ,
-                                           "seed": SEED},
-                   "arms": res, "best": best[0]}, f, indent=2)
+        json.dump(
+            {
+                "target": T,
+                "config": {"cap": CAP, "ns": NS, "nq": NQ, "seed": SEED},
+                "arms": res,
+                "best": best[0],
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("FILAMENT_REGISTERED_DONE", flush=True)
     return 0

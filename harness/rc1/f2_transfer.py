@@ -56,8 +56,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from openvector_bench.geometry import id_twonn, knn, normalize  # noqa: E402
 
-CACHE = ("/home/claude/.cache/huggingface/hub/"
-         "datasets--CohereLabs--wikipedia-2023-11-embed-multilingual-v3/blobs")
+CACHE = (
+    "/home/claude/.cache/huggingface/hub/"
+    "datasets--CohereLabs--wikipedia-2023-11-embed-multilingual-v3/blobs"
+)
 OUT = os.environ.get("F2_OUT", "/home/claude/ovb_scale/f2_transfer.json")
 NS = json.loads(os.environ.get("F2_NS", "[25000, 50000, 100000]"))
 NQ = int(os.environ.get("F2_NQ", "10000"))
@@ -73,8 +75,11 @@ def load_paired(need: int):
     """(texts, cohere_emb) spread across blobs, not a head slice."""
     import pyarrow.parquet as pq
 
-    files = [f for f in sorted(glob.glob(os.path.join(CACHE, "*")))
-             if not f.endswith(".lock")]
+    files = [
+        f
+        for f in sorted(glob.glob(os.path.join(CACHE, "*")))
+        if not f.endswith(".lock")
+    ]
     texts: list[str] = []
     embs: list[np.ndarray] = []
     got = 0
@@ -104,10 +109,15 @@ def curve(base: np.ndarray, q: np.ndarray) -> dict:
     d, _ = knn(base, q, KMAX)
     r = np.array([float(np.median(d[:, k - 1])) for k in KGRID])
     s = np.gradient(np.log(np.array(KGRID, dtype=float)), np.log(r))
-    return {"k": KGRID, "r": r.tolist(), "s": s.tolist(),
-            "s_lo": float(s[0]), "s_hi": float(s[-1]),
-            "g1": float(id_twonn(d)),
-            "beta": float(np.log(s[-1] / max(s[0], 1e-9)) / np.log(r[-1] / r[0]))}
+    return {
+        "k": KGRID,
+        "r": r.tolist(),
+        "s": s.tolist(),
+        "s_lo": float(s[0]),
+        "s_hi": float(s[-1]),
+        "g1": float(id_twonn(d)),
+        "beta": float(np.log(s[-1] / max(s[0], 1e-9)) / np.log(r[-1] / r[0])),
+    }
 
 
 def profile(name: str, x: np.ndarray, out: dict) -> None:
@@ -117,25 +127,34 @@ def profile(name: str, x: np.ndarray, out: dict) -> None:
     for n in NS:
         c = curve(xn[:n], q)
         out[name][str(n)] = c
-        print(f"{name:8s} n={n:6d} dim={x.shape[1]:4d}  G1={c['g1']:7.2f}  "
-              f"s {c['s_lo']:6.1f} -> {c['s_hi']:6.1f}  beta={c['beta']:+6.2f}  "
-              f"r {c['r'][0]:.3f}..{c['r'][-1]:.3f}", flush=True)
+        print(
+            f"{name:8s} n={n:6d} dim={x.shape[1]:4d}  G1={c['g1']:7.2f}  "
+            f"s {c['s_lo']:6.1f} -> {c['s_hi']:6.1f}  beta={c['beta']:+6.2f}  "
+            f"r {c['r'][0]:.3f}..{c['r'][-1]:.3f}",
+            flush=True,
+        )
     b = [out[name][str(n)]["beta"] for n in NS]
     g = [out[name][str(n)]["g1"] for n in NS]
     out[name]["beta_trend"] = float(np.polyfit(np.log(NS), b, 1)[0])
     out[name]["g1_exponent"] = float(np.polyfit(np.log(NS), np.log(g), 1)[0])
-    print(f"  -> {name}: beta_trend {out[name]['beta_trend']:+.2f} per ln n, "
-          f"G1 exponent {out[name]['g1_exponent']:+.3f}", flush=True)
+    print(
+        f"  -> {name}: beta_trend {out[name]['beta_trend']:+.2f} per ln n, "
+        f"G1 exponent {out[name]['g1_exponent']:+.3f}",
+        flush=True,
+    )
 
 
 def main() -> int:
     t0 = time.time()
     print(f"loading {NEED} paired rows ({PER_BLOB}/blob)", flush=True)
     texts, cohere = load_paired(NEED)
-    print(f"got {len(texts)} texts, cohere {cohere.shape} in {time.time()-t0:.0f}s",
-          flush=True)
+    print(
+        f"got {len(texts)} texts, cohere {cohere.shape} in {time.time()-t0:.0f}s",
+        flush=True,
+    )
 
     import torch
+
     torch.set_num_threads(4)  # 20 took Atlas to 99C; 4 holds 78C
     from sentence_transformers import SentenceTransformer
 
@@ -144,12 +163,16 @@ def main() -> int:
     t = time.time()
     model.encode(texts[:256], batch_size=BATCH, show_progress_bar=False)
     rate = 256 / (time.time() - t)
-    print(f"LaBSE CPU throughput ~{rate:.0f} sent/s -> "
-          f"{len(texts)/rate/60:.0f} min for {len(texts)}", flush=True)
+    print(
+        f"LaBSE CPU throughput ~{rate:.0f} sent/s -> "
+        f"{len(texts)/rate/60:.0f} min for {len(texts)}",
+        flush=True,
+    )
 
     t = time.time()
-    labse = model.encode(texts, batch_size=BATCH, show_progress_bar=False,
-                         convert_to_numpy=True).astype(np.float32)
+    labse = model.encode(
+        texts, batch_size=BATCH, show_progress_bar=False, convert_to_numpy=True
+    ).astype(np.float32)
     print(f"LaBSE {labse.shape} in {(time.time()-t)/60:.1f} min", flush=True)
 
     out: dict = {}
@@ -158,16 +181,30 @@ def main() -> int:
 
     print("\n=== F2 comparison ===", flush=True)
     for name in ("cohere", "labse"):
-        print(f"  {name:8s} beta_trend {out[name]['beta_trend']:+.2f}  "
-              f"G1 exponent {out[name]['g1_exponent']:+.3f}", flush=True)
-    print("  registered real anchors: G1 exponent -0.168, beta_trend +1.41",
-          flush=True)
+        print(
+            f"  {name:8s} beta_trend {out[name]['beta_trend']:+.2f}  "
+            f"G1 exponent {out[name]['g1_exponent']:+.3f}",
+            flush=True,
+        )
+    print("  registered real anchors: G1 exponent -0.168, beta_trend +1.41", flush=True)
 
     os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
     with open(OUT, "w", encoding="utf-8") as f:
-        json.dump({"config": {"ns": NS, "nq": NQ, "kmax": KMAX, "kgrid": KGRID,
-                              "per_blob": PER_BLOB, "n_texts": len(texts)},
-                   "results": out}, f, indent=2)
+        json.dump(
+            {
+                "config": {
+                    "ns": NS,
+                    "nq": NQ,
+                    "kmax": KMAX,
+                    "kgrid": KGRID,
+                    "per_blob": PER_BLOB,
+                    "n_texts": len(texts),
+                },
+                "results": out,
+            },
+            f,
+            indent=2,
+        )
     print(f"wrote {OUT}", flush=True)
     print("F2_TRANSFER_DONE", flush=True)
     return 0
