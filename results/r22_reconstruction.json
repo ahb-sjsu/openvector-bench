@@ -1,0 +1,35 @@
+{
+  "params": {
+    "rows": 10000000,
+    "dim": 128,
+    "rows_per_shard": 1000000,
+    "queries": 256,
+    "work": "/archive/experiments/ovb_recon",
+    "salt": "ovb-recon-v0",
+    "sign": null,
+    "out": "/home/claude/ovb_scale/r22_reconstruction.json"
+  },
+  "n_shards": 10,
+  "criteria": {
+    "1_merkle": true,
+    "2_byte_identity": true,
+    "3_identical_answers": true,
+    "4_tamper_detected": true
+  },
+  "passed": true,
+  "events": {
+    "regen_attempts": 10,
+    "regen_hits": 5,
+    "fetch_attempts": 5,
+    "fetch_hits": 5,
+    "bytes_moved": 640000000,
+    "seconds_by_source": {
+      "file:///archive/experiments/ovb_recon/mirror/shard_00001.bin": 0.114,
+      "file:///archive/experiments/ovb_recon/mirror/shard_00003.bin": 0.079,
+      "refcorpus.philox-u8:v0": 2.198,
+      "file:///archive/experiments/ovb_recon/mirror/shard_00005.bin": 0.077,
+      "file:///archive/experiments/ovb_recon/mirror/shard_00007.bin": 0.079,
+      "file:///archive/experiments/ovb_recon/mirror/shard_00009.bin": 0.074
+    }
+  }
+}

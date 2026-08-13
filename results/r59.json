@@ -1,0 +1,48 @@
+{
+  "protocol": "gates on 200k base + 10k queries, exchangeable; profile/spans on the clumped protocol",
+  "config": "brk 0.143, arr_levels 3, fil_dim 48, nlev 6, d_loc 64, w_loc 0.6, size_spread 1.2",
+  "arms": {
+    "br64_dg30": {
+      "g1": 4.87,
+      "g3_eff_rank": 122.1,
+      "g4_dims90": 717,
+      "g5": 1.354,
+      "g6": 1.932,
+      "rms": 5.3,
+      "ratio_span": 1.192,
+      "logg1_span": -1.296
+    },
+    "br64_dg38": {
+      "g1": 4.87,
+      "g3_eff_rank": 128.8,
+      "g4_dims90": 715,
+      "g5": 1.359,
+      "g6": 1.953,
+      "rms": 5.71,
+      "ratio_span": 0.8,
+      "logg1_span": -1.271
+    },
+    "br64_dg45": {
+      "g1": 4.87,
+      "g3_eff_rank": 141.3,
+      "g4_dims90": 717,
+      "g5": 1.352,
+      "g6": 1.944,
+      "rms": 6.51,
+      "ratio_span": 0.708,
+      "logg1_span": -1.269
+    }
+  },
+  "real": {
+    "g1": 17.23,
+    "g3_eff_rank": 182.3,
+    "g4_dims90": 359,
+    "g5": 1.369,
+    "g6": 1.696,
+    "ratio_span": 2.397,
+    "ratio_span_sd": 0.085,
+    "logg1_span": -0.494,
+    "logg1_span_sd": 0.054
+  },
+  "_note": "g1 identical to 3 s.f. across all d_glob, so it is set by the within-article structure, not the arrangement. g8 pca_retention not measured: needs a second full k-NN in PCA space and would exceed the ~60s pod window."
+}

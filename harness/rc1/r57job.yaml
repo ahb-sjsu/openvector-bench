@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ovb-r57-seg
+  namespace: ssu-atlas-ai
+  labels:
+    app: openvector-bench
+    round: r57
+spec:
+  # One arm per pod. Every pod is short (~20 s) and GPU-dense, which is the
+  # NRP usage profile: earlier rounds ran a four-arm sweep in one pod and were
+  # killed in a 36-63 s window.
+  completions: 4
+  parallelism: 2          # 2 of the 4 heavy GPU slots, leaving headroom
+  completionMode: Indexed
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: openvector-bench
+        round: r57
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        nvidia.com/gpu.product: NVIDIA-A10
+      containers:
+        - name: seg
+          image: pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+          # No pip install: NRP compute nodes restrict egress and the install
+          # hung until the pod was killed, producing a run with no logs at all.
+          command: ["python", "-u", "/code/sweep.py"]
+          env:
+            - name: OMP_NUM_THREADS
+              value: "4"
+            - name: MKL_NUM_THREADS
+              value: "4"
+          resources:
+            requests:
+              cpu: "4"
+              memory: 24Gi
+              ephemeral-storage: 8Gi
+            limits:
+              cpu: "4"
+              memory: 24Gi
+              ephemeral-storage: 8Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: code
+              mountPath: /code
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: code
+          configMap:
+            name: ovb-r57-code
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi

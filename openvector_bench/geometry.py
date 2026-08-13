@@ -240,6 +240,102 @@ def id_ball_growth(d: np.ndarray, k: int) -> float:
     return float(np.polyfit(np.log(radii[ok]), np.log(counts[ok]), 1)[0])
 
 
+# --------------------------------------------------------------------------- #
+# The scale-resolved growth profile (spec/PROFILE.md §1)                       #
+# --------------------------------------------------------------------------- #
+PROFILE_KGRID: tuple[int, ...] = tuple(
+    sorted({int(round(v)) for v in np.geomspace(4, 500, 16)})
+)
+
+
+def growth_slope(
+    d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID
+) -> tuple[np.ndarray, np.ndarray]:
+    """``(r, s)`` where ``s(r) = dlog k / dlog r`` — the registered profile.
+
+    This is the pre-limit form of Local Intrinsic Dimensionality (Houle, SISAP
+    2017), equivalently the local slope of the Grassberger-Procaccia correlation
+    integral. It is *not* a new estimator; see ``spec/PROFILE.md`` §1.
+
+    ``d`` is the sorted neighbour-distance matrix from :func:`knn` with at least
+    ``max(kgrid)`` columns.
+    """
+    r = np.array([float(np.median(d[:, k - 1])) for k in kgrid])
+    return r, np.gradient(np.log(np.array(kgrid, dtype=float)), np.log(r))
+
+
+def profile_ratio(d: np.ndarray, kgrid: tuple[int, ...] = PROFILE_KGRID) -> float:
+    """The registered k-matched ratio ``s(k_max)/s(k_min)`` (``PROFILE.md`` §1).
+
+    Matched in k and dimensionless. Deliberately *not* ``beta = dlog s/dlog r``:
+    beta divides by each corpus's own log-radius span, and corpora occupy
+    disjoint bands with spans differing up to 6x, which makes it unsound across
+    corpora (``PROFILE.md`` §1, ``results/R21B_SCALE_DEPENDENCE.md``).
+    """
+    _, s = growth_slope(d, kgrid)
+    return float(s[-1] / max(s[0], 1e-9))
+
+
+def reproducible_matmul(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """``a @ b`` with a summation order that does not depend on the BLAS.
+
+    A float32 ``@`` is **not** bit-reproducible across platforms. Measured on
+    identical inputs, same OpenBLAS build, Windows vs Linux: the f32 product
+    hashes differ (``f81d6818`` vs ``a04d9149``) because SIMD width and blocking
+    change the order of the inner sum, and f32 has too little precision to
+    absorb the reordering. The same product in f64 agrees, as does an explicit
+    fixed-order accumulation.
+
+    This matters beyond tidiness. `DISTRIBUTION.md` §3 makes regeneration a
+    first-class source, and `R22`'s cross-toolchain result (16/16 shards
+    byte-identical) holds only because ``philox_u8`` is pure integer arithmetic.
+    Any float-heavy emitter forfeits that guarantee unless its reductions are
+    ordered explicitly.
+
+    Accumulating one rank-1 term at a time is the conservative choice: it uses
+    no BLAS at all, so it does not rely on f64 having enough headroom for the
+    reduction length. Cost is a Python loop over ``a.shape[1]``, which is the
+    inner dimension and small in every use here.
+    """
+    a = np.asarray(a)
+    b = np.asarray(b)
+    out = np.zeros((a.shape[0], b.shape[1]), dtype=np.float32)
+    for j in range(a.shape[1]):
+        out += a[:, j : j + 1].astype(np.float32) * b[j : j + 1, :].astype(np.float32)
+    return out
+
+
+def exchangeable_split(
+    support: np.ndarray, n_base: int, n_query: int, seed: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Split an index ``support`` into base and query indices exchangeably.
+
+    Base and queries **must** be drawn from the same region. Sampling queries
+    from a different support -- a tail slice, a global holdout over a corpus
+    whose base is a head slice or a clumped subset -- makes the split
+    non-exchangeable and inflates every neighbour diagnostic. It moved measured
+    G1 from 16.1 to 65.7 in `R23`, and has been reintroduced three separate
+    times since (`R29`, `R30`, and the first clumpiness ladder in `R31`), each
+    time producing smooth, plausible, monotone numbers.
+
+    The failure is not self-announcing, so the split is constructed here once
+    rather than per experiment: choose the support first, then partition it.
+
+    Returns ``(base_idx, query_idx)``, both sorted, disjoint, and drawn from the
+    same support.
+    """
+    support = np.asarray(support)
+    need = n_base + n_query
+    if len(support) < need:
+        raise ValueError(
+            f"support has {len(support)} rows, need {need} "
+            f"(n_base={n_base} + n_query={n_query})"
+        )
+    rng = np.random.default_rng(seed)
+    picked = rng.permutation(support)[:need]
+    return np.sort(picked[:n_base]), np.sort(picked[n_base:])
+
+
 def spectrum(x: np.ndarray) -> tuple[float, int]:
     xc = x - x.mean(0, keepdims=True)
     lam = np.linalg.svd(xc, compute_uv=False) ** 2 / max(len(xc) - 1, 1)

@@ -1,0 +1,44 @@
+{
+  "real": {
+    "g1_id_twonn": 17.22834014892578,
+    "g2_id_ballgrowth": 5.495318800788884,
+    "g3_eff_rank": 182.2950897216797,
+    "g4_dims90": 359.0,
+    "g5_relative_contrast": 1.368911426575629,
+    "g6_hubness_skew": 1.6961602546767205,
+    "g7_local_id_iqr": 12.179832458496094,
+    "g8_pca_retention": 0.7300995550201432
+  },
+  "arms": {
+    "fd30_fs0.45": {
+      "g1_id_twonn": 21.673511505126953,
+      "g2_id_ballgrowth": 5.121335330325301,
+      "g3_eff_rank": 73.27604675292969,
+      "g4_dims90": 97.0,
+      "g5_relative_contrast": 2.482950908529133,
+      "g6_hubness_skew": 1.5907326310448084,
+      "g7_local_id_iqr": 5.229701519012451,
+      "g8_pca_retention": 0.992309090909091
+    },
+    "fd22_fs0.45": {
+      "g1_id_twonn": 17.602651596069336,
+      "g2_id_ballgrowth": 4.759397262325018,
+      "g3_eff_rank": 71.35926055908203,
+      "g4_dims90": 90.0,
+      "g5_relative_contrast": 2.5224312974956535,
+      "g6_hubness_skew": 1.5968804920095947,
+      "g7_local_id_iqr": 4.814165353775024,
+      "g8_pca_retention": 0.9929636363636364
+    },
+    "fd16_fs0.45": {
+      "g1_id_twonn": 14.51977825164795,
+      "g2_id_ballgrowth": 4.680610113179798,
+      "g3_eff_rank": 69.09892272949219,
+      "g4_dims90": 84.0,
+      "g5_relative_contrast": 2.5806734843423467,
+      "g6_hubness_skew": 1.5713892241692793,
+      "g7_local_id_iqr": 5.0239235162734985,
+      "g8_pca_retention": 0.9929454545454546
+    }
+  }
+}

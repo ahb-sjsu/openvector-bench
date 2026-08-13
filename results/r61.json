@@ -1,0 +1,151 @@
+{
+  "brk_at_wloc0.6": {
+    "0.020": {
+      "ratio_span": 2.298,
+      "in_band_r": true,
+      "logg1_span": -0.856,
+      "g1": 4.41,
+      "g5": 1.607,
+      "g6": 1.639,
+      "rms": 7.69
+    },
+    "0.030": {
+      "ratio_span": 2.42,
+      "in_band_r": true,
+      "logg1_span": -0.889,
+      "g1": 4.44,
+      "g5": 1.596,
+      "g6": 1.681,
+      "rms": 7.63
+    },
+    "0.040": {
+      "ratio_span": 2.653,
+      "in_band_r": false,
+      "logg1_span": -0.923,
+      "g1": 4.49,
+      "g5": 1.587,
+      "g6": 1.721,
+      "rms": 7.56
+    },
+    "0.050": {
+      "ratio_span": 2.697,
+      "in_band_r": false,
+      "logg1_span": -0.953,
+      "g1": 4.55,
+      "g5": 1.573,
+      "g6": 1.74,
+      "rms": 7.39
+    }
+  },
+  "wloc_at_brk0.03": {
+    "0.35": {
+      "ratio_span": 1.918,
+      "logg1_span": -1.097,
+      "g5": 1.508,
+      "g6": 1.689,
+      "rms": 6.89
+    },
+    "0.60": {
+      "ratio_span": 2.42,
+      "logg1_span": -0.889,
+      "g5": 1.596,
+      "g6": 1.681,
+      "rms": 7.63
+    },
+    "0.90": {
+      "ratio_span": 3.338,
+      "logg1_span": -0.659,
+      "g5": 1.752,
+      "g6": 1.679,
+      "rms": 9.94
+    },
+    "1.30": {
+      "ratio_span": 4.908,
+      "logg1_span": -0.417,
+      "in_band_g": true,
+      "g5": 2.022,
+      "g6": 1.676,
+      "rms": 17.63
+    }
+  },
+  "brk_at_high_wloc": {
+    "brk0.000_wl1.15": {
+      "ratio_span": 3.921,
+      "logg1_span": -0.443,
+      "in_band_g": true,
+      "g5": 1.946,
+      "rms": 14.53
+    },
+    "brk0.005_wl1.15": {
+      "ratio_span": 3.987,
+      "logg1_span": -0.454,
+      "in_band_g": true,
+      "g5": 1.942,
+      "rms": 14.51
+    },
+    "brk0.000_wl1.30": {
+      "ratio_span": 4.546,
+      "logg1_span": -0.369,
+      "g5": 2.055,
+      "rms": 17.74
+    },
+    "brk0.010_wl1.30": {
+      "ratio_span": 4.825,
+      "logg1_span": -0.379,
+      "g5": 2.044,
+      "rms": 17.84
+    }
+  },
+  "dglob_at_wloc1.15": {
+    "45": {
+      "ratio_span": 3.725,
+      "logg1_span": -0.448,
+      "in_band_g": true,
+      "g5": 1.945,
+      "g6": 1.61,
+      "rms": 15.22
+    },
+    "65": {
+      "ratio_span": 4.187,
+      "logg1_span": -0.446,
+      "in_band_g": true,
+      "g5": 1.938,
+      "g6": 1.614,
+      "rms": 15.94
+    },
+    "90": {
+      "ratio_span": 3.799,
+      "logg1_span": -0.438,
+      "in_band_g": true,
+      "g5": 1.945,
+      "g6": 1.605,
+      "rms": 17.26
+    },
+    "120": {
+      "ratio_span": 3.611,
+      "logg1_span": -0.438,
+      "in_band_g": true,
+      "g5": 1.948,
+      "g6": 1.59,
+      "rms": 17.71
+    }
+  },
+  "bands": {
+    "ratio_span": [
+      2.227,
+      2.567
+    ],
+    "logg1_span": [
+      -0.602,
+      -0.386
+    ]
+  },
+  "real": {
+    "ratio_span": 2.397,
+    "logg1_span": -0.494,
+    "g1": 17.23,
+    "g5": 1.369,
+    "g6": 1.696
+  },
+  "_finding": "Each span is individually reachable but never together. ratio needs w_loc ~0.6, logG1 needs w_loc >=1.15, and neither brk nor d_glob bridges the gap."
+}

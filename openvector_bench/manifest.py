@@ -198,10 +198,40 @@ def shard_filename(man: dict, i: int) -> str:
 # --------------------------------------------------------------------------- #
 # Detached signature over the canonical JSON (spec §2 item 3)                 #
 # --------------------------------------------------------------------------- #
+def gpg_program() -> str:
+    """Which gpg binary to use.
+
+    A bare ``gpg`` is not safe to assume. On Windows a Git-for-Windows install
+    ships its own GnuPG with a *separate* keyring, so ``gpg`` on PATH can
+    resolve to a binary that does not hold the signing key even though git
+    signs commits happily — the failure is ``No secret key``, which reads like
+    a missing key rather than the wrong program. Resolution order:
+
+    1. ``$OVB_GPG`` — explicit override;
+    2. ``git config --get gpg.program`` — the same binary git itself signs
+       commits with, which is what `DISTRIBUTION.md` §2 means by "the same
+       GPG identity that signs the repository's commits";
+    3. ``gpg``.
+    """
+    env = os.environ.get("OVB_GPG")
+    if env:
+        return env
+    try:
+        out = subprocess.run(
+            ["git", "config", "--get", "gpg.program"],
+            capture_output=True, text=True, check=False, timeout=10,
+        ).stdout.strip()
+        if out:
+            return out
+    except Exception:
+        pass
+    return "gpg"
+
+
 def sign_manifest(path: str, key: str | None = None) -> str:
     """GPG detached armored signature next to the manifest (``.asc``)."""
     sig = path + ".asc"
-    cmd = ["gpg", "--batch", "--yes", "--armor", "--detach-sign", "-o", sig]
+    cmd = [gpg_program(), "--batch", "--yes", "--armor", "--detach-sign", "-o", sig]
     if key:
         cmd += ["--local-user", key]
     subprocess.run(cmd + [path], check=True)
@@ -211,7 +241,7 @@ def sign_manifest(path: str, key: str | None = None) -> str:
 def verify_signature(path: str, sig: str | None = None) -> None:
     """Raises ``CalledProcessError`` if the signature does not verify."""
     subprocess.run(
-        ["gpg", "--batch", "--verify", sig or path + ".asc", path],
+        [gpg_program(), "--batch", "--verify", sig or path + ".asc", path],
         check=True,
         capture_output=True,
     )
