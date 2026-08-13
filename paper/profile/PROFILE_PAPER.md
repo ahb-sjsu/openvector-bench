@@ -425,3 +425,27 @@ statement now reads: sequence-structured generation reproduces both the
 fixed-density geometry and the leading density-response summaries; what
 still resists is the exact PCA tail shape and the rate at which dimension
 falls with sample size (`results/RC3_VERDICT.md`).
+
+Two further campaigns (RC-4 and RC-5, 80 arms, `results/R75`–`R79`)
+converted those residuals into a structural theorem-shaped claim about
+the family. Five pre-registered mechanisms for the spectral residual —
+a pool power law, a two-scale head-plus-floor profile, pool-size
+composition, a partitioned pool separating neighbour-carrying components
+from the spectral head, and a dedicated centre subspace with its own
+decaying spectrum — were each killed by its own registered criterion,
+and all five trace **one trade surface**: dims90, PCA retention, and
+effective rank move together under every reshaping, while the real
+corpus holds a triple (357 / 0.737 / ~175) that lies off that surface.
+Real embeddings keep their neighbour-relevant variance partly *outside*
+their top PCA dimensions while still concentrating total variance — a
+property no composition over a shared direction vocabulary expressed,
+including architectures built specifically to decouple it (one of which
+demonstrably moved retention exactly as designed, and re-coupled the
+moment its spectrum was shaped). Likewise every G1-vs-n lever tried —
+above-article structure, article-length tails — slid along a
+trend↔exponent trade curve rather than shifting it. The frontier
+configuration was therefore left frozen rather than retuned
+(`results/RC4_VERDICT.md`, `results/RC5_VERDICT.md`): the family's
+boundary is itself the measured result, and a successor family should be
+designed from the trade-surface statement, not from further levers on
+this one.
