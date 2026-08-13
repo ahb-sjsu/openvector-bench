@@ -60,3 +60,54 @@ def test_ranges_and_determinism():
     # splitmix64 is a bijection on uint64; distinct inputs stay distinct.
     h = splitmix64(np.arange(10_000, dtype=np.uint64))
     assert len(np.unique(h)) == 10_000
+
+
+def test_segment_corpus_is_random_access_and_chunk_invariant():
+    """The property the harness version lacked (`R56`-`R61` port).
+
+    Article boundaries there came from a cumsum over lognormal lengths, so row i
+    could not be produced without its predecessors. Here every structural
+    decision is a function of the index.
+    """
+    import numpy as np
+
+    from openvector_bench.segment_gen import SEGMENT_PARAMS, segment_corpus
+
+    p = {k: d for k, _, _, d in SEGMENT_PARAMS}
+    full = segment_corpus(p, 4000, 64, 3)
+    assert full.shape == (4000, 64)
+    assert np.allclose(np.linalg.norm(full, axis=1), 1.0, atol=1e-4)
+
+    # chunking must not change any row
+    assert np.array_equal(full, segment_corpus(p, 4000, 64, 3, chunk=333))
+
+    # arbitrary rows alone equal their value in a full generation
+    pick = np.array([0, 1, 17, 999, 3999])
+    assert np.array_equal(segment_corpus(p, 0, 64, 3, rows=pick), full[pick])
+
+    # and a row far beyond any generated range is reproducible on its own
+    a = segment_corpus(p, 0, 64, 3, rows=np.array([10**12, 10**12 + 1]))
+    b = segment_corpus(p, 0, 64, 3, rows=np.array([10**12 + 1]))
+    assert np.array_equal(a[1], b[0])
+
+
+def test_segment_corpus_autocorrelation_decays_with_index_gap():
+    """`R30`'s decay emerges from the segment structure rather than being fitted.
+
+    `R32` had to fit level weights by NNLS to reproduce it; here it falls out.
+    Real: 0.598, 0.530, 0.449, 0.367, 0.304 at gaps 1, 2, 4, 8, 16.
+    """
+    import numpy as np
+
+    from openvector_bench.segment_gen import SEGMENT_PARAMS, segment_corpus
+
+    p = {k: d for k, _, _, d in SEGMENT_PARAMS}
+    x = segment_corpus(p, 6000, 128, 3)
+    prev = 1.0
+    for gap in (1, 2, 4, 8, 16, 64):
+        cos = float(np.mean(np.sum(x[:3000] * x[gap:3000 + gap], axis=1)))
+        assert cos < prev, "cosine must fall with index gap"
+        prev = cos
+    # the gap-1 value should be in the neighbourhood of real's 0.598
+    g1 = float(np.mean(np.sum(x[:3000] * x[1:3001], axis=1)))
+    assert 0.45 < g1 < 0.80, g1
