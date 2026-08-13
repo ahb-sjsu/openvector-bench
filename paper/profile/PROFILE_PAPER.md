@@ -408,3 +408,20 @@ under the freeze's own pre-stated rule. The profile's density response
 remains unreproduced by any known deterministic generator, now as a
 registered negative with quantified misses rather than an absence of
 attempts.
+
+A second campaign (RC-3, 60 arms, `results/R68`–`R74`) revised that
+statement upward under bands that respect real's measured heterogeneity —
+ten fresh blocks showed the corpus's own density response varies 2.4×
+block-to-block, with weakly-articulated regions (g1 ≈ 20, span ≈ 1)
+alongside strongly-articulated ones. One added mechanism (a power-law
+amplitude profile over the shared direction pool) and one relocated break
+rate produced a configuration that, frozen and evaluated once on four
+further untouched blocks, passes **eight of ten** registered criteria —
+including the mandatory intrinsic-dimension / contrast / hubness trio,
+in band held-out for the first time, and the ratio trend and both §3b
+spans. The two residuals are precise: dims90 (417 vs real's razor-stable
+352–365) and the G1-vs-n exponent (−0.11 vs −0.17). The constructive
+statement now reads: sequence-structured generation reproduces both the
+fixed-density geometry and the leading density-response summaries; what
+still resists is the exact PCA tail shape and the rate at which dimension
+falls with sample size (`results/RC3_VERDICT.md`).
