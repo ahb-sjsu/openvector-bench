@@ -1,0 +1,18 @@
+R66 cycle-b confirmation raw (NRP A10, job ovb-r62-phasea, 2026-08-13)
+BASE: log2_pool=10 rho=0.3 arr_frames=per_level brk=0.116; V1 d_glob=24, V2 d_glob=48
+V1_s137_A | g1 16.26 g3 128.4 g4  444 g5 1.390 g6 1.777 g8 0.723 | S3 trend +0.535 g1exp -0.105 | trend IN g1exp out r25k IN r50k out r100k out r200k out
+V1_s137_B | rspan +3.811 gspan -0.251 | 100k rIN | s14  14.8 s53  25.7 rms1b  4.50
+V1_s271_A | g1 16.45 g3 145.3 g4  447 g5 1.384 g6 1.784 g8 0.721 | S3 trend +0.410 g1exp -0.097 | trend IN g1exp out
+V1_s271_B | rspan +3.041 gspan -0.298 | 100k rIN 600k gIN | s14  16.5 s53  24.3 rms1b  5.05
+V1_s41_A  | g1 16.18 g3 150.1 g4  448 g5 1.376 g6 1.806 g8 0.722 | S3 trend +0.423 g1exp -0.106 | trend IN g1exp out
+V1_s41_B  | rspan +3.960 gspan -0.324 | 100k rIN 600k gIN | s14  15.8 s53  26.2 rms1b  4.77
+V1_s89_A  | g1 16.18 g3 152.0 g4  449 g5 1.374 g6 1.780 g8 0.725 | S3 trend +0.426 g1exp -0.091 | trend IN g1exp out
+V1_s89_B  | rspan +4.306 gspan -0.242 | 100k rIN | s14  16.6 s53  23.5 rms1b  5.45
+V2_s137_A | g1 16.11 g3 204.4 g4  462 g5 1.377 g6 1.795 g8 0.712 | S3 trend +0.425 g1exp -0.090 | trend IN g1exp out
+V2_s137_B | rspan +3.634 gspan -0.232 | 100k rIN | s14  15.6 s53  28.6 rms1b  6.06
+V2_s271_A | g1 16.53 g3 197.6 g4  461 g5 1.380 g6 1.765 g8 0.715 | S3 trend +0.171 g1exp -0.084 | trend OUT g1exp out
+V2_s271_B | rspan +2.849 gspan -0.267 | 100k rIN 400k gIN | s14  16.2 s53  25.2 rms1b  6.57
+V2_s41_A  | g1 16.16 g3 187.6 g4  461 g5 1.378 g6 1.773 g8 0.715 | S3 trend +0.277 g1exp -0.088 | trend IN g1exp out
+V2_s41_B  | rspan +3.172 gspan -0.289 | 100k rIN 400k gIN 600k gIN | s14  16.2 s53  26.3 rms1b  6.15
+V2_s89_A  | g1 16.31 g3 184.1 g4  460 g5 1.384 g6 1.776 g8 0.717 | S3 trend +0.499 g1exp -0.072 | trend IN g1exp out
+V2_s89_B  | rspan +4.064 gspan -0.183 | 100k rIN 400k gIN | s14  16.6 s53  25.1 rms1b  5.95
