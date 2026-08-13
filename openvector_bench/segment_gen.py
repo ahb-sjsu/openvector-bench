@@ -76,12 +76,14 @@ import numpy as np
 from .geometry import normalize, reproducible_matmul
 from .hashrng import hash_gaussian, hash_index, hash_uniform, mix_keys
 
-# (name, lo, hi, default) — defaults are the RC-2 FROZEN configuration:
-# cycle b's V1 (`R66`), chosen for seed-robustness of the §3 trend over V2's
-# better g3. Do not retune; the freeze is the point.
+# (name, lo, hi, default) — defaults are the RC-3 FROZEN configuration: D12
+# (`R71`-`R74`) = the RC-2 frozen V1 plus pool_alpha 0.22 and seg_break 0.126,
+# chosen for its seed-robust 7-of-10 against the R68 ten-block bands. The
+# RC-2 identity is recovered exactly at seg_break 0.116, pool_alpha 0 (hash
+# 80d94f61..., spec/RC2_FREEZE.md). Do not retune; the freeze is the point.
 SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     ("arr_window", 1e4, 1e7, 600000.0),  # arrangement correlation length (rows)
-    ("seg_break", 0.0, 0.5, 0.116),     # segment break rate (R64 OP-2, held through R66)
+    ("seg_break", 0.0, 0.5, 0.126),     # segment break rate (R71-R74: the D12 pocket)
     ("branch", 2.0, 512.0, 64.0),       # articles per cluster grow as 27*branch**L
     ("arr_levels", 1.0, 5.0, 3.0),      # nested arrangement scales
     ("d_glob", 8.0, 256.0, 24.0),       # arrangement subspace dim (per level)
@@ -95,6 +97,7 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     ("path_mix", 0.0, 1.0, 0.60),       # path fraction; 1-path_mix is the ball
     ("rho", 0.0, 1.0, 0.30),            # cluster-shared direction fraction (R64: g6)
     ("level_frames", 0.0, 1.0, 1.0),    # 1: one frame per arrangement level (R66)
+    ("pool_alpha", 0.0, 1.0, 0.22),     # pool amplitude power law (R70-R74: g8/rspan lever)
 )
 
 _MAXLEV = 8
@@ -195,8 +198,9 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     fil_dim = max(1, int(round(p["fil_dim"])))
     fil_scale = float(p["fil_scale"])
     nlev = max(1, int(round(p["nlev"])))
-    n_pool = int(2 ** round(p["log2_pool"]))
+    n_pool = int(round(2 ** float(p["log2_pool"])))
     path_decay = float(p.get("path_decay", 0.72))
+    pool_alpha = float(p.get("pool_alpha", 0.0))
     path_mix = min(1.0, max(0.0, float(p.get("path_mix", 1.0))))
     rho = min(1.0, max(0.0, float(p.get("rho", 0.0))))
     level_frames = bool(round(p.get("level_frames", 0.0)))
@@ -209,6 +213,13 @@ def segment_corpus(p: dict[str, float], n: int, dim: int, seed: int,
     rng = np.random.default_rng(seed)
     pool = (rng.standard_normal((n_pool, dim)).astype(np.float32)
             / np.sqrt(dim, dtype=np.float32))
+    if pool_alpha > 0.0:
+        # power-law amplitude profile over pool slots (R70): shapes the PCA
+        # tail (g4, g8) without touching any mechanism. Unit mean square, so
+        # overall variance is preserved; a no-op at alpha = 0 by branch.
+        w = (1.0 + np.arange(n_pool, dtype=np.float64)) ** (-pool_alpha)
+        w /= np.sqrt((w ** 2).mean())
+        pool *= w.astype(np.float32)[:, None]
     # One orthonormal frame per arrangement level (R66), or one shared frame.
     # Drawn up front, in level order, so the emission is chunk-invariant.
     if level_frames:
