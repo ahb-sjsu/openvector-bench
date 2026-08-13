@@ -1,6 +1,6 @@
 # The dimension profile of an embedding corpus measures how the corpus was assembled, not how it was embedded
 
-**Draft, 2026-08-12.** Sources are the `results/` rounds cited inline; every
+**Draft, 2026-08-13.** Sources are the `results/` rounds cited inline; every
 number below is measured in this repository and its record is named.
 
 ---
@@ -35,6 +35,14 @@ And profile comparisons between corpora are only meaningful at matched sampling
 density and matched ordering; the literature's practice of comparing intrinsic
 dimension across corpora of different provenance is not well defined without
 them.
+
+We close the loop constructively: a registered, budget-disclosed search over
+deterministic sequence-structured generators produced a frozen, bit-exact,
+random-access family that — judged once, on held-out corpus blocks — matches
+the fixed-density neighbourhood geometry (intrinsic dimension and distance
+contrast in band; hubness within 1.4%) and is excluded by precisely the
+density-response criteria the assembly explanation identifies as the hard
+part. The negative is registered, held-out, and quantified.
 
 ---
 
@@ -285,15 +293,25 @@ ordered explicitly or carried in float64.
 * **Article structure is inferred, not annotated.** The ~23 figure is read off a
   k-NN index-gap cliff, not from article boundaries in the source data. We did
   not have the article metadata.
-* **The block-to-block uncertainties come from four blocks.** `spec/PROFILE.md`
-  §5 registers a falsifier: a fifth and sixth block falling outside the ±2 sd
-  bands would show the quoted variance is an underestimate from n = 4.
-* **No generative model reproducing the profile is offered.** Fourteen families
-  were tried and are recorded in `results/`; the strongest reaches all three
-  mandatory geometric gates within 22% and lands the registered §3b ratio span
-  in band, but does so with a visibly wrong `s(k)` curve — endpoint agreement
-  without shape agreement (`R46`). We report this as a negative result and a
-  caution: the summary statistic is satisfiable by geometry that is not real's.
+* **The block-to-block uncertainties came from four blocks, and the
+  registered falsifier has since fired in part.** `spec/PROFILE.md` §5
+  registered that further blocks falling outside the ±2 sd bands would show
+  the quoted variance is an underestimate from n = 4. Four held-out blocks
+  at fresh offsets (`results/rc2_heldout.json`, §11) confirm this for some
+  statistics: hubness skew moved from 1.696 to a fresh-block band of
+  [1.711, 1.748], and the ratio-trend band from [0.254, 0.649] to
+  [0.455, 0.658] — the corpus's own block-to-block drift is comparable to
+  several admission windows. The intrinsic-dimension and contrast bands
+  held. Bands in any future registration should come from 8–10 blocks.
+* **No generative model reproducing the full profile is offered — and the
+  best one is now a registered, held-out negative rather than an open
+  question** (§11). The frozen family matches the fixed-density
+  neighbourhood geometry on held-out data (intrinsic dimension and distance
+  contrast in band; hubness, PCA retention and effective rank within 1–3%)
+  and fails precisely the density-response criteria this paper attributes
+  to corpus assembly. The summary statistic remains satisfiable by geometry
+  that is not real's; the *density response* was not satisfiable by
+  anything this search found.
 
 ---
 
@@ -334,3 +352,59 @@ there predicts, since shuffling makes the row sequence carry no information.
   such as a shuffled web crawl — should show no ramp at any density.
 * Conversely, a corpus with *stronger* document-level clumping than Wikipedia
   should show a *larger* ramp at matched density.
+
+---
+
+## 11. The constructive test: a generator search, frozen and judged held-out
+
+If the profile is created by corpus assembly, a generator that *builds in*
+the assembly — contiguous articles, segments, an ordered row sequence —
+should reproduce what i.i.d. emission structurally cannot. We ran that
+search to a registered conclusion: a five-phase campaign of 116 full-panel
+arms (`RC1_PLAN.md`, `R62`–`R66`; ~200+ configuration evaluations across
+the wider arc, all disclosed in `spec/RC2_FREEZE.md` §4), ending in a
+frozen, bit-exact, random-access generator
+(`openvector_bench.segment_corpus`) evaluated **once** against four
+held-out real blocks at offsets no round had touched
+(`results/RC2_VERDICT.md`).
+
+Three mechanisms were found, each moving a statistic nothing else moved:
+the within-segment level-variance **decay with an unstructured per-row
+ball** is the intrinsic-dimension lever (4.4 → 16.3 against real's ~17);
+**keyed sharing of direction sets across neighbourhoods** is the hubness
+lever; and **per-level arrangement frames** — giving each coarse
+organisational scale its own subspace instead of one shared low-rank frame
+— is what lets the ratio *trend* enter its band, seed-robustly. The last
+is the interesting one: a single shared frame is a hard ceiling on
+coarse-scale dimension, and every density-response failure of the
+single-frame family pointed at it coherently.
+
+The held-out verdict is the paper's thesis read back from the generative
+side. The frozen family lands the **fixed-density neighbourhood geometry**
+on data it never saw — TwoNN dimension 16.31 against a held-out band
+[15.0, 19.1], distance contrast 1.377 in [1.362, 1.397], hubness, PCA
+retention and effective rank within 1–3% of their bands — and is excluded
+by exactly the **density-response** criteria of §3–§6: the five-pool
+ladder's spans and levels, and the four-rung trend against the held-out
+band. The static snapshot of the cloud is constructible; how the geometry
+moves as sampling thins is what no configuration reached, and the
+campaign's error bars say why: the spans' generation-seed variance is 4×
+their admission window — a property of the family, not a tuning gap.
+
+Two incidental findings deserve record. First, an early port of the frozen
+family accidentally ran a controlled experiment: changing *only* the
+article-length law and the cluster-assignment rule — no vector-construction
+parameter — moved `s(14)` from 16.6 to 38.3 and hubness skew from 1.77 to
+2.43 (`RC2_FREEZE.md` §6). The "bookkeeping" of corpus layout carries as
+much of the geometry as the embedding construction, which is this paper's
+claim in miniature. Second, the held-out blocks moved some of real's own
+targets (§9), so part of the residual mismatch is real-vs-real drift, not
+generator-vs-real error.
+
+The search's discipline is part of the result: the configuration was frozen
+with its byte hash, expected outcome and full search budget declared before
+the held-out data was touched, and the verdict — exclusion — is reported
+under the freeze's own pre-stated rule. The profile's density response
+remains unreproduced by any known deterministic generator, now as a
+registered negative with quantified misses rather than an absence of
+attempts.

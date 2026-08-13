@@ -3,14 +3,14 @@
 The rank hypothesis died at Phase A; the robust residue is g4 (+24%), rspan
 (4.6 vs <=2.94), g1exp (-0.09 vs <=-0.112), g8 (-0.008). Sixteen arms:
 
-* pool_alpha — NEW lever: power-law amplitude profile over the shared
+* pool_alpha ??? NEW lever: power-law amplitude profile over the shared
   direction pool, (1+j)^-alpha normalized to unit mean square. Targets the
   PCA tail (g4) without touching any mechanism.
-* seg_break / path_mix / w_loc / d_glob — the density-response levers,
+* seg_break / path_mix / w_loc / d_glob ??? the density-response levers,
   never measured at the corrected-family operating point.
 
 Harness generator (lognormal cumsum articles, keyed-random clusters,
-per-level frames — mirrors the frozen package family; rspan fidelity gap
+per-level frames ??? mirrors the frozen package family; rspan fidelity gap
 ~0.6 noted in R69, signs transfer). Judged against the R68 ten-block bands.
 One arm per pod (NRP indexed job).
 """
@@ -224,31 +224,37 @@ def rank_anatomy(x):
     return float(np.mean(locs)), glob
 
 
-BASE = dict()  # frozen V1 defaults are the build() defaults
+BASE = dict()
+# Sweep 3 of the Phase B envelope: compose the two g4 levers (pool_alpha,
+# log2_pool ~9.5 per R64) at the C5/C1 pocket, and seed-check the anchors.
 VARIANTS = {
-    "B0_base":      dict(),
-    "B1_a010":      dict(pool_alpha=0.10),
-    "B2_a020":      dict(pool_alpha=0.20),
-    "B3_a035":      dict(pool_alpha=0.35),
-    "B4_a050":      dict(pool_alpha=0.50),
-    "B5_brk100":    dict(brk=0.100),
-    "B6_brk135":    dict(brk=0.135),
-    "B7_brk160":    dict(brk=0.160),
-    "B8_mix045":    dict(mix=0.45),
-    "B9_mix075":    dict(mix=0.75),
-    "B10_wl050":    dict(w_loc=0.50),
-    "B11_wl070":    dict(w_loc=0.70),
-    "B12_dg16":     dict(d_glob=16),
-    "B13_dg48":     dict(d_glob=48),
-    "B14_a02brk135": dict(pool_alpha=0.20, brk=0.135),
-    "B15_a035brk135": dict(pool_alpha=0.35, brk=0.135),
+    "D0_c5":        dict(pool_alpha=0.24, brk=0.128),
+    "D1_c5s137":    dict(pool_alpha=0.24, brk=0.128, seed=137),
+    "D2_c5s271":    dict(pool_alpha=0.24, brk=0.128, seed=271),
+    "D3_c1s137":    dict(pool_alpha=0.20, brk=0.122, seed=137),
+    "D4_a24lp95":   dict(pool_alpha=0.24, brk=0.128, log2_pool=9.5),
+    "D5_a18lp95":   dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5),
+    "D6_a12lp95":   dict(pool_alpha=0.12, brk=0.128, log2_pool=9.5),
+    "D7_a18lp90":   dict(pool_alpha=0.18, brk=0.125, log2_pool=9.0),
+    "D8_a12lp90":   dict(pool_alpha=0.12, brk=0.125, log2_pool=9.0),
+    "D9_a0lp95":    dict(pool_alpha=0.0, brk=0.128, log2_pool=9.5),
+    "D10_a18lp95m65": dict(pool_alpha=0.18, brk=0.128, log2_pool=9.5,
+                           mix=0.65),
+    "D11_a24wl55":  dict(pool_alpha=0.24, brk=0.125, w_loc=0.55),
+    "D12_a22b126":  dict(pool_alpha=0.22, brk=0.126),
+    "D13_a22b126s137": dict(pool_alpha=0.22, brk=0.126, seed=137),
+    "D14_a18lp95dg36": dict(pool_alpha=0.18, brk=0.122, log2_pool=9.5,
+                            d_glob=36),
+    "D15_a24dg30":  dict(pool_alpha=0.24, brk=0.128, d_glob=30),
 }
 ARMS = list(VARIANTS)
 _i = int(os.environ.get("JOB_COMPLETION_INDEX", "0"))
 mine = [ARMS[_i]] if _i < len(ARMS) else []
 for name in mine:
     t0 = time.time()
-    x, a_of = build(seed=41, **{**BASE, **VARIANTS[name]})
+    kw = {**BASE, **VARIANTS[name]}
+    kw.setdefault("seed", 41)
+    x, a_of = build(**kw)
     rec = {}
     bi, qi = exch(np.arange(210000), 200000, 10000, seed=31)
     d, nn = knn_t(x[torch.from_numpy(bi).to(DEV)],
@@ -311,4 +317,4 @@ for name in mine:
              rec["rank_global"], " ".join(fl), time.time() - t0), flush=True)
     print("RESULT_JSON " + json.dumps({name: rec}), flush=True)
 
-print("PHASEB_DONE", flush=True)
+print("PHASEC2_DONE", flush=True)
