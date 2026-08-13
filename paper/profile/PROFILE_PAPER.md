@@ -38,11 +38,17 @@ them.
 
 We close the loop constructively: a registered, budget-disclosed search over
 deterministic sequence-structured generators produced a frozen, bit-exact,
-random-access family that — judged once, on held-out corpus blocks — matches
-the fixed-density neighbourhood geometry (intrinsic dimension and distance
-contrast in band; hubness within 1.4%) and is excluded by precisely the
-density-response criteria the assembly explanation identifies as the hard
-part. The negative is registered, held-out, and quantified.
+random-access family that — judged once per campaign on held-out corpus
+blocks — progressed from a registered exclusion to **eight of ten criteria
+in band**, including the mandatory intrinsic-dimension / contrast / hubness
+trio on data no round had touched. Two closing campaigns then mapped the
+family's boundary: five pre-registered spectral architectures, each killed
+by its own falsifier, trace a single trade surface in (dims90, PCA
+retention, effective rank) — and the real corpus's triple lies off it,
+because real keeps neighbour-relevant variance partly outside its top PCA
+dimensions while still concentrating total variance. Every result —
+positive, negative, and boundary — is registered, held-out where it counts,
+and quantified.
 
 ---
 
@@ -427,25 +433,59 @@ still resists is the exact PCA tail shape and the rate at which dimension
 falls with sample size (`results/RC3_VERDICT.md`).
 
 Two further campaigns (RC-4 and RC-5, 80 arms, `results/R75`–`R79`)
-converted those residuals into a structural theorem-shaped claim about
-the family. Five pre-registered mechanisms for the spectral residual —
-a pool power law, a two-scale head-plus-floor profile, pool-size
-composition, a partitioned pool separating neighbour-carrying components
-from the spectral head, and a dedicated centre subspace with its own
-decaying spectrum — were each killed by its own registered criterion,
-and all five trace **one trade surface**: dims90, PCA retention, and
-effective rank move together under every reshaping, while the real
-corpus holds a triple (357 / 0.737 / ~175) that lies off that surface.
-Real embeddings keep their neighbour-relevant variance partly *outside*
-their top PCA dimensions while still concentrating total variance — a
-property no composition over a shared direction vocabulary expressed,
-including architectures built specifically to decouple it (one of which
-demonstrably moved retention exactly as designed, and re-coupled the
-moment its spectrum was shaped). Likewise every G1-vs-n lever tried —
-above-article structure, article-length tails — slid along a
-trend↔exponent trade curve rather than shifting it. The frontier
-configuration was therefore left frozen rather than retuned
-(`results/RC4_VERDICT.md`, `results/RC5_VERDICT.md`): the family's
-boundary is itself the measured result, and a successor family should be
-designed from the trade-surface statement, not from further levers on
-this one.
+converted those residuals into a structural claim about the family
+itself: five pre-registered spectral mechanisms, five registered kills,
+one trade surface — §12.
+
+---
+
+## 12. Five architectures, one trade surface
+
+The frozen family's residual misses are spectral: real holds
+**dims90 = 357 ± 3** (its most stable statistic — sd 3 rows across
+fourteen 600k blocks), **PCA-256 neighbour retention = 0.737 ± 0.003**,
+and **effective rank ≈ 175** *simultaneously*, while the generator at its
+frozen point sits at 417 / 0.742 / 150. Closing dims90 without breaking
+the other two became a five-way mechanism hunt across two campaigns, each
+mechanism named and given a kill criterion before its first arm ran.
+
+| # | mechanism (rounds) | best dims90 reached | at that point | kill |
+|---|---|---|---|---|
+| 1 | pool amplitude power law (`R70`, `R73`) | 351 | hub skew 1.95, contrast 1.44 — both far out | concentration on head slots makes hub directions before dims90 arrives |
+| 2 | two-scale head + floor (`R75`) | 436–443 (**rose**) | g5/g6 intact | the plateau adds tail dimensions faster than the head removes them |
+| 3 | pool-size × α × floor (`R72`, `R76`) | 361 (in band) | retention 0.762 | dims90 needs pool ≲ 2^9.55, retention needs ≳ 2^9.9 — disjoint windows |
+| 4 | partitioned pool: fine components on tail slots (`R77`) | — | eff rank 33–81, contrast 1.6–5.0 | the global profile crushes exactly the components the partition protects |
+| 5 | dedicated centre subspace, flat then spectrally profiled (`R78`, `R79`) | 385 | retention 0.765, eff rank 79 | the profiled frame re-couples all three statistics onto the same curve |
+
+Architecture 5 is the sharpest evidence, because half of it *worked*:
+moving segment centres to their own subspace drove retention down
+monotonically (0.742 → 0.698 across the dimension ladder) exactly as its
+registered prediction said — the decoupling mechanism is real. But the
+moment the centre spectrum was shaped to move dims90, retention and
+effective rank re-coupled, tracing the same one-parameter curve as every
+pool form. Plotted in (dims90, retention, eff rank), all five
+architectures move along **one trade surface, and real's triple is off
+it**.
+
+The interpretation: real embeddings keep their neighbour-relevant
+variance partly *outside* their top PCA dimensions while still
+concentrating total variance. In this family every component — coarse
+arrangement, segment centres, within-segment path, per-row ball —
+composes directions from a shared vocabulary, so any spectral shaping
+applied to the vocabulary reaches the neighbour structure and the bulk
+spectrum together. Real plausibly has per-direction variance that is
+*coherent across documents in some dimensions and incoherent in others* —
+a joint property of direction and component that a shared vocabulary
+cannot factor. The same campaign structure killed both G1-vs-n
+mechanisms (above-article chapters move the exponent the wrong way;
+article-length tails slide along a trend↔exponent trade curve without
+shifting it, `R75`–`R77`).
+
+Method note: the frontier configuration was left frozen rather than
+retuned after each kill, and no held-out data was spent on either closing
+campaign — a one-shot is only earned by a candidate that robustly beats
+the standing verdict, and none did. The family's boundary, mapped by five
+falsified mechanisms with their kill criteria stated in advance, is
+itself the deliverable (`results/RC4_VERDICT.md`,
+`results/RC5_VERDICT.md`); a successor family should be designed from the
+trade-surface statement, not from further levers on this one.
