@@ -74,6 +74,7 @@ from __future__ import annotations
 import numpy as np
 
 from .geometry import normalize, reproducible_matmul
+from .costab import cos2pi
 from .hashrng import hash_gaussian, hash_index, hash_uniform, mix_keys
 
 # (name, lo, hi, default) — defaults are the RC-3 FROZEN configuration: D12
@@ -109,6 +110,14 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     # in every prefix pool equally, steepening g1exp WITHOUT compressing the
     # section-3b spans.
     ("dup_window", 0.0, 1e7, 0.0),
+    # RC7 hybrid: thin continuum sheet over the cluster backbone (R87). A
+    # band-limited random field over per-article latents supplies the coarse
+    # effective rank (g3) and latent-neighbour structure the clusters lack.
+    ("w_cont", 0.0, 1.0, 0.0),  # sheet weight in the coarse budget (0: off)
+    ("cont_lat", 1.0, 16.0, 2.0),  # latent dimension of the field
+    ("cont_bw", 0.05, 8.0, 0.5),  # base bandwidth (octave 0)
+    ("cont_oct", 1.0, 6.0, 3.0),  # octaves (mirror the per-level frames)
+    ("cont_freq", 4.0, 128.0, 24.0),  # frequencies per octave
 )
 
 _MAXLEV = 8
@@ -466,6 +475,11 @@ def segment_corpus(
     p_dup = min(0.5, max(0.0, float(p.get("p_dup", 0.0))))
     alpha_dup = float(p.get("alpha_dup", 0.95))
     dup_window = int(round(float(p.get("dup_window", 0.0)))) or arr_window
+    w_cont = min(1.0, max(0.0, float(p.get("w_cont", 0.0))))
+    cont_lat = max(1, int(round(p.get("cont_lat", 2.0))))
+    cont_bw = float(p.get("cont_bw", 0.5))
+    cont_oct = max(1, int(round(p.get("cont_oct", 3.0))))
+    cont_freq = max(4, int(round(p.get("cont_freq", 24.0))))
     path_mix = min(1.0, max(0.0, float(p.get("path_mix", 1.0))))
     rho = min(1.0, max(0.0, float(p.get("rho", 0.0))))
     level_frames = bool(round(p.get("level_frames", 0.0)))
@@ -499,6 +513,24 @@ def segment_corpus(
         frames = [
             np.linalg.qr(rng.standard_normal((dim, d_glob)))[0].astype(np.float32)
         ] * arr_levels
+
+    cont_assets = None
+    if w_cont > 0.0:
+        # sheet assets, drawn after the frames in a fixed order (chunk-safe):
+        # per octave, frequencies (bandwidth doubling), phases, and a frame
+        cont_assets = []
+        for o in range(cont_oct):
+            Wo = (
+                rng.standard_normal((cont_freq, cont_lat)) * cont_bw * (2.0**o)
+            ).astype(np.float32)
+            phio = rng.uniform(0.0, 1.0, cont_freq).astype(np.float32)
+            Fo = np.linalg.qr(rng.standard_normal((dim, cont_freq)))[0].astype(
+                np.float32
+            )
+            cont_assets.append((Wo, phio, Fo))
+        cont_low = np.array([0.72**o for o in range(cont_oct)], dtype=np.float32)
+        cont_low /= np.linalg.norm(cont_low)
+        wc_bak = np.float32(np.sqrt(max(0.0, 1.0 - w_cont**2)))
 
     lw = np.array([0.72**L for L in range(arr_levels)], dtype=np.float32)
     lw /= np.linalg.norm(lw)
@@ -562,7 +594,21 @@ def segment_corpus(
                 u_win, np.full_like(u_art, L), cid, count=d_glob, salt=43
             )
             coef /= np.maximum(np.linalg.norm(coef, axis=1, keepdims=True), 1e-12)
-            acc += float(lw[L]) * reproducible_matmul(coef, frames[L].T)[art_inv]
+            _cw = float(lw[L]) * (float(wc_bak) if cont_assets is not None else 1.0)
+            acc += _cw * reproducible_matmul(coef, frames[L].T)[art_inv]
+        if cont_assets is not None:
+            # the continuum sheet: per-article latents, band-limited field.
+            # Phase sums and projections are fixed-order (bit-exact).
+            ul = hash_uniform(u_art, count=cont_lat, salt=149)
+            cont = np.zeros((len(u_art), dim), dtype=np.float32)
+            for o, (Wo, phio, Fo) in enumerate(cont_assets):
+                phase = np.repeat(phio[None, :], len(u_art), axis=0)
+                for dd_ in range(cont_lat):
+                    phase = phase + ul[:, dd_ : dd_ + 1] * Wo[None, :, dd_]
+                feat = cos2pi(phase) * np.float32(np.sqrt(2.0 / cont_freq))
+                cont += float(cont_low[o]) * reproducible_matmul(feat, Fo.T)
+            acc += np.float32(w_cont) * cont[art_inv]
+            del cont
         row_cl0 = cl0[art_inv]
         u_cl = row_cl0[sid_first]  # outermost cluster of each unique segment
         u_sart = art[sid_first]  # article of each unique segment
