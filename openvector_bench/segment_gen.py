@@ -119,6 +119,15 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     ("cont_bw", 0.05, 8.0, 0.5),  # base bandwidth (octave 0)
     ("cont_oct", 1.0, 6.0, 3.0),  # octaves (mirror the per-level frames)
     ("cont_freq", 4.0, 128.0, 24.0),  # frequencies per octave
+    # RC11/RC12 echo groups: scattered near-parallel micro-clusters. A gated
+    # row blends toward its group's midpoint prototype (two keyed base rows).
+    # Small k and window-locality are the mechanism (RC11_VERDICT): every
+    # pair resolves at sample fraction ~s, prefix pools stay proportionate,
+    # in-degree is bounded by k-1.
+    ("p_echo", 0.0, 0.5, 0.0),  # echo gate rate (0: off)
+    ("echo_k", 2.0, 64.0, 3.0),  # target members per group
+    ("echo_win", 0.0, 1e7, 100000.0),  # group locality window (rows)
+    ("echo_alpha", 0.5, 1.0, 0.96),  # blend toward the prototype
 )
 
 _MAXLEV = 8
@@ -481,6 +490,10 @@ def segment_corpus(
     cont_bw = float(p.get("cont_bw", 0.5))
     cont_oct = max(1, int(round(p.get("cont_oct", 3.0))))
     cont_freq = max(4, int(round(p.get("cont_freq", 24.0))))
+    p_echo = min(0.5, max(0.0, float(p.get("p_echo", 0.0))))
+    echo_k = max(2, int(round(p.get("echo_k", 3.0))))
+    echo_win = max(1000, int(round(p.get("echo_win", 100000.0))))
+    echo_alpha = float(p.get("echo_alpha", 0.96))
     path_mix = min(1.0, max(0.0, float(p.get("path_mix", 1.0))))
     rho = min(1.0, max(0.0, float(p.get("rho", 0.0))))
     level_frames = bool(round(p.get("level_frames", 0.0)))
@@ -692,4 +705,31 @@ def segment_corpus(
             # normalize ONLY the blended rows: renormalizing already-unit
             # plain rows would shift last bits and break batch invariance
             out[gi] = normalize(a * src_rows[s_inv] + b * out[gi])
+    if p_echo > 0.0:
+        egate = hash_uniform(want, count=1, salt=151)[..., 0] < p_echo
+        if egate.any():
+            ei = np.nonzero(egate)[0]
+            w_no = want[ei] // np.int64(echo_win)
+            m_w = max(2, int(round(p_echo * echo_win / echo_k)))
+            gid = hash_index(want[ei], count=1, modulus=m_w, salt=157)[..., 0]
+            gkey = w_no * np.int64(1_000_003) + gid
+            u_g, g_inv = np.unique(gkey, return_inverse=True)
+            gw = u_g // np.int64(1_000_003)
+            s1 = (
+                gw * np.int64(echo_win)
+                + hash_index(u_g, count=1, modulus=echo_win, salt=163)[..., 0]
+            )
+            s2 = (
+                gw * np.int64(echo_win)
+                + hash_index(u_g, count=1, modulus=echo_win, salt=167)[..., 0]
+            )
+            base_p = dict(p)
+            base_p["p_echo"] = 0.0
+            u_src, src_inv = np.unique(np.concatenate([s1, s2]), return_inverse=True)
+            sr = segment_corpus(base_p, 0, dim, seed, chunk=chunk, rows=u_src)
+            proto = sr[src_inv[: len(s1)]] + sr[src_inv[len(s1) :]]
+            proto = normalize(proto)
+            a = np.float32(echo_alpha)
+            b = np.float32(np.sqrt(max(0.0, 1.0 - float(echo_alpha) ** 2)))
+            out[ei] = normalize(a * proto[g_inv] + b * out[ei])
     return out
