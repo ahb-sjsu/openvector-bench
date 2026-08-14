@@ -1,0 +1,1955 @@
+{
+  "candidates": {
+    "s1": {
+      "admitted": false,
+      "cells_meeting_count_rule": "9/24",
+      "mandatory_gate_failures": 34,
+      "example_mandatory_failures": [
+        "g6_attractiveness_skew@A_corpus/n=25000/k=10 [out-of-band]",
+        "g6_attractiveness_skew@A_corpus/n=25000/k=30 [out-of-band]",
+        "g6_attractiveness_skew@A_corpus/n=25000/k=100 [out-of-band]",
+        "g6_attractiveness_skew@A_corpus/n=50000/k=10 [out-of-band]",
+        "g6_attractiveness_skew@A_corpus/n=50000/k=30 [out-of-band]"
+      ],
+      "detail": [
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 10,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9669,
+              "ci": [
+                0.9513,
+                0.9827
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.5211,
+              "ci": [
+                1.5097,
+                1.5339
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9697,
+              "ci": [
+                0.9691,
+                0.9703
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.3273,
+              "ci": [
+                1.1077,
+                1.5609
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.1442,
+              "ci": [
+                1.1298,
+                1.1606
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0448,
+              "ci": [
+                1.0425,
+                1.0466
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 30,
+          "gates_passed": 5,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9669,
+              "ci": [
+                0.9513,
+                0.9827
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.4893,
+              "ci": [
+                1.4733,
+                1.5051
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9771,
+              "ci": [
+                0.9765,
+                0.9777
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.4145,
+              "ci": [
+                1.2474,
+                1.5911
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.2979,
+              "ci": [
+                1.2817,
+                1.3135
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0059,
+              "ci": [
+                1.0036,
+                1.0084
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 25000,
+          "k": 100,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9669,
+              "ci": [
+                0.9513,
+                0.9827
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.4037,
+              "ci": [
+                1.3918,
+                1.4172
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.985,
+              "ci": [
+                0.9845,
+                0.9856
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.1831,
+              "ci": [
+                1.108,
+                1.2724
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 0.982,
+              "ci": [
+                0.9704,
+                0.9941
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0071,
+              "ci": [
+                1.0052,
+                1.0087
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 10,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9793,
+              "ci": [
+                0.967,
+                0.9917
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.2282,
+              "ci": [
+                1.2191,
+                1.2393
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9667,
+              "ci": [
+                0.966,
+                0.9675
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.8842,
+              "ci": [
+                0.7822,
+                1.0112
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 0.9856,
+              "ci": [
+                0.9705,
+                1.0013
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0722,
+              "ci": [
+                1.0698,
+                1.0745
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 30,
+          "gates_passed": 5,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9793,
+              "ci": [
+                0.967,
+                0.9917
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.5406,
+              "ci": [
+                1.5256,
+                1.5554
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9726,
+              "ci": [
+                0.9719,
+                0.9735
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.3233,
+              "ci": [
+                1.2524,
+                1.3921
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.2097,
+              "ci": [
+                1.1974,
+                1.2208
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0294,
+              "ci": [
+                1.0279,
+                1.0309
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 50000,
+          "k": 100,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9793,
+              "ci": [
+                0.967,
+                0.9917
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.4572,
+              "ci": [
+                1.4462,
+                1.4709
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9805,
+              "ci": [
+                0.9798,
+                0.9814
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.325,
+              "ci": [
+                1.2747,
+                1.3816
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.1259,
+              "ci": [
+                1.1141,
+                1.1371
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0024,
+              "ci": [
+                1.0013,
+                1.0036
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 10,
+          "gates_passed": 7,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9623,
+              "ci": [
+                0.9442,
+                0.9751
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.1413,
+              "ci": [
+                1.1337,
+                1.1488
+              ],
+              "pass": true
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.968,
+              "ci": [
+                0.9669,
+                0.9691
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.7409,
+              "ci": [
+                0.6974,
+                0.7892
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.0049,
+              "ci": [
+                0.989,
+                1.021
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0884,
+              "ci": [
+                1.0857,
+                1.0911
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 30,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9623,
+              "ci": [
+                0.9442,
+                0.9751
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.4107,
+              "ci": [
+                1.4054,
+                1.4161
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9683,
+              "ci": [
+                0.9674,
+                0.9694
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.2126,
+              "ci": [
+                1.1171,
+                1.3113
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 0.9645,
+              "ci": [
+                0.9501,
+                0.981
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0585,
+              "ci": [
+                1.0567,
+                1.0602
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 100000,
+          "k": 100,
+          "gates_passed": 5,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9623,
+              "ci": [
+                0.9442,
+                0.9751
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.4758,
+              "ci": [
+                1.4644,
+                1.4881
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9759,
+              "ci": [
+                0.9752,
+                0.9766
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.5331,
+              "ci": [
+                1.451,
+                1.613
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.1902,
+              "ci": [
+                1.1727,
+                1.2096
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0091,
+              "ci": [
+                1.0082,
+                1.0102
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 10,
+          "gates_passed": 7,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9556,
+              "ci": [
+                0.9421,
+                0.9657
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.1676,
+              "ci": [
+                1.1596,
+                1.1757
+              ],
+              "pass": true
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9743,
+              "ci": [
+                0.9736,
+                0.975
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.7693,
+              "ci": [
+                0.6517,
+                0.8766
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.1521,
+              "ci": [
+                1.1365,
+                1.1678
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0755,
+              "ci": [
+                1.0729,
+                1.0781
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 30,
+          "gates_passed": 8,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9556,
+              "ci": [
+                0.9421,
+                0.9657
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.1556,
+              "ci": [
+                1.1455,
+                1.1658
+              ],
+              "pass": true
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9662,
+              "ci": [
+                0.9657,
+                0.9666
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.9196,
+              "ci": [
+                0.8683,
+                0.9741
+              ],
+              "pass": true
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 0.9177,
+              "ci": [
+                0.9046,
+                0.93
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.0847,
+              "ci": [
+                1.0831,
+                1.0864
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "A_corpus",
+          "n": 200000,
+          "k": 100,
+          "gates_passed": 6,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 0.9556,
+              "ci": [
+                0.9421,
+                0.9657
+              ],
+              "pass": true
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 1.5247,
+              "ci": [
+                1.515,
+                1.5348
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9711,
+              "ci": [
+                0.9706,
+                0.9715
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.3958,
+              "ci": [
+                1.3371,
+                1.4586
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 1.0676,
+              "ci": [
+                1.0537,
+                1.0804
+              ],
+              "pass": true
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 1.037,
+              "ci": [
+                1.0349,
+                1.039
+              ],
+              "pass": true
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 25000,
+          "k": 10,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.5816,
+              "ci": [
+                5.3364,
+                5.8321
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.286,
+              "ci": [
+                6.155,
+                6.4083
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8673,
+              "ci": [
+                0.8665,
+                0.8679
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.8458,
+              "ci": [
+                0.7393,
+                0.9545
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 4.3815,
+              "ci": [
+                4.1178,
+                4.686
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0957,
+              "ci": [
+                0.0945,
+                0.0973
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 25000,
+          "k": 30,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.5816,
+              "ci": [
+                5.3364,
+                5.8321
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 5.7878,
+              "ci": [
+                5.7062,
+                5.8769
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8863,
+              "ci": [
+                0.8858,
+                0.8867
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.8577,
+              "ci": [
+                0.7992,
+                0.9108
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 3.1299,
+              "ci": [
+                3.0314,
+                3.2275
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.1204,
+              "ci": [
+                0.1152,
+                0.1249
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 25000,
+          "k": 100,
+          "gates_passed": 4,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.5816,
+              "ci": [
+                5.3364,
+                5.8321
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 5.4686,
+              "ci": [
+                5.3845,
+                5.5575
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9356,
+              "ci": [
+                0.9323,
+                0.9393
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1758,
+              "ci": [
+                1.1745,
+                1.1771
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.9075,
+              "ci": [
+                0.9071,
+                0.9079
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.0358,
+              "ci": [
+                0.9952,
+                1.0801
+              ],
+              "pass": true
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 2.0162,
+              "ci": [
+                1.9486,
+                2.0806
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.1768,
+              "ci": [
+                0.1695,
+                0.1834
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 50000,
+          "k": 10,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9762,
+              "ci": [
+                5.7728,
+                6.1717
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.5928,
+              "ci": [
+                6.4932,
+                6.6956
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8544,
+              "ci": [
+                0.8537,
+                0.855
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.1781,
+              "ci": [
+                0.9439,
+                1.4706
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 4.3087,
+              "ci": [
+                4.1724,
+                4.446
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0783,
+              "ci": [
+                0.0763,
+                0.0804
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 50000,
+          "k": 30,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9762,
+              "ci": [
+                5.7728,
+                6.1717
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 5.9848,
+              "ci": [
+                5.9327,
+                6.04
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8739,
+              "ci": [
+                0.8732,
+                0.8745
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.0327,
+              "ci": [
+                0.8865,
+                1.2014
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 3.1822,
+              "ci": [
+                3.0271,
+                3.3345
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0989,
+              "ci": [
+                0.0976,
+                0.1
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 50000,
+          "k": 100,
+          "gates_passed": 4,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9762,
+              "ci": [
+                5.7728,
+                6.1717
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 5.5789,
+              "ci": [
+                5.5185,
+                5.645
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9357,
+              "ci": [
+                0.9316,
+                0.9388
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8946,
+              "ci": [
+                0.8939,
+                0.8952
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.0241,
+              "ci": [
+                0.9369,
+                1.1208
+              ],
+              "pass": true
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 2.1383,
+              "ci": [
+                2.0426,
+                2.2248
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.137,
+              "ci": [
+                0.1346,
+                0.139
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 100000,
+          "k": 10,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9694,
+              "ci": [
+                5.7396,
+                6.1708
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.9602,
+              "ci": [
+                6.8295,
+                7.0846
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.844,
+              "ci": [
+                0.8435,
+                0.8445
+              ],
+              "pass": false
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.9592,
+              "ci": [
+                0.7983,
+                1.1547
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 4.2319,
+              "ci": [
+                4.0452,
+                4.4253
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0703,
+              "ci": [
+                0.0665,
+                0.074
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 100000,
+          "k": 30,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9694,
+              "ci": [
+                5.7396,
+                6.1708
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.2564,
+              "ci": [
+                6.1659,
+                6.3478
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8626,
+              "ci": [
+                0.8619,
+                0.8632
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.9363,
+              "ci": [
+                0.8286,
+                1.0586
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 3.3605,
+              "ci": [
+                3.2178,
+                3.5282
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0843,
+              "ci": [
+                0.0814,
+                0.0873
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 100000,
+          "k": 100,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 5.9694,
+              "ci": [
+                5.7396,
+                6.1708
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 5.815,
+              "ci": [
+                5.7599,
+                5.8707
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9378,
+              "ci": [
+                0.9361,
+                0.9398
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8832,
+              "ci": [
+                0.8828,
+                0.8836
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 0.8916,
+              "ci": [
+                0.8279,
+                0.9638
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 2.211,
+              "ci": [
+                2.1561,
+                2.2611
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.1113,
+              "ci": [
+                0.1092,
+                0.1136
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 200000,
+          "k": 10,
+          "gates_passed": 2,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 6.2659,
+              "ci": [
+                6.1069,
+                6.4348
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 7.3694,
+              "ci": [
+                7.277,
+                7.4708
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8325,
+              "ci": [
+                0.8318,
+                0.8331
+              ],
+              "pass": false
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.1118,
+              "ci": [
+                0.9792,
+                1.2777
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 4.307,
+              "ci": [
+                4.178,
+                4.4358
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0673,
+              "ci": [
+                0.064,
+                0.0709
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 200000,
+          "k": 30,
+          "gates_passed": 3,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 6.2659,
+              "ci": [
+                6.1069,
+                6.4348
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.5764,
+              "ci": [
+                6.4914,
+                6.6625
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8511,
+              "ci": [
+                0.8509,
+                0.8513
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.1022,
+              "ci": [
+                0.9825,
+                1.2203
+              ],
+              "pass": false
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 3.3155,
+              "ci": [
+                3.1846,
+                3.4871
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0756,
+              "ci": [
+                0.0735,
+                0.0782
+              ],
+              "pass": false
+            }
+          }
+        },
+        {
+          "battery": "B_query",
+          "n": 200000,
+          "k": 100,
+          "gates_passed": 4,
+          "results": {
+            "g1_id_twonn": {
+              "unscoreable": false,
+              "ratio": 6.2659,
+              "ci": [
+                6.1069,
+                6.4348
+              ],
+              "pass": false
+            },
+            "g2_id_ballgrowth": {
+              "unscoreable": false,
+              "ratio": 6.0269,
+              "ci": [
+                5.9827,
+                6.0739
+              ],
+              "pass": false
+            },
+            "g3_eff_rank": {
+              "unscoreable": false,
+              "ratio": 0.9368,
+              "ci": [
+                0.9344,
+                0.9395
+              ],
+              "pass": true
+            },
+            "g4_dims90": {
+              "unscoreable": false,
+              "ratio": 1.1796,
+              "ci": [
+                1.1796,
+                1.1796
+              ],
+              "pass": true
+            },
+            "g5_relative_contrast": {
+              "unscoreable": false,
+              "ratio": 0.8715,
+              "ci": [
+                0.8712,
+                0.8717
+              ],
+              "pass": true
+            },
+            "g6_attractiveness_skew": {
+              "unscoreable": false,
+              "ratio": 1.0433,
+              "ci": [
+                0.972,
+                1.1171
+              ],
+              "pass": true
+            },
+            "g7_local_id_iqr": {
+              "unscoreable": false,
+              "ratio": 2.2454,
+              "ci": [
+                2.1792,
+                2.3142
+              ],
+              "pass": false
+            },
+            "g8_pca_retention": {
+              "unscoreable": false,
+              "ratio": 0.0944,
+              "ci": [
+                0.0924,
+                0.0965
+              ],
+              "pass": false
+            }
+          }
+        }
+      ]
+    }
+  },
+  "gate_discrimination": {
+    "g1_id_twonn": [],
+    "g2_id_ballgrowth": [
+      "s1"
+    ],
+    "g3_eff_rank": [],
+    "g4_dims90": [],
+    "g5_relative_contrast": [],
+    "g6_attractiveness_skew": [
+      "s1"
+    ],
+    "g7_local_id_iqr": [
+      "s1"
+    ],
+    "g8_pca_retention": []
+  },
+  "battery_sufficient": true
+}
