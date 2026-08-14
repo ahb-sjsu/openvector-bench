@@ -77,11 +77,12 @@ from .geometry import normalize, reproducible_matmul
 from .costab import cos2pi
 from .hashrng import hash_gaussian, hash_index, hash_uniform, mix_keys
 
-# (name, lo, hi, default) — defaults are the RC-3 FROZEN configuration: D12
-# (`R71`-`R74`) = the RC-2 frozen V1 plus pool_alpha 0.22 and seg_break 0.126,
-# chosen for its seed-robust 7-of-10 against the R68 ten-block bands. The
-# RC-2 identity is recovered exactly at seg_break 0.116, pool_alpha 0 (hash
-# 80d94f61..., spec/RC2_FREEZE.md). Do not retune; the freeze is the point.
+# (name, lo, hi, default) — defaults are the RC-7 FROZEN configuration: F8
+# (`R87`/`R88`) = the RC-3 frozen D12 plus the near-dup ladder (p_dup 0.05)
+# and the continuum sheet (w_cont 0.25), seed-robust 8-of-10 on the package.
+# Prior identities recover exactly: RC-3 at p_dup 0, w_cont 0 (e8423665...,
+# spec/RC3_FREEZE.md); RC-2 additionally at seg_break 0.116, pool_alpha 0
+# (80d94f61..., spec/RC2_FREEZE.md). Do not retune; the freeze is the point.
 SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     ("arr_window", 1e4, 1e7, 600000.0),  # arrangement correlation length (rows)
     ("seg_break", 0.0, 0.5, 0.126),  # segment break rate (R71-R74: the D12 pocket)
@@ -104,7 +105,7 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
         1.0,
         0.22,
     ),  # pool amplitude power law (R70-R74: g8/rspan lever)
-    ("p_dup", 0.0, 0.5, 0.0),  # near-duplicate gate rate (R82: the g1exp mechanism)
+    ("p_dup", 0.0, 0.5, 0.05),  # near-duplicate gate rate (R82: the g1exp mechanism)
     ("alpha_dup", 0.5, 1.0, 0.95),  # duplicate blend toward the source row
     # dup source locality (0 = arr_window). R85: a small window resolves dups
     # in every prefix pool equally, steepening g1exp WITHOUT compressing the
@@ -113,7 +114,7 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
     # RC7 hybrid: thin continuum sheet over the cluster backbone (R87). A
     # band-limited random field over per-article latents supplies the coarse
     # effective rank (g3) and latent-neighbour structure the clusters lack.
-    ("w_cont", 0.0, 1.0, 0.0),  # sheet weight in the coarse budget (0: off)
+    ("w_cont", 0.0, 1.0, 0.25),  # sheet weight in the coarse budget (0: off)
     ("cont_lat", 1.0, 16.0, 2.0),  # latent dimension of the field
     ("cont_bw", 0.05, 8.0, 0.5),  # base bandwidth (octave 0)
     ("cont_oct", 1.0, 6.0, 3.0),  # octaves (mirror the per-level frames)
