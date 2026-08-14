@@ -532,3 +532,53 @@ pre-registered decision to keep the behavioural test sealed behind
 geometric admission was the right order for the wrong-way outcome we
 feared: the gate this work never reached is the one that would have
 caught what the geometry battery cannot see.
+
+---
+
+## 14. Two more mechanisms, and the verdict lottery
+
+Two further campaigns (RC-6/RC-7, 108 arms plus 16 package runs,
+`results/R81`–`R88`) found the two mechanisms the earlier arc lacked,
+and then measured — at the cost of a failed one-shot — a property of
+held-out verification itself.
+
+**Near-duplicates are the density-response mechanism.** A keyed fraction
+of rows becoming near-copies of rows elsewhere (depth-one recursion;
+random access preserved) moves the G1-vs-n exponent monotonically and
+strongly (−0.113 → −0.453 across the gate rate) *without* dragging the
+ratio trend — breaking the trade curve §12's campaigns proved unbreakable
+by amplitude levers. The mechanism's sign is diagnostic: additive shared
+components (topics, chapters) make resolved neighbours *high*-dimensional
+and flatten the exponent; resolved near-parallel pairs are
+*low*-dimensional and steepen it. Real corpora contain exactly this
+structure (quoted and templated passages). Its measured cost: a
+depressed ratio span, and a three-constraint pinch (g1, exponent, G1
+span) over two knobs whose algebra is now written down (`R85`).
+
+**A thin continuum sheet is the coarse-rank mechanism.** Adding a weak
+band-limited random field over per-article latents — a smooth manifold
+layer under the cluster arrangement — gives the corpus the coarse
+effective rank the shared-vocabulary spectrum could not reach (§12),
+with a clean dial (eff rank 121 → 186 across sheet weight). At full
+replacement the same field produces the first honest partition scatter
+(probe depth 9, same-article fraction 0.61 — real-like anatomy) at the
+price of crowding hubs; thin, it is geometry-safe and scatter-free. The
+combined configuration holds **eight of ten registered criteria
+seed-robustly** — the coarse rank and the density exponent jointly in
+band for the first time anywhere (`R88`).
+
+**Then the one-shot returned five of ten — and the miss was in the
+dice, not the generator.** Frozen and evaluated once on four fresh
+blocks, the configuration's own statistics moved less than seed noise
+from their in-sample values; the *bands* moved. The four fresh blocks
+happened to be homogeneous strongly-articulated regions, drawing the
+narrowest bands in the project's history on four statistics at once
+(G1-span band width 0.076, against 0.19 across ten blocks), and the
+mandatory contrast gate missed by 0.007 (`results/RC7_VERDICT.md`).
+Given §9's heterogeneity finding — the corpus's density response varies
+2.4× across regions — a four-block verdict is a lottery ticket: an
+earlier campaign's 8/10 rode a wide draw, this 5/10 a narrow one. The
+methodological consequence is registered and binding on future rounds:
+**held-out draws must be at least eight blocks, fixed before the
+freeze.** Verification against a heterogeneous corpus needs the same
+statistical care as the fitting it polices.
