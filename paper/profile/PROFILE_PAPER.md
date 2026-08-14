@@ -489,3 +489,46 @@ falsified mechanisms with their kill criteria stated in advance, is
 itself the deliverable (`results/RC4_VERDICT.md`,
 `results/RC5_VERDICT.md`); a successor family should be designed from the
 trade-surface statement, not from further levers on this one.
+
+---
+
+## 13. Matching the geometry does not match the index
+
+The frozen generator's final characterization is the sharpest lesson in
+the arc (`results/R80_ANN.md`). Identical IVF-flat pipelines (k-means,
+1024 cells, fixed seeds) over three real blocks and two generator seeds:
+
+| | real (3 blocks) | generator (2 seeds) |
+|---|---|---|
+| recall@10 at nprobe 1 | 0.533–0.536 | 0.914–0.917 |
+| **nprobe for 95% recall** | **47–50** | **2** |
+| occupancy CV / skew | 0.38–0.40 / 0.61–0.88 | 0.31 / 0.44 |
+| median margins (r2−r1)/r1, (r10−r1)/r1 | 0.051 / 0.213–0.219 | 0.054 / 0.212–0.214 |
+
+A generator that matches eight of ten registered geometric criteria on
+held-out data — including intrinsic dimension, contrast, hubness, and
+both density-response spans — and whose margins and cell-occupancy
+statistics are near-indistinguishable from real's, is **25× easier** for
+an IVF index. The cause is visible in the construction: the generator's
+global cloud is organized by generative clusters that k-means simply
+recovers, so 92% of true neighbours share the query's cell; real
+Wikipedia's cross-article neighbours (about a third of the k = 10
+neighbourhood, §5) scatter across every partition. The property that
+governs probe depth — the alignment between neighbour structure and any
+recoverable partition — is measured by none of the geometric criteria,
+none of the s(k) curve, and none of the folklore statistics (margins,
+occupancy) that nearly match here.
+
+Three conclusions. First, the thesis of this paper extends to search
+behaviour: ANN difficulty is a property of corpus assembly *relative to
+the index's partition*, not of local geometry. Second, a geometric
+admission gate — however registered and held-out — cannot certify a
+synthetic corpus for ANN benchmarking; a partition-scatter criterion
+(same-cell neighbour fraction, or probe depth itself) must be part of any
+admission battery, and it is the first statistic on which this family
+fails catastrophically rather than marginally, making it the most
+informative fitness signal a successor search could have. Third, the
+pre-registered decision to keep the behavioural test sealed behind
+geometric admission was the right order for the wrong-way outcome we
+feared: the gate this work never reached is the one that would have
+caught what the geometry battery cannot see.
