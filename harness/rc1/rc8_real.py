@@ -12,7 +12,6 @@ between heavy stages while CPU Package > 80 C or GPU > 80 C.
 """
 
 import json
-import os
 import subprocess
 import time
 
