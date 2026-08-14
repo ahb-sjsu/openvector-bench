@@ -103,6 +103,12 @@ SEGMENT_PARAMS: tuple[tuple[str, float, float, float], ...] = (
         1.0,
         0.22,
     ),  # pool amplitude power law (R70-R74: g8/rspan lever)
+    ("p_dup", 0.0, 0.5, 0.0),  # near-duplicate gate rate (R82: the g1exp mechanism)
+    ("alpha_dup", 0.5, 1.0, 0.95),  # duplicate blend toward the source row
+    # dup source locality (0 = arr_window). R85: a small window resolves dups
+    # in every prefix pool equally, steepening g1exp WITHOUT compressing the
+    # section-3b spans.
+    ("dup_window", 0.0, 1e7, 0.0),
 )
 
 _MAXLEV = 8
@@ -457,6 +463,9 @@ def segment_corpus(
     n_pool = int(round(2 ** float(p["log2_pool"])))
     path_decay = float(p.get("path_decay", 0.72))
     pool_alpha = float(p.get("pool_alpha", 0.0))
+    p_dup = min(0.5, max(0.0, float(p.get("p_dup", 0.0))))
+    alpha_dup = float(p.get("alpha_dup", 0.95))
+    dup_window = int(round(float(p.get("dup_window", 0.0)))) or arr_window
     path_mix = min(1.0, max(0.0, float(p.get("path_mix", 1.0))))
     rho = min(1.0, max(0.0, float(p.get("rho", 0.0))))
     level_frames = bool(round(p.get("level_frames", 0.0)))
@@ -615,4 +624,25 @@ def segment_corpus(
                 acc += (bamp * bco[:, j])[:, None] * pool[bdir[:, j]]
             del bdir, bco
         out[cs:ce] = acc
-    return normalize(out)
+    out = normalize(out)
+    if p_dup > 0.0:
+        # Near-duplicate ladder (R82, the g1exp mechanism): a keyed fraction
+        # of rows becomes a near-copy of a keyed source row in the same
+        # arr_window window — the low-dimensional structure that only dense
+        # samples resolve. Depth-1: sources are always base rows, so random
+        # access needs at most one extra emission and no recursion.
+        gate = hash_uniform(want, count=1, salt=131)[..., 0] < p_dup
+        if gate.any():
+            win0 = (want // np.int64(dup_window)) * np.int64(dup_window)
+            src = win0 + hash_index(want, count=1, modulus=dup_window, salt=137)[..., 0]
+            gi = np.nonzero(gate)[0]
+            u_src, s_inv = np.unique(src[gi], return_inverse=True)
+            base_p = dict(p)
+            base_p["p_dup"] = 0.0
+            src_rows = segment_corpus(base_p, 0, dim, seed, chunk=chunk, rows=u_src)
+            a = np.float32(alpha_dup)
+            b = np.float32(np.sqrt(max(0.0, 1.0 - float(alpha_dup) ** 2)))
+            # normalize ONLY the blended rows: renormalizing already-unit
+            # plain rows would shift last bits and break batch invariance
+            out[gi] = normalize(a * src_rows[s_inv] + b * out[gi])
+    return out
