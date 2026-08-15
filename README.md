@@ -185,7 +185,19 @@ documents) ran the seam question to a measured conclusion:
   IVF probe depth ([`results/R80_ANN.md`](results/R80_ANN.md)); the
   sealed §6 prediction battery is preserved unopened, with the §5 bound
   making a data-free open pointless — recorded as the registered
-  terminus the pre-registration itself anticipated.
+  terminus the pre-registration itself anticipated. The boundary has
+  since narrowed from the inside: the frozen candidate family's echo
+  groups move IVF difficulty 5× off the self-similar floor (np@95
+  10–11 vs the old 2; real 47–50) with no ANN-targeted tuning
+  ([`results/R106_S1_DIFFICULTY.md`](results/R106_S1_DIFFICULTY.md)).
+- **Fleet-scale tooling shipped.** Regeneration now has a bit-exact GPU
+  path (`openvector_bench/segment_gen_gpu.py`: reductions stay on CPU
+  in reference order, hashing/gathers on GPU; verified byte-identical
+  against the frozen identities; ~53 MB/s per GV100 vs ~3 MB/s per CPU
+  core), and every tier of a fleet run gets a difficulty label from
+  `openvector_bench/difficulty_audit.py` — the R80 IVF panel packaged
+  with the frozen real-Wikipedia reference band, so synthetic tiers
+  report where they sit between self-similar-easy and real-hard.
 
 The scientific product is written up in
 [`paper/profile/PROFILE_PAPER.md`](paper/profile/PROFILE_PAPER.md)
