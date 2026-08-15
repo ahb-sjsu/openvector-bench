@@ -582,3 +582,51 @@ methodological consequence is registered and binding on future rounds:
 **held-out draws must be at least eight blocks, fixed before the
 freeze.** Verification against a heterogeneous corpus needs the same
 statistical care as the fitting it polices.
+
+
+---
+
+## 15. Where generation ends: the admission bar as a memorization detector
+
+The program's final campaigns (`results/R101`–`R104`,
+`RC13_VERDICT.md`, `RC14_VERDICT.md`) ran the original pre-registered
+battery — including its query-side battery B, which no corpus-side
+measurement in seventeen campaigns had exercised — and closed the arc
+with its deepest structural result.
+
+**Battery A — every statistic computable from the corpus alone — is
+essentially achieved.** Under the registered bands (wider than this
+paper's block-derived ones: the original ±20% admits the dims90 ratio
+of 1.18 that our stricter protocol recorded as structural), the frozen
+family passes the corpus-side battery nearly everywhere, and two
+long-standing anomalies dissolved on contact with the original
+protocol: the ball-growth heat was a missing-mean artifact (restoring
+the corpus mean fixes G2 12/12), and the deconvolved hubness skew
+matches at the level (its cell failures are estimator variance).
+
+**Battery B — the same statistics measured for real query vectors
+against the synthetic corpus — is bounded away, and the bound is
+measurable.** Real queries land in specific micro-neighbourhoods of
+the real cloud. A data-free generator can be brought into real's
+coordinate system by train-fitted maps — rotation and mean restoration
+recover retention from 0.07 to 0.77 and halve the local-dimension
+inflation — but the full licensed hierarchy (linear maps, then
+compressed-density placement under a declared memorization guard of no
+component finer than 32 rows) bottoms out at an inflation of ×2.0–2.6.
+Granularity fine enough to go further is, by the guard's own
+definition, storage of the data. **The pre-registration's all-cells
+admission rule therefore separates generation from memorization: it is
+passable by a generator only to the extent that the generator ceases
+to generate.**
+
+This is the honest terminus the pre-registration itself anticipated
+("if validation fails, the family stops at the seam and says so") —
+reached with the reason measured rather than suspected, and with the
+sealed test preserved unopened as a matter of record. Read together
+with §13, the two boundaries frame what synthetic benchmark corpora
+can and cannot be: corpus-side geometry and its density response are
+reproducible to registered tolerances by a bit-exact, random-access
+generator; the experience of real queries, and the behaviour of real
+indexes, retain an irreducible dependence on the data itself. A
+benchmark that needs the former has an artifact ready; a benchmark
+that needs the latter needs the corpus.
