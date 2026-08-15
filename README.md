@@ -11,10 +11,14 @@
 A **nested, content-addressed benchmark family** for vector search at
 **10⁶–10¹² rows**, with three independent notions of a correct answer.
 
-> **Status: design & validation stage — no tier is published yet.** The specs are
-> registered and the geometry battery runs; nothing above the real/procedural seam
-> ships until the registered validations (RC-1, RC-2) pass — and if they fail, the
-> family stops at the seam and says so. **[→ Status and results](#status-and-results)**
+> **Status: the RC-1 validation program is complete (2026-08), and its registered
+> terminus is a measurement.** Corpus-side geometry — including the density
+> response — is essentially achieved by a frozen, bit-exact, random-access
+> generator under the registered bands. The query-side battery is bounded at
+> ×2.0–2.6 for the deterministic generator class this benchmark mandates: the
+> admission rule turned out to be a memorization-sensitivity probe. The family
+> stops at the seam, as pre-registered, with the reason measured rather than
+> suspected; no tier is published. **[→ Status and results](#status-and-results)**
 
 ## The idea in one picture
 
@@ -148,40 +152,48 @@ flowchart LR
     class R1,R2 block;
 ```
 
-### Where the seam stands after four campaigns
+### Where the seam stands: the program's terminus
 
-The generator search ran four pre-registered campaigns in 2026 (every arm,
-miss, and kill committed in [`results/`](results/); ~340 configuration
-evaluations disclosed across [`spec/RC2_FREEZE.md`](spec/RC2_FREEZE.md) §4
-and [`spec/RC3_FREEZE.md`](spec/RC3_FREEZE.md) §4):
+Twenty-two pre-registered campaigns (2026, `results/R21`–`R105`, every
+arm, kill, and one-shot committed; budgets disclosed in the freeze
+documents) ran the seam question to a measured conclusion:
 
-- **The deliverable exists**: a deterministic, bit-exact, chunk-invariant,
-  **random-access** generator ([`segment_gen.py`](openvector_bench/segment_gen.py))
-  whose geometry was judged on held-out real blocks under freeze-first
-  discipline — byte identity, expected outcome, and search budget declared
-  before any unseen data was touched, twice.
-- **RC-3's verdict is the frontier**: 8/10 registered criteria in band on
-  four untouched blocks, including the mandatory intrinsic-dimension /
-  contrast / hubness trio — the admission-critical result no prior family
-  reached on unseen data ([`results/RC3_VERDICT.md`](results/RC3_VERDICT.md)).
-- **The two residuals are precisely mapped, and RC-4 proved them
-  family-level** ([`results/RC4_VERDICT.md`](results/RC4_VERDICT.md)):
-  dims90 and PCA retention cannot jointly reach real under *any* reshaping
-  of the shared direction pool (four spectral forms refuted) — real keeps
-  neighbour-relevant variance partly outside its top PCA dimensions, which
-  a shared pool cannot express; and every g1exp lever tried slides along a
-  trend↔exponent trade curve instead of shifting it.
-- **A methodology finding with reach beyond this project**: real's own
-  block-to-block drift is comparable to several admission windows (its
-  density response varies 2.4× across corpus regions), so bands registered
-  from few blocks systematically over-exclude
-  ([`results/R68_REBAND10.md`](results/R68_REBAND10.md)).
+- **Corpus-side geometry: essentially achieved.** The frozen family
+  (`openvector_bench/segment_gen.py`, three recoverable hashed
+  identities) passes the original registered battery's corpus-side
+  cells nearly everywhere, with the density response — the axis eleven
+  campaigns of registered kills established as the hard part —
+  certified held-out ([`results/RC12_VERDICT.md`](results/RC12_VERDICT.md)).
+  Two long-standing anomalies dissolved under the original protocol:
+  ball-growth heat was a missing-mean artifact; the deconvolved hubness
+  skew matches at the level ([`results/RC13_VERDICT.md`](results/RC13_VERDICT.md)).
+- **Query-side geometry: bounded, and the bound is the result.** Real
+  query vectors carry local placement information that only the data
+  contains. Across the full licensed mechanism hierarchy — train-fitted
+  rotation, mean restoration, spectral matching, and compressed-density
+  placement under a declared memorization guard — the query-side
+  battery's core is invariant at ×2.0–2.6
+  ([`results/RC14_VERDICT.md`](results/RC14_VERDICT.md)). Scoped
+  precisely: within deterministic, byte-reproducible generators using
+  at most compressed low-order train statistics, the registered
+  all-cells admission rule is unpassable — **query-side batteries
+  detect data-dependence that no corpus-side statistic reveals**
+  (paper §15). A description-length curve (mixture granularity from 64
+  components to row-anchoring) mapping battery-B closure against bits
+  of train data used is the program's closing measurement, in progress.
+- **ANN behaviour: its own boundary.** Matched geometry diverges 25× in
+  IVF probe depth ([`results/R80_ANN.md`](results/R80_ANN.md)); the
+  sealed §6 prediction battery is preserved unopened, with the §5 bound
+  making a data-free open pointless — recorded as the registered
+  terminus the pre-registration itself anticipated.
 
-**The sealed ANN-prediction test remains sealed.** Full geometric admission
-has not been reached; opening the seal early would burn the one shot.
-Successor work (RC-5, if attempted) requires an architecture change, not
-tuning: a generator whose fine-scale components have full amplitude in
-directions its global spectrum suppresses.
+The scientific product is written up in
+[`paper/profile/PROFILE_PAPER.md`](paper/profile/PROFILE_PAPER.md)
+(§1–§15): the dimension profile as corpus assembly, the constructive
+generator campaigns, the verdict-lottery methodology finding, the
+ANN-behaviour boundary, and where generation ends. Target venues:
+TMLR / NeurIPS Datasets & Benchmarks for the profile and boundary
+results; VLDB-adjacent venues for the benchmark-realism findings.
 
 ### Attacking the blocker: adversarial generator discovery
 
