@@ -1,101 +1,109 @@
-# Can you fake a dataset? We spent 22 experiments finding out — and the answer taught us something better
+# What synthetic embedding corpora can and cannot reproduce: results from a 22-campaign pre-registered study
 
 *Draft for LinkedIn — Andrew Bond*
 
-For the last stretch I've been running a research program with an unusual
-question at its center: **can a computer program stand in for a real
-dataset?**
+I'm sharing results from a research program on a question with direct
+consequences for how we benchmark vector search systems: **to what
+extent can a deterministic generator substitute for a real embedding
+corpus?**
 
-Here's why anyone would want that. Modern AI search runs on *embeddings* —
-every Wikipedia paragraph, every product description, every support ticket
-gets turned into a list of ~1,000 numbers, and "search" becomes finding
-the nearest lists-of-numbers to your query. Testing search engines at
-realistic scale takes billions of these vectors — hundreds of terabytes of
-data that almost nobody can host, download, or share. But if a small
-deterministic program could *generate* vectors that behave exactly like
-the real thing, a benchmark the size of a warehouse would ship as a file
-the size of an email. Anyone could rebuild it, byte for byte, and verify
-it cryptographically.
+The motivation is practical. Evaluating ANN indexes and vector
+databases at realistic scale requires corpora of 10⁹–10¹² embeddings —
+hundreds of terabytes that are effectively undistributable. A
+deterministic, byte-reproducible, random-access generator would reduce
+such a benchmark to a signed manifest of kilobytes: any party could
+regenerate any shard on demand and verify it cryptographically. Whether
+the generated data actually *behaves* like real data is the question
+the program set out to answer, across 22 pre-registered campaigns
+(~400 configuration evaluations against Cohere Embed-V3 over English
+Wikipedia, 41M rows), with all results — positive, negative, and
+boundary — in a public repository.
 
-So: can it be done? We ran the question to ground — 22 pre-registered
-experimental campaigns, several hundred generator configurations, every
-prediction and failure logged before touching the test data. Three
-findings came out the other side, and each one surprised me.
+Three findings.
 
-**1. The "dimension" of an embedding dataset measures the filing system,
-not the meaning.**
+**1. The intrinsic-dimension profile of an embedding corpus is a
+property of corpus assembly, not of the embedding model.**
 
-There's a widely-used statistic called intrinsic dimension — roughly, how
-many directions the data actually varies in. Embedding datasets show a
-famous, strange pattern in it, and the natural reading is that it reveals
-something deep about how language models organize meaning.
+Retrieval-scale corpora exhibit a well-known scale-resolved dimension
+profile: the local growth dimension rises steeply with neighborhood
+radius. The tempting interpretation — nested semantic manifolds, or
+model-specific geometry — is wrong. The profile is a two-population
+mixture created by document structure: a row has roughly 23
+index-local neighbors (same-article passages), after which neighbors
+are drawn from the global cloud, and the profile's ramp is the
+crossover. The controls are decisive: the profile responds to sampling
+density and clumpiness at fixed row count, a single adjacent row moves
+the TwoNN estimate from 26.1 to 14.1, and permuting row order —
+altering no vector — collapses the registered density-response spans
+to zero. The result replicates across MSMARCO-v2 (same encoder,
+different corpus) and DBpedia under two OpenAI encoders: the shape is
+universal, the levels are jointly corpus- and encoder-determined.
+Practical implication: intrinsic-dimension comparisons across corpora
+are not well-defined without matched sampling density and ordering,
+and any i.i.d. generative model is structurally excluded from
+reproducing the density response at any parameter setting.
 
-It doesn't. We found the pattern is produced by something almost
-embarrassingly mundane: *paragraphs from the same article sit next to each
-other*. Each row of the dataset has about 23 neighbors from its own
-article, and after that it's alone in the crowd. Shuffle the row order —
-touching not a single vector — and the entire pattern vanishes. The
-statistic everyone computes on the embedding is actually measuring how
-the corpus was assembled. One consequence for practitioners: comparing
-"intrinsic dimension" across datasets without controlling for sampling
-and ordering isn't comparing anything at all.
+**2. Matching geometry does not match index behavior.**
 
-**2. You can fool every geometry test — and still get caught instantly by
-a search engine.**
+Our strongest generator passed 8 of 10 registered geometric criteria
+on held-out data — intrinsic dimension, distance contrast, hubness,
+and both density-response summaries — with margins and cell-occupancy
+statistics nearly indistinguishable from real. Under identical
+IVF-flat pipelines, it was nevertheless **25× easier** to search:
+nprobe for 95% recall@10 of 2, versus 47–50 for the real corpus. The
+mechanism is identifiable: generated neighborhoods align with the
+partition k-means recovers, while real cross-document neighbors
+scatter across every cell. No standard geometric statistic measures
+this partition-scatter property, which implies that ANN benchmarks
+built on geometrically-validated synthetic data can systematically
+overstate system performance. We have since packaged the measurement
+as a per-corpus difficulty audit and calibrated it across four real
+corpora — which themselves spread 3× in probe depth (np@95 18–51), a
+caution against treating any single corpus as "realistic."
 
-Our best generator passed 8 of 10 registered geometric criteria on data
-it had never seen: dimension, contrast, hubness, even the subtle
-density-response behavior that provably no i.i.d. model can have. By every
-statistic in the standard playbook, it looks like Wikipedia.
+**3. Query-side batteries are memorization detectors, and the bound is
+dose-limited.**
 
-Then we put both through an actual search index. The real corpus makes
-the index work hard for its answers. Our impostor was **25× easier** —
-the index sees through it immediately, because the fake corpus's
-neighborhoods line up neatly with the clusters the index builds, while
-real data scatters its neighbors everywhere. None of the geometry
-statistics see this property at all. If you benchmark a search system on
-synthetic data and don't check this, your difficulty numbers are fiction.
-(We've since packaged the check as a one-command audit, and calibrated
-it across four real corpora — real datasets themselves vary 3× in
-difficulty, which is its own caution.)
+The deepest result concerns what generation cannot do in principle.
+Real query vectors carry per-row placement information about the
+corpus they were embedded against. Across the full licensed mechanism
+hierarchy — train-fitted rotation, mean restoration, spectral
+matching, and mixture-based density placement under a declared
+memorization guard — the query-side battery's core statistic remains
+inflated at ×2.0–2.6 for every deterministic, byte-reproducible
+generator using compressed train statistics. The closing measurement
+traced the full description-length curve, from 64 mixture components
+to contraction toward literal nearest train rows: the curve is flat.
+Closure saturates by K≈1024 components, and even the full train set —
+1.2 GB of stored data — reaches only ×2.0 at doses that preserve
+corpus-side geometry. The binding constraint is displacement toward
+the data, not bits of train data encoded. In consequence, the
+pre-registered admission rule functions as a memorization detector:
+it separates generation from storage along the entire continuum, and
+the replication identifies the signal it detects as region-to-region
+non-exchangeability of large ordered corpora — present at full
+strength in Wikipedia and MSMARCO, absent in small exchangeable sets.
 
-**3. The test we built to admit generators turned out to be a
-memorization detector.**
+**Methodology**
 
-The deepest result came from the test we could never pass. Real *queries*
-— the things users actually search for — carry information about exactly
-where they land in the real data cloud. We proved, across every mechanism
-we were allowed to use, that no honest generator can reproduce this: not
-with clever math, not with statistical summaries of the data, not even
-when we let the generator lean partway toward literal stored rows. The
-gap only closes when you cross the line into just... storing the dataset.
-And here's the elegant part: the amount of data you compress into the
-generator barely matters. We traced the whole curve from "4 megabytes of
-statistics" to "the entire dataset" — it's flat. What matters is how far
-you *displace* your synthetic points toward the real ones, and the
-corpus's own geometry police that displacement. Our admission test,
-designed to check realism, was unknowingly a detector for whether a
-"synthetic" dataset is secretly a copy.
+The program was run under strict pre-registration: every campaign
+declared its mechanisms, predicted outcomes, kill criteria, and search
+budget before touching held-out data; frozen candidates were
+identified by byte hash and judged in one-shot evaluations with no
+retries; adverse verdicts stood. Eleven mechanisms were eliminated by
+their own pre-stated falsifiers, and the map of those eliminations —
+a single spectral trade surface that the real corpus's statistics lie
+off of — is itself a central result. The verification process was
+also measured: held-out verdicts against a heterogeneous corpus
+proved sensitive to draw size (a four-block draw flipped a verdict on
+band variance alone), and the corrected protocol — minimum eight-block
+draws, fixed before freezing — is now registered and binding.
 
-**What I'd tell my students**
-
-The result I'm proudest of isn't a number — it's that the program was run
-so it could lose. Every campaign declared its mechanism, its predicted
-outcome, and its kill criterion *before* running; frozen candidates were
-judged once, on held-out data, no retries; when a verdict went against
-us, it stood. Eleven mechanisms died this way, each killed by its own
-pre-stated falsifier — and the map of those failures turned out to be
-the publishable result. We even measured the verdict process itself and
-caught it being a lottery (small held-out samples flip verdicts on
-sampling noise alone — so we fixed the protocol, and the fix is now a
-rule).
-
-Science isn't the art of being right. It's the discipline of making it
-cheap to find out you're wrong.
-
-The whole record — every experiment, every dead end, the frozen
-generator, the audit tools — is public:
-**github.com/ahb-sjsu/openvector-bench**. Two papers are on their way.
-If you work on vector search, embeddings, or benchmark design — or
-you're a student who wants to see what a fully pre-registered research
-program looks like in the open — I'd love to hear from you.
+The complete record — specifications, per-campaign verdicts, the
+frozen generator, audit tooling, and both papers in draft — is public
+at **github.com/ahb-sjsu/openvector-bench**. Two submissions are in
+preparation: the corpus-assembly result with its cross-corpus
+replication, and the generation boundary with the memorization bound.
+I welcome discussion from colleagues working on vector search,
+embedding geometry, benchmark design, or pre-registered evaluation
+methodology.
