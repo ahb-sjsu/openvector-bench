@@ -178,9 +178,13 @@ documents) ran the seam question to a measured conclusion:
   at most compressed low-order train statistics, the registered
   all-cells admission rule is unpassable — **query-side batteries
   detect data-dependence that no corpus-side statistic reveals**
-  (paper §15). A description-length curve (mixture granularity from 64
-  components to row-anchoring) mapping battery-B closure against bits
-  of train data used is the program's closing measurement, in progress.
+  (paper §15). The closing measurement
+  ([`results/R105_CURVE.md`](results/R105_CURVE.md), paper §16) traced
+  battery-B closure against artifact description length, from 64
+  mixture components to literal row-anchoring: **the curve is flat** —
+  closure saturates by K≈1024 and even the full-train-set memorization
+  endpoint stops at ×2.0 at corpus-compatible doses. The wall is
+  dose-limited, not bits-limited.
 - **ANN behaviour: its own boundary.** Matched geometry diverges 25× in
   IVF probe depth ([`results/R80_ANN.md`](results/R80_ANN.md)); the
   sealed §6 prediction battery is preserved unopened, with the §5 bound

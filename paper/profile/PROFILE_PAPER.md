@@ -641,3 +641,34 @@ generator; the experience of real queries, and the behaviour of real
 indexes, retain an irreducible dependence on the data itself. A
 benchmark that needs the former has an artifact ready; a benchmark
 that needs the latter needs the corpus.
+
+## 16. The description-length curve: the wall is dose-limited, not bits-limited
+
+Section 15 left one continuum untraced: between "distributional
+parameters" and "the data" lies a ladder of artifacts of increasing
+description length, and one could imagine the ×2.0–2.6 bound being a
+resource frontier — that a large enough compressed model of the train
+split would close the query-side battery before reaching literal
+storage. The closing measurement (R105) traces that ladder directly:
+train k-means skeletons at K ∈ {64, …, 65536} components (artifact
+size 256 KB → 268 MB) and, as the endpoint, contraction toward the
+*literal nearest train row* — the memorization limit, where the
+artifact is the entire 1.2 GB train split — each applied to the
+rotated, mean-restored candidate at contraction doses λ ∈ {0.20, 0.35}.
+
+The curve is flat. At λ = 0.20 the battery-B core saturates by
+K ≈ 1024 (g1@B ×2.44) and never improves beyond ×2.35 — *including at
+the memorization endpoint*: replacing a 4 MB mixture with the whole
+train set buys nothing. At λ = 0.35 the ladder descends slowly and the
+full train set reaches exactly ×2.00 — the floor §15 registered —
+while corpus-side cells visibly degrade. No variant of the fourteen
+admits (the registered expectation). Two conclusions sharpen the
+terminus. First, the bound is **dose-limited, not bits-limited**: what
+caps closure is how much displacement toward the data the corpus-side
+battery tolerates, not how many train bits the artifact encodes —
+description length is the wrong axis, per-row placement information is
+the right one. Second, the memorization detector of §15 is calibrated:
+even overtly data-anchored corpora at corpus-side-compatible doses
+sit at ×2.0, so the admission rule's rejection region covers the
+entire continuum from data-free generation to moderate-dose
+memorization, failing them all for the same measured reason.
