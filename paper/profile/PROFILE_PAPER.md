@@ -614,10 +614,21 @@ inflation — but the full licensed hierarchy (linear maps, then
 compressed-density placement under a declared memorization guard of no
 component finer than 32 rows) bottoms out at an inflation of ×2.0–2.6.
 Granularity fine enough to go further is, by the guard's own
-definition, storage of the data. **The pre-registration's all-cells
-admission rule therefore separates generation from memorization: it is
-passable by a generator only to the extent that the generator ceases
-to generate.**
+definition, storage of the data. **Scoped precisely: within the class
+of deterministic, byte-reproducible generators using at most compressed
+low-order train statistics — the class this benchmark's distribution
+requirements mandate — the query-side battery is unpassable, and the
+bound is measured at ×2.0–2.6.** Whether richer data-dependent models
+(a generative network trained on the train split, say) could close the
+gap without what one would want to call memorization is an open
+question this measurement sharpens rather than settles: such a model
+lies outside the byte-reproducibility constraint that motivates
+procedural generation here, and the continuum between "distributional
+parameters" and "the data" is exactly what the description-length curve
+of the next section is designed to trace. What is established is that
+query-side batteries detect data-dependence that no corpus-side
+statistic reveals — the property that makes them, in effect,
+memorization-sensitivity probes for synthetic corpora.
 
 This is the honest terminus the pre-registration itself anticipated
 ("if validation fails, the family stops at the seam and says so") —
