@@ -533,6 +533,15 @@ geometric admission was the right order for the wrong-way outcome we
 feared: the gate this work never reached is the one that would have
 caught what the geometry battery cannot see.
 
+One calibration, added after the cross-corpus replication (§17): the
+25× figure is relative to *this* corpus. Real corpora themselves spread
+~3× on the same probe-depth scale (np@95 18 for MSMARCO passages to 51
+for DBpedia under text-embedding-3-large), with Wikipedia-1024 at the
+hard end; and the frozen family's later echo-group mechanism, tuned
+only against geometric criteria, lands at np@95 10–11 — inside a
+factor of two of a real web-passage corpus. The boundary stands, but it
+is a corpus-relative boundary, not a universal constant.
+
 ---
 
 ## 14. Two more mechanisms, and the verdict lottery
@@ -672,3 +681,43 @@ even overtly data-anchored corpora at corpus-side-compatible doses
 sit at ×2.0, so the admission rule's rejection region covers the
 entire continuum from data-free generation to moderate-dose
 memorization, failing them all for the same measured reason.
+
+## 17. Cross-corpus replication: the shape is universal, the signal is structural
+
+Every quantitative claim so far is a claim about one corpus and one
+encoder. The replication (R107) reruns the identical measurement
+protocol on three corpora that vary the two axes independently:
+MSMARCO-v2 passages under the same Embed-V3 encoder (different text,
+same model), and DBpedia entity abstracts under both OpenAI ada-002
+and text-embedding-3-large (different encoder families, 1536-d).
+
+Three results. **First, the profile's shape replicates.** The density
+response — local intrinsic dimension falling as corpus density rises —
+appears in all four corpora under all three encoders (wiki 26.9→18.3
+across the n-grid; MSMARCO 18.7→14.9; DBpedia 33.2→26.4 and
+34.9→26.5), as do rank saturation and the contrast rise. The levels,
+however, are jointly corpus- and encoder-determined (dims90: 362 wiki
+vs 396 MSMARCO at matched encoder; 457 vs 610 for the same text under
+the two OpenAI encoders) — the matched-protocol requirement of §7 is
+not pedantry but the difference between a statistic and a number. One
+directional divergence is on record: PCA retention rises with density
+on the passage corpora and falls on the entity corpora.
+
+**Second, the battery-B phenomenon replicates where it should and
+vanishes where it should.** MSMARCO's held-out queries — rows from far
+past a 10M-row cap of a topically ordered stream — experience ×3.46
+the local ID of exchangeable holdout rows, matching wiki's ×3.01. The
+1M-row DBpedia sets, which have no "far past the cap," show ×1.29 and
+×0.97: no signal. Battery B's detector is therefore **corpus-region
+non-exchangeability** — placement drift across regions of a large
+ordered corpus — which no exchangeable model reproduces, per §15–§16,
+without carrying the data itself.
+
+**Third, ANN difficulty is corpus-relative** (§13's calibration): real
+corpora spread np@95 18–51 on the R80 scale, and a geometrically
+admitted generator sits at 10–11 — below the entire real range, but
+within a factor of two of its soft end, not the 25× of the hardest
+corpus. Taken together the replication upgrades the paper's central
+claims from properties of Wikipedia-1024 to properties of large
+embedded corpora as a class, while marking exactly which numbers
+(levels, difficulty multiples) must be re-measured per corpus.

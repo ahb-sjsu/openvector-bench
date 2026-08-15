@@ -194,6 +194,16 @@ documents) ran the seam question to a measured conclusion:
   groups move IVF difficulty 5× off the self-similar floor (np@95
   10–11 vs the old 2; real 47–50) with no ANN-targeted tuning
   ([`results/R106_S1_DIFFICULTY.md`](results/R106_S1_DIFFICULTY.md)).
+- **Cross-corpus replication done.** The profile's shape — density
+  response, rank saturation, contrast rise — replicates on MSMARCO-v2
+  (same encoder) and DBpedia under two OpenAI encoders; levels are
+  corpus×encoder-specific. The query-side battery's signal replicates
+  at full strength on the second large ordered corpus (×3.46 vs wiki's
+  ×3.01) and vanishes on the small exchangeable ones — battery B
+  measures corpus-region non-exchangeability. Real corpora spread
+  np@95 18–51, so ANN-difficulty multiples are corpus-relative
+  ([`results/R107_REPLICATION.md`](results/R107_REPLICATION.md),
+  paper §17).
 - **Fleet-scale tooling shipped.** Regeneration now has a bit-exact GPU
   path (`openvector_bench/segment_gen_gpu.py`: reductions stay on CPU
   in reference order, hashing/gathers on GPU; verified byte-identical
