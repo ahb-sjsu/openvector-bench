@@ -65,6 +65,84 @@ mechanisms, expected outcomes, kill criteria, and search budget before
 touching held-out data; frozen configurations are identified by byte
 hash; verdicts are one-shot.
 
+### 1.1 The search arc: from registered exclusion to eight-of-ten held-out
+
+If the profile is created by corpus assembly, a generator that *builds in*
+the assembly — contiguous articles, segments, an ordered row sequence —
+should reproduce what i.i.d. emission structurally cannot. We ran that
+search to a registered conclusion: a five-phase campaign of 116 full-panel
+arms (`RC1_PLAN.md`, `R62`–`R66`; ~200+ configuration evaluations across
+the wider arc, all disclosed in `spec/RC2_FREEZE.md` §4), ending in a
+frozen, bit-exact, random-access generator
+(`openvector_bench.segment_corpus`) evaluated **once** against four
+held-out real blocks at offsets no round had touched
+(`results/RC2_VERDICT.md`).
+
+Three mechanisms were found, each moving a statistic nothing else moved:
+the within-segment level-variance **decay with an unstructured per-row
+ball** is the intrinsic-dimension lever (4.4 → 16.3 against real's ~17);
+**keyed sharing of direction sets across neighbourhoods** is the hubness
+lever; and **per-level arrangement frames** — giving each coarse
+organisational scale its own subspace instead of one shared low-rank frame
+— is what lets the ratio *trend* enter its band, seed-robustly. The last
+is the interesting one: a single shared frame is a hard ceiling on
+coarse-scale dimension, and every density-response failure of the
+single-frame family pointed at it coherently.
+
+The held-out verdict is the companion paper's thesis read back from
+the generative side. The frozen family lands the **fixed-density neighbourhood geometry**
+on data it never saw — TwoNN dimension 16.31 against a held-out band
+[15.0, 19.1], distance contrast 1.377 in [1.362, 1.397], hubness, PCA
+retention and effective rank within 1–3% of their bands — and is excluded
+by exactly the **density-response** criteria of §3–§6: the five-pool
+ladder's spans and levels, and the four-rung trend against the held-out
+band. The static snapshot of the cloud is constructible; how the geometry
+moves as sampling thins is what no configuration reached, and the
+campaign's error bars say why: the spans' generation-seed variance is 4×
+their admission window — a property of the family, not a tuning gap.
+
+Two incidental findings deserve record. First, an early port of the frozen
+family accidentally ran a controlled experiment: changing *only* the
+article-length law and the cluster-assignment rule — no vector-construction
+parameter — moved `s(14)` from 16.6 to 38.3 and hubness skew from 1.77 to
+2.43 (`RC2_FREEZE.md` §6). The "bookkeeping" of corpus layout carries as
+much of the geometry as the embedding construction, which is this paper's
+claim in miniature. Second, the held-out blocks moved some of real's own
+targets (companion draft A §9), so part of the residual mismatch is real-vs-real drift, not
+generator-vs-real error.
+
+The search's discipline is part of the result: the configuration was frozen
+with its byte hash, expected outcome and full search budget declared before
+the held-out data was touched, and the verdict — exclusion — is reported
+under the freeze's own pre-stated rule. The profile's density response
+remains unreproduced by any known deterministic generator, now as a
+registered negative with quantified misses rather than an absence of
+attempts.
+
+A second campaign (RC-3, 60 arms, `results/R68`–`R74`) revised that
+statement upward under bands that respect real's measured heterogeneity —
+ten fresh blocks showed the corpus's own density response varies 2.4×
+block-to-block, with weakly-articulated regions (g1 ≈ 20, span ≈ 1)
+alongside strongly-articulated ones. One added mechanism (a power-law
+amplitude profile over the shared direction pool) and one relocated break
+rate produced a configuration that, frozen and evaluated once on four
+further untouched blocks, passes **eight of ten** registered criteria —
+including the mandatory intrinsic-dimension / contrast / hubness trio,
+in band held-out for the first time, and the ratio trend and both §3b
+spans. The two residuals are precise: dims90 (417 vs real's razor-stable
+352–365) and the G1-vs-n exponent (−0.11 vs −0.17). The constructive
+statement now reads: sequence-structured generation reproduces both the
+fixed-density geometry and the leading density-response summaries; what
+still resists is the exact PCA tail shape and the rate at which dimension
+falls with sample size (`results/RC3_VERDICT.md`).
+
+Two further campaigns (RC-4 and RC-5, 80 arms, `results/R75`–`R79`)
+converted those residuals into a structural claim about the family
+itself: five pre-registered spectral mechanisms, five registered kills,
+one trade surface — §2.
+
+---
+
 ## 2. Five architectures, one trade surface
 
 The frozen family's residual misses are spectral: real holds
@@ -74,6 +152,21 @@ and **effective rank ≈ 175** *simultaneously*, while the generator at its
 frozen point sits at 417 / 0.742 / 150. Closing dims90 without breaking
 the other two became a five-way mechanism hunt across two campaigns, each
 mechanism named and given a kill criterion before its first arm ran.
+
+The scope of the claim that follows should be fixed before the table:
+all five architectures share one structural commitment — **every
+component of the generator (coarse arrangement, segment centres,
+within-segment paths, per-row balls) composes its directions from a
+common keyed direction vocabulary** (the shared pool that makes
+random-access bit-exact generation cheap). What varies across the five
+is where and how spectral shaping is applied to that vocabulary. The
+trade surface is therefore a measured property of the
+shared-vocabulary family, not of deterministic generation as such — a
+family that gave each component an independent direction basis could
+in principle leave the surface, at the cost of the shared-pool
+mechanism that produces realistic hubness (the campaign record shows
+that cost is real: architecture 4's partitioned pool was killed by
+exactly it).
 
 | # | mechanism (rounds) | best dims90 reached | at that point | kill |
 |---|---|---|---|---|
@@ -121,8 +214,15 @@ trade-surface statement, not from further levers on this one.
 ## 3. Matching the geometry does not match the index
 
 The frozen generator's final characterization is the sharpest lesson in
-the arc (`results/R80_ANN.md`). Identical IVF-flat pipelines (k-means,
-1024 cells, fixed seeds) over three real blocks and two generator seeds:
+the arc (`results/R80_ANN.md`). The protocol, stated once: IVF-flat over
+L2-normalised vectors under inner-product (cosine) similarity;
+nlist = 1024 cells from k-means (20 iterations, seed 7) on a 590k-row
+base; 10,000 queries drawn as an exchangeable holdout from the same
+pool (seed 31); exact top-10 ground truth; recall@10 at probe depth p
+is cell-membership recall — the fraction of true neighbours whose cell
+ranks among the query's p closest centroids, exactly IVF-flat recall
+at that depth. Identical pipelines over three real blocks and two
+generator seeds:
 
 | | real (3 blocks) | generator (2 seeds) |
 |---|---|---|
@@ -240,7 +340,14 @@ matches at the level (its cell failures are estimator variance).
 
 **Battery B — the same statistics measured for real query vectors
 against the synthetic corpus — is bounded away, and the bound is
-measurable.** Real queries land in specific micro-neighbourhoods of
+measurable.** (Terminology, used from here on: battery A computes the
+eight registered statistics with queries held out *from the corpus
+under test*; battery B computes them with *real* query vectors against
+that corpus. "The battery-B core" is g1@B — the TwoNN local intrinsic
+dimension that real queries experience against the candidate, quoted
+as a ratio to the same measurement against real — together with g8@B,
+PCA-256 neighbour retention under the same pairing; these two carried
+every failure.) Real queries land in specific micro-neighbourhoods of
 the real cloud. A data-free generator can be brought into real's
 coordinate system by train-fitted maps — rotation and mean restoration
 recover retention from 0.07 to 0.77 and halve the local-dimension
@@ -267,7 +374,17 @@ memorization-sensitivity probes for synthetic corpora.
 This is the honest terminus the pre-registration itself anticipated
 ("if validation fails, the family stops at the seam and says so") —
 reached with the reason measured rather than suspected, and with the
-sealed test preserved unopened as a matter of record. Read together
+sealed test preserved unopened as a matter of record. For the record's
+sake, that test is identified precisely: the sealed ANN prediction
+battery of the pre-registration (`spec/PREREG_RC1.md` §6, items 4–6 —
+items 1–3 are disclosed as compromised, since the open R80
+characterization fitted the statistics they predict), together with
+the sealed row split of §7 (blake2b(str(i)).digest()[0] mod 4 = 3 over
+corpus indices). Neither has ever been evaluated against any
+candidate; both remain sealed at submission, and under the program's terminus rule it stays sealed
+permanently — the §5 bound makes a data-free open pointless, and
+opening it for a data-anchored candidate would spend the seal to
+confirm a demonstrated negative. Read together
 with §3, the two boundaries frame what synthetic benchmark corpora
 can and cannot be: corpus-side geometry and its density response are
 reproducible to registered tolerances by a bit-exact, random-access
@@ -289,6 +406,12 @@ size 256 KB → 268 MB) and, as the endpoint, contraction toward the
 *literal nearest train row* — the memorization limit, where the
 artifact is the entire 1.2 GB train split — each applied to the
 rotated, mean-restored candidate at contraction doses λ ∈ {0.20, 0.35}.
+The dose is an interpolation weight in real coordinates: after the
+train-fitted rotation and mean restoration, each synthetic row moves
+toward its nearest anchor as x' = normalize(x + λ·(c(x) − x)), where
+c(x) is the nearest train k-means centroid (or, at the endpoint, the
+nearest train row). λ = 0 is the data-free candidate; λ = 1 places
+every row on its anchor.
 
 The curve is flat. At λ = 0.20 the battery-B core saturates by
 K ≈ 1024 (g1@B ×2.44) and never improves beyond ×2.35 — *including at

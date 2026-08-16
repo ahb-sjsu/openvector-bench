@@ -112,11 +112,48 @@ single-block point estimates.
 The graded encoder result invites a dimensional reading — wider embeddings, more
 ramp. It is wrong. At fixed family and training, doubling width changes the ramp
 11% (e5-base 768 → +0.523, e5-large 1024 → +0.582); at **fixed** 768 width,
-training regime moves it 7× (LaBSE +0.072 → e5-base +0.523) (`R23`).
+training regime moves it 7× (LaBSE +0.072 → e5-base +0.523) (`R23`). We
+register a hypothesis rather than a claim: contrastive training with
+hard (often same-document) negatives must *separate* related passages
+that weaker objectives are free to collapse, and the ramp tracks how
+far training resolves same-document passages into a tight local
+cluster distinct from the global cloud — testable by ablating the
+negative-sampling policy at fixed architecture.
+
+### 2.3 The mechanism at a glance
+
+The paper's argument is visible in one table — the same corpus, the
+same 25,000-row count, measured under the identical protocol; only the
+*arrangement* of the draw differs (data from §4 and §10):
+
+| sample | s(4) | s(500) | ratio | G1 (TwoNN) |
+|---|---|---|---|---|
+| ordered, clumped draw (whole articles present) | **8.82** | 35.73 | **4.050** | 15.85 |
+| ordered, spread draw (no adjacent rows) | 27.40 | 35.13 | 1.282 | 26.09 |
+| **permuted corpus**, same clumped draw | 27.97 | 35.82 | 1.281 | 26.48 |
+
+Same-document neighbours — a finite population of ~23 passages per
+row, measured directly in §5 — drop the small-k dimension from 27 to 9
+and leave s(500) untouched; the ramp is the crossover between that
+population and the global cloud. Permuting the row order, which
+changes no vector, restores the no-adjacent-neighbour curve exactly.
+Sections 3–5 establish each step of this table quantitatively, and
+§10 gives the permutation control in full.
 
 ---
 
 ## 3. Density, not row count
+
+Throughout, **density** is the contiguous-coverage fraction of the
+ordered corpus stream: a sample of n rows supported on a contiguous
+span of S rows has density n/S. It is a property of how the draw is
+arranged over the ordering, not of how many rows are drawn — the
+experiments below vary density at fixed row count (and, in §4, at
+fixed span). A uniform draw of 600k rows from the 41M-row stream has
+density 1.5%; the same 600k rows taken contiguously have density 1.
+Density and row count are conflated in most reported measurements
+because both change when a smaller corpus is sampled; this section
+separates them.
 
 The target is defined for a *dense contiguous* sample. Drawing 600k rows
 uniformly from 41M — 1.5% density, identical row count — collapses the ramp to
@@ -360,83 +397,39 @@ there predicts, since shuffling makes the row sequence carry no information.
   should show a *larger* ramp at matched density.
 
 
-## 11. The constructive test: a generator search, frozen and judged held-out
+## 11. The constructive test: the held-out verdict
 
-If the profile is created by corpus assembly, a generator that *builds in*
-the assembly — contiguous articles, segments, an ordered row sequence —
-should reproduce what i.i.d. emission structurally cannot. We ran that
-search to a registered conclusion: a five-phase campaign of 116 full-panel
-arms (`RC1_PLAN.md`, `R62`–`R66`; ~200+ configuration evaluations across
-the wider arc, all disclosed in `spec/RC2_FREEZE.md` §4), ending in a
-frozen, bit-exact, random-access generator
-(`openvector_bench.segment_corpus`) evaluated **once** against four
-held-out real blocks at offsets no round had touched
-(`results/RC2_VERDICT.md`).
+If the profile is created by corpus assembly, a generator that
+*builds in* the assembly — contiguous articles, segments, an ordered
+row sequence — should reproduce what i.i.d. emission structurally
+cannot. We ran that search to a registered conclusion under strict
+pre-registration discipline (frozen byte-hashed configurations,
+declared budgets, one-shot held-out verdicts), and report the campaign
+detail — mechanisms, kills, and the family's measured boundary — in
+the companion paper (draft B). What matters here is the verdict.
 
-Three mechanisms were found, each moving a statistic nothing else moved:
-the within-segment level-variance **decay with an unstructured per-row
-ball** is the intrinsic-dimension lever (4.4 → 16.3 against real's ~17);
-**keyed sharing of direction sets across neighbourhoods** is the hubness
-lever; and **per-level arrangement frames** — giving each coarse
-organisational scale its own subspace instead of one shared low-rank frame
-— is what lets the ratio *trend* enter its band, seed-robustly. The last
-is the interesting one: a single shared frame is a hard ceiling on
-coarse-scale dimension, and every density-response failure of the
-single-frame family pointed at it coherently.
+A first frozen candidate was **excluded** held-out, matching the
+fixed-density neighbourhood geometry (TwoNN 16.31 against band
+[15.0, 19.1]; contrast, hubness, retention, effective rank within
+1–3%) and failing exactly the density-response criteria of §3–§6
+(`results/RC2_VERDICT.md`). One revision cycle later, a successor
+frozen at bands that respect the corpus's own measured heterogeneity
+passed **eight of ten** registered criteria on four further untouched
+blocks — including the mandatory intrinsic-dimension / contrast /
+hubness trio and both density-response spans, in band held-out for the
+first time (`results/RC3_VERDICT.md`). The two residuals are spectral
+(dims90 417 vs real's razor-stable 352–365; G1-vs-n exponent −0.11 vs
+−0.17).
 
-The held-out verdict is the paper's thesis read back from the generative
-side. The frozen family lands the **fixed-density neighbourhood geometry**
-on data it never saw — TwoNN dimension 16.31 against a held-out band
-[15.0, 19.1], distance contrast 1.377 in [1.362, 1.397], hubness, PCA
-retention and effective rank within 1–3% of their bands — and is excluded
-by exactly the **density-response** criteria of §3–§6: the five-pool
-ladder's spans and levels, and the four-rung trend against the held-out
-band. The static snapshot of the cloud is constructible; how the geometry
-moves as sampling thins is what no configuration reached, and the
-campaign's error bars say why: the spans' generation-seed variance is 4×
-their admission window — a property of the family, not a tuning gap.
-
-Two incidental findings deserve record. First, an early port of the frozen
-family accidentally ran a controlled experiment: changing *only* the
-article-length law and the cluster-assignment rule — no vector-construction
-parameter — moved `s(14)` from 16.6 to 38.3 and hubness skew from 1.77 to
-2.43 (`RC2_FREEZE.md` §6). The "bookkeeping" of corpus layout carries as
-much of the geometry as the embedding construction, which is this paper's
-claim in miniature. Second, the held-out blocks moved some of real's own
-targets (§9), so part of the residual mismatch is real-vs-real drift, not
-generator-vs-real error.
-
-The search's discipline is part of the result: the configuration was frozen
-with its byte hash, expected outcome and full search budget declared before
-the held-out data was touched, and the verdict — exclusion — is reported
-under the freeze's own pre-stated rule. The profile's density response
-remains unreproduced by any known deterministic generator, now as a
-registered negative with quantified misses rather than an absence of
-attempts.
-
-A second campaign (RC-3, 60 arms, `results/R68`–`R74`) revised that
-statement upward under bands that respect real's measured heterogeneity —
-ten fresh blocks showed the corpus's own density response varies 2.4×
-block-to-block, with weakly-articulated regions (g1 ≈ 20, span ≈ 1)
-alongside strongly-articulated ones. One added mechanism (a power-law
-amplitude profile over the shared direction pool) and one relocated break
-rate produced a configuration that, frozen and evaluated once on four
-further untouched blocks, passes **eight of ten** registered criteria —
-including the mandatory intrinsic-dimension / contrast / hubness trio,
-in band held-out for the first time, and the ratio trend and both §3b
-spans. The two residuals are precise: dims90 (417 vs real's razor-stable
-352–365) and the G1-vs-n exponent (−0.11 vs −0.17). The constructive
-statement now reads: sequence-structured generation reproduces both the
-fixed-density geometry and the leading density-response summaries; what
-still resists is the exact PCA tail shape and the rate at which dimension
-falls with sample size (`results/RC3_VERDICT.md`).
-
-Two further campaigns (RC-4 and RC-5, 80 arms, `results/R75`–`R79`)
-converted those residuals into a structural claim about the family
-itself: five pre-registered spectral mechanisms, five registered kills,
-one trade surface — mapped in the companion paper (draft B, §2).
-
----
+The verdict is the paper's thesis read back generatively:
+sequence-structured generation reproduces both the fixed-density
+geometry and the leading density-response summaries; i.i.d. emission
+reproduces neither at any parameter setting (§6). One incidental
+finding deserves record here: an early port that changed *only* the
+article-length law and cluster-assignment rule — no vector-construction
+parameter — moved s(14) from 16.6 to 38.3 (`RC2_FREEZE.md` §6). The
+"bookkeeping" of corpus layout carries as much of the geometry as the
+vector construction, which is this paper's claim in miniature.
 
 ## 12. Cross-corpus replication: the shape is universal
 
