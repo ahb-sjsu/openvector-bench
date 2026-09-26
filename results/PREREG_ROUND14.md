@@ -130,6 +130,12 @@ that this round exists to test.
   **k = 10 is confirmed** and its target is +0.51/decade with a measurement
   spread of 0.07. The ±0.15 tolerance is roughly twice that spread and stands.
 
+  (Note 2026-09-25. The commit that made the amendment, 2008bc9, describes the
+  tolerance as "three times the between-protocol disagreement (0.07)". It is
+  about twice, 0.15 / 0.07 = 2.1, as this paragraph says. A commit message
+  cannot be corrected without rewriting history, so the correction is recorded
+  here.)
+
   **k = 30 is not confirmed.** Three measurements span 0.22, and the per-cell
   values are non-monotonic across the ladder, so the target carries more
   uncertainty than the tolerance it would be enforced with. A candidate
