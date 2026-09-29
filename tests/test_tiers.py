@@ -8,12 +8,17 @@ import hashlib
 import json
 import os
 
+import sys
+
 import numpy as np
 import pytest
 
-from harness.tiers import build_real_tiers as B
-from harness.tiers import gt_strata as G
-from openvector_bench import tiers as T
+# harness/ is scripts, not the installed package: import it from the checkout
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from harness.tiers import build_real_tiers as B  # noqa: E402
+from harness.tiers import gt_strata as G  # noqa: E402
+from openvector_bench import tiers as T  # noqa: E402
 
 
 def _rc1_sealed(i: int) -> bool:  # verbatim from harness/rc1/r11_calibration.py
